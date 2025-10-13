@@ -12,14 +12,10 @@ interface DateInputProps {
 }
 
 export default function DateInput({ value, onChange }: DateInputProps) {
-  const datePickerRef = useRef<DatePicker>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleIconClick = () => {
-    if (datePickerRef.current) {
-      // focus()를 통해 달력 열기
-      const input = (datePickerRef.current as any).input;
-      input?.focus();
-    }
+    inputRef.current?.focus();
   };
 
   return (
@@ -29,7 +25,6 @@ export default function DateInput({ value, onChange }: DateInputProps) {
       box-border"
     >
       <DatePicker
-        ref={datePickerRef}
         selected={value}
         onChange={(date) => onChange(date)}
         dateFormat="yy/MM/dd"
