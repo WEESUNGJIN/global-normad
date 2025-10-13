@@ -5,7 +5,11 @@ import GNB from "@/components/GNB";
 import Footer from "@/components/Footer";
 import SideMenu from "@/components/SideMenu";
 
-export default function ExperienceLayout() {
+export default function ExperienceLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div>
       {/* TODO: 공용 레이아웃 적용 후 GNB 제거 예정 */}
@@ -23,7 +27,7 @@ export default function ExperienceLayout() {
             {/* RIGHT */}
             <div className="space-y-8">
               {/* 헤더 */}
-              <header className="flex flex-wrap items-center justify-between gap-3">
+              <header className="flex flex-wrap items-center justify-between lg:w-[640px] gap-3">
                 <div>
                   <h1 className="typo-18-b">내 체험 관리</h1>
                   <p className="mt-2 typo-14-m text-gray-500">
@@ -36,7 +40,7 @@ export default function ExperienceLayout() {
               </header>
 
               {/* 카드 리스트 자리 */}
-              <section>{/* TODO: 카드 리스트 */}</section>
+              {children}
             </div>
           </div>
         </div>
