@@ -4,7 +4,7 @@ import IconStar from "@/assets/icon/icon_star_on.svg";
 import Image from "next/image";
 import React from "react";
 
-type ExperienceCardProps = {
+interface ExperienceCardProps {
   title: string;
   rating: number;
   reviewCount: number;
@@ -12,7 +12,7 @@ type ExperienceCardProps = {
   imageUrl: string;
   onEdit?: () => void;
   onDelete?: () => void;
-};
+}
 
 export default function ExperienceCard({
   title,
