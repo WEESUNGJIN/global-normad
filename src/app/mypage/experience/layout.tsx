@@ -34,7 +34,7 @@ export default function ExperienceLayout({
                     체험을 등록하거나 수정 및 삭제가 가능합니다.
                   </p>
                 </div>
-                <Link href="/mypage/experience/register">
+                <Link href="/experience-register">
                   <Button label="체험 등록하기" variant="primary" />
                 </Link>
               </header>
