@@ -1,0 +1,180 @@
+"use client";
+
+import React, { useState } from "react";
+import Image from "next/image";
+import Card from "@/components/Card";
+
+import iconArrowDown from "@/assets/icon/icon_alt arrow_down.svg";
+import iconCulture from "@/assets/icon/icon_music.svg";
+import iconFood from "@/assets/icon/icon_food.svg";
+import iconTour from "@/assets/icon/icon_tour.svg";
+import iconTravel from "@/assets/icon/icon_bus.svg";
+
+import fjordImg from "@/assets/img/fjord.png";
+import coastalvillageImg from "@/assets/img/coastalvillage.png";
+import reedforestImg from "@/assets/img/reedforest.png";
+import hotairballoonImg from "@/assets/img/hotairballoon.png";
+import bicycleImg from "@/assets/img/bicycle.png";
+import tropicalfishImg from "@/assets/img/tropicalfish.png";
+
+interface Category {
+  id: number;
+  name: string;
+  icon: string;
+  emoji?: string;
+}
+
+interface Activity {
+  id: number;
+  title: string;
+  bannerImageUrl: string;
+  rating: number;
+  reviewCount: number;
+  price: number;
+}
+
+const categories: Category[] = [
+  { id: 1, emoji: "🛼", name: "문화·예술", icon: iconCulture },
+  { id: 2, emoji: "🍽️", name: "식음료", icon: iconFood },
+  { id: 3, emoji: "🏙️", name: "투어", icon: iconTour },
+  { id: 4, emoji: "🚘", name: "관광", icon: iconTravel },
+];
+
+const activities: Activity[] = [
+  {
+    id: 1,
+    title: "피오르 체험",
+    bannerImageUrl: fjordImg.src,
+    rating: 3.9,
+    reviewCount: 108,
+    price: 42800,
+  },
+  {
+    id: 2,
+    title: "해안가 마을에서 1주일 살아보기",
+    bannerImageUrl: coastalvillageImg.src,
+    rating: 2.9,
+    reviewCount: 67,
+    price: 217000,
+  },
+  {
+    id: 3,
+    title: "부모님과 함께 갈대숲 체험",
+    bannerImageUrl: reedforestImg.src,
+    rating: 4.0,
+    reviewCount: 113,
+    price: 6000,
+  },
+  {
+    id: 4,
+    title: "열기구 페스티벌",
+    bannerImageUrl: hotairballoonImg.src,
+    rating: 4.1,
+    reviewCount: 85,
+    price: 35000,
+  },
+  {
+    id: 5,
+    title: "베트남 자전거 여행",
+    bannerImageUrl: bicycleImg.src,
+    rating: 3.9,
+    reviewCount: 108,
+    price: 42800,
+  },
+  {
+    id: 6,
+    title: "다양한 열대어 구경하기",
+    bannerImageUrl: tropicalfishImg.src,
+    rating: 4.3,
+    reviewCount: 18,
+    price: 12000,
+  },
+];
+
+export default function CategorySection() {
+  const [selectedCategory, setSelectedCategory] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const handleSelectCategory = (id: number) => setSelectedCategory(id);
+  const handlePageChange = (page: number) => setCurrentPage(page);
+
+  const selected = categories.find((c) => c.id === selectedCategory);
+
+  return (
+    <section className="px-6 pt-10 pb-32">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="typo-18-b text-text-primary">
+            <span className="mr-1">{selected?.emoji}</span>
+            {selected?.name}
+          </h2>
+        </div>
+        <button className="flex items-center gap-[4px] typo-16-m text-text-primary leading-none">
+          가격
+          <span className="relative w-5 h-5 flex-shrink-0">
+            <Image
+              src={iconArrowDown}
+              alt="가격 필터 버튼"
+              fill
+              className="object-contain"
+            />
+          </span>
+        </button>
+      </div>
+
+      <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => handleSelectCategory(cat.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition whitespace-nowrap
+              ${
+                selectedCategory === cat.id
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-text-primary border-border-default"
+              }`}
+          >
+            <Image src={cat.icon} alt={cat.name} width={18} height={18} />
+            <span className="typo-14-m">{cat.name}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+        {activities.map((act) => (
+          <Card key={act.id} className="flex-shrink-0 w-full">
+            <Card.Image src={act.bannerImageUrl} alt={act.title} />
+            <Card.Content>
+              <Card.Title className="line-clamp-1">{act.title}</Card.Title>
+              <Card.Meta rating={act.rating} count={act.reviewCount} />
+              <Card.Price
+                price={`₩ ${act.price.toLocaleString()}`}
+                unit="/ 인"
+              />
+            </Card.Content>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex justify-center items-center gap-3 mt-7">
+        <button className="text-gray-400 hover:text-gray-700">&lt;</button>
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4, 5].map((p) => (
+            <button
+              key={p}
+              onClick={() => handlePageChange(p)}
+              className={`w-6 h-6 rounded-md text-center ${
+                currentPage === p
+                  ? "text-blue-500 font-semibold border-b-2 border-blue-500"
+                  : "text-gray-400"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+        <button className="text-gray-400 hover:text-gray-700">&gt;</button>
+      </div>
+    </section>
+  );
+}
