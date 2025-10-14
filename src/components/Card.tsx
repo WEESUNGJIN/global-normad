@@ -88,7 +88,11 @@ const CardContent: React.FC<CardContentProps> = ({ className, children }) => (
       "relative z-10 -mt-[33px] md:-mt-[60px]",
       "rounded-2xl bg-white dark:bg-gray-900",
       "shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]",
+<<<<<<< HEAD
       "p-4",
+=======
+      "px-5 pt-5 pb-6",
+>>>>>>> acffd37 (Design: 메인 페이지 내 인기 체험 섹션 구현)
       className,
     )}
   >
@@ -109,6 +113,7 @@ const CardMeta: React.FC<CardMetaProps> = ({ rating, count, className }) => {
   return (
     <div
       className={clsx(
+<<<<<<< HEAD
         "flex gap-1 items-center mt-2 text-text-secondary",
         className,
       )}
@@ -122,6 +127,19 @@ const CardMeta: React.FC<CardMetaProps> = ({ rating, count, className }) => {
           <span className="typo-12-m text-text-secondary">({count})</span>
         )}
       </div>
+=======
+        "flex items-center gap-2 text-text-secondary mt-2",
+        className,
+      )}
+    >
+      <span aria-hidden>⭐</span>
+      <span className="typo-14-m">
+        {rating?.toFixed(1)}
+        {typeof count === "number" && (
+          <span className="ml-1 text-text-secondary">({count})</span>
+        )}
+      </span>
+>>>>>>> acffd37 (Design: 메인 페이지 내 인기 체험 섹션 구현)
     </div>
   );
 };
@@ -133,10 +151,17 @@ const CardPrice: React.FC<CardPriceProps> = ({
   right,
   className,
 }) => (
+<<<<<<< HEAD
   <div className={clsx("flex items-end justify-between mt-2", className)}>
     <div className="flex items-baseline gap-[2px]">
       <span className="typo-16-b text-text-primary">{price}</span>
       {unit && <span className="typo-12-sb text-text-secondary">{unit}</span>}
+=======
+  <div className={clsx("flex items-end justify-between mt-4", className)}>
+    <div className="flex items-baseline gap-1">
+      <span className="typo-20-b">{price}</span>
+      {unit && <span className="typo-14-m text-text-secondary">{unit}</span>}
+>>>>>>> acffd37 (Design: 메인 페이지 내 인기 체험 섹션 구현)
     </div>
     {right}
   </div>
