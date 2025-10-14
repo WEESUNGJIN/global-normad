@@ -218,22 +218,91 @@ export default function DemoPage() {
                 <h2 className="typo-18-b mb-4">List</h2>
                 <div className="grid gap-4">
                   <ListCard
-                    thumbnail="https://placehold.co/96"
+                    thumbnail="https://placehold.co/96x96"
                     title="열기구 투어"
-                    subtitle="성인 2명 · 09:00~13:30"
+                    subtitle="0000.00.00 · 11:00 - 12:30"
                     status="confirmed"
-                    price="₩ 35,000~"
-                    priceSub="세금 포함"
-                    ctaLabel="자세히"
+                    price="₩ 35,000"
+                    priceSub="/00명"
+                    ctaLabel="예약 하기"
+                    onClickCTA={() => console.log('예약하기 클릭')}
                   />
                   <ListCard
-                    thumbnail="https://placehold.co/96"
+                    thumbnail="https://placehold.co/96x96"
                     title="사막 지프투어"
-                    subtitle="성인 1명 · 10:00~12:00"
+                    subtitle="0000.00.00 · 11:00 - 12:30"
                     status="pending"
-                    price="₩ 49,000"
-                    priceSub="현장결제"
-                    ctaLabel="확인"
+                    price="₩ 35,000"
+                    priceSub="/00명"
+                    ctaLabel="예약 하기"
+                    onClickCTA={() => console.log('예약하기 클릭')}
+                  />
+                  <ListCard
+                    thumbnail="https://placehold.co/96x96"
+                    title="서핑 레슨"
+                    subtitle="0000.00.00 · 11:00 - 12:30"
+                    status="canceled"
+                    price="₩ 35,000"
+                    priceSub="/00명"
+                    onClickCTA={() => console.log('예약하기 클릭')}
+                  />
+                  <ListCard
+                    thumbnail="https://placehold.co/96x96"
+                    title="패러글라이딩"
+                    subtitle="0000.00.00 · 11:00 - 12:30"
+                    status="completed"
+                    price="₩ 35,000"
+                    priceSub="/00명"
+                    ctaLabel="후기 작성"
+                    onClickCTA={() => console.log('후기 작성 클릭')}
+                  />
+
+                  {/* PC 버전들 */}
+                  <ListCard
+                    variant="pc"
+                    thumbnail="https://placehold.co/128x128"
+                    title="title"
+                    subtitle="0000.00.00 · 11:00 - 12:30"
+                    status="confirmed"
+                    price="₩ 35,000"
+                    priceSub="/00명"
+                    showActions={true}
+                  />
+
+                  <ListCard
+                    variant="pc"
+                    thumbnail="https://placehold.co/128x128"
+                    title="title"
+                    subtitle="0000.00.00 · 11:00 - 12:30"
+                    status="confirmed"
+                    price="₩ 35,000"
+                    priceSub="/00명"
+                    ctaLabel="후기 작성"
+                    showActions={false}
+                  />
+
+                  {/* 모바일 버전들 */}
+                  <ListCard
+                    variant="mobile"
+                    thumbnail="https://placehold.co/300x128"
+                    title="title"
+                    subtitle="11:00 - 12:30"
+                    status="confirmed"
+                    price="₩ 35,000"
+                    priceSub="/00명"
+                    showActions={true}
+                  />
+
+                  <ListCard
+                    variant="mobile"
+                    thumbnail="https://placehold.co/300x128"
+                    title="title" 
+                    subtitle="11:00 - 12:30"
+                    status="confirmed"
+                    price="₩ 35,000"
+                    priceSub="/00명"
+                    ctaLabel="후기 작성"
+                    showActions={false}
                   />
                 </div>
               </section>
