@@ -7,6 +7,7 @@ import HeroSection from "@/components/main/HeroSection";
 import Footer from "@/components/Footer";
 import SearchSection from "@/components/main/SearchSection";
 import PopularSection from "@/components/main/PopularSection";
+import CategorySection from "@/components/main/CategorySection";
 
 export default function Main() {
   return (
@@ -24,6 +25,8 @@ export default function Main() {
       </div>
 
       <PopularSection />
+
+      <CategorySection />
 
       <Footer />
     </main>
