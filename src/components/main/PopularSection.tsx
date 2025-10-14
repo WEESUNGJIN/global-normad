@@ -44,7 +44,7 @@ const mockData: Activity[] = [
 
 export default function PopularSection() {
   return (
-    <section className="mt-14 pl-6">
+    <section className="pt-14 pl-6">
       <h2 className="typo-18-b mb-4">
         <span className="mr-1">🔥</span>
         인기 체험

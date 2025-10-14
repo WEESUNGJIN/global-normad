@@ -7,4 +7,17 @@
 @import "./variables.css";
 
 /* 선택: 전역 초기화 */
-html, body, #__next { height: 100%; }
+html,
+body,
+#__next {
+  height: 100%;
+}
+
+/* 스크롤바 숨김 유틸리티 */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none; /* Firefox */
+}
