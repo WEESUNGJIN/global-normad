@@ -57,6 +57,12 @@ module.exports = {
         "18-body-b": ["18px", "1.4"],
         "20-body-b": ["20px", "1.6"],
       },
+      spacing: {
+        82: "20.5rem",
+      },
+      boxShadow: {
+        searchbar: "0 4px 24px rgba(0, 0, 0, 0.09)",
+      },
     },
   },
   plugins: [],
