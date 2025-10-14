@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import backgroundSky from "@/assets/img/background_sky.png";
 import GNB from "@/components/GNB";
 import HeroSection from "@/components/main/HeroSection";
