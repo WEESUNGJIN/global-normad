@@ -24,7 +24,7 @@ export default function ExperienceCard({
   onDelete,
 }: ExperienceCardProps) {
   return (
-    <div className="flex rounded-3xl bg-white shadow-[0_4px_24px_rgba(156,180,202,0.2)] p-6 max-w-2xl  ">
+    <div className="flex rounded-3xl bg-white shadow-[0_4px_24px_rgba(156,180,202,0.2)] p-6 max-w-2xl mb-6">
       <div className="flex-1 ">
         <h3 className="typo-16-b md:typo-18-b">{title}</h3>
         <div className="flex mt-2 gap-0.5">
@@ -64,7 +64,7 @@ export default function ExperienceCard({
         </div>
       </div>
       {/* 오른쪽 이미지 */}
-      <div className="relative ml-6 w-[82px] h-[82px] md:w-[142px] md:h-[142px]">
+      <div className="relative ml-6 w-[82px] h-[82px]">
         <Image
           src={imageUrl}
           alt={title}
