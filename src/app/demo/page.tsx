@@ -197,7 +197,7 @@ export default function DemoPage() {
                         1시간 · 30km
                       </p>
                     </Card.Content>
-                    <Card.Price price="₩35,000~" sub="세금 포함" />
+                    <Card.Price price="₩35,000~" unit="세금 포함" />
                   </Card>
 
                   <Card className="w-64">
