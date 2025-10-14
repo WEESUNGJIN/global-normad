@@ -1,6 +1,8 @@
 "use client";
 import React from "react";
 import clsx from "clsx";
+import Image from "next/image";
+import starIcon from "@/assets/icon/icon_star_on.svg";
 
 /* ===========================================================
    Card Component (단일 파일)
@@ -40,12 +42,19 @@ interface CardPriceProps {
 
 /* ---------- Root ---------- */
 /**
- * 카드 전체를 감싸는 래퍼 (투명)
+ * 카드 전체를 감싸는 래퍼
  * - overflow-visible로 겹침 표현 가능
- * - 폭은 고정 262px, 필요 시 className으로 조절 가능
+ * - 폭은 고정 132px (섹션마다 조정 가능)
  */
 const CardRoot: React.FC<CardProps> = ({ className, children }) => (
-  <div className={clsx("relative w-[262px] overflow-visible", className)}>
+  <div
+    className={clsx(
+      "relative w-[132px] rounded-[20px] bg-white dark:bg-gray-900",
+      "shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]",
+      "overflow-hidden transition-shadow",
+      className,
+    )}
+  >
     {children}
   </div>
 );
@@ -55,34 +64,32 @@ const CardRoot: React.FC<CardProps> = ({ className, children }) => (
  * 카드 상단 이미지
  * - 라운드 20px로 동일하게
  * - overflow-hidden으로 클리핑
- * - ✅ 콘텐츠 박스와 같은 폭: mx-4 / md:mx-[17px]
  */
 const CardImage: React.FC<CardImageProps> = ({ src, alt, className }) => (
-  <div className={clsx("mx-4 md:mx-[17px]", className)}>
-    <div className="w-full h-[176px] md:h-[299px] rounded-[20px] overflow-hidden">
-      <img src={src} alt={alt} className="w-full h-full object-cover" />
-    </div>
+  <div
+    className={clsx(
+      "w-full h-[176px] md:h-[299px] rounded-[20px] overflow-hidden",
+      className,
+    )}
+  >
+    <img src={src} alt={alt} className="w-full h-full object-cover" />
   </div>
 );
 
 /* ---------- Content ---------- */
 /**
  * 이미지 위로 겹치는 흰 패널
- * - 위로 겹침(-mt)
- * - 좌우 인셋: mx-4(모바일), md:mx-[17px](데스크탑)
- * - 그림자/테두리/라운드 동일
+ * - 위로 살짝 겹치게 (-mt)
+ * - 라운드와 그림자 유지
  */
 const CardContent: React.FC<CardContentProps> = ({ className, children }) => (
   <div
     className={clsx(
-      "relative z-10",
-      "-mt-[33px] md:-mt-[60px]",
-      "mx-4 md:mx-[17px]",
-      "rounded-[20px] bg-white dark:bg-gray-900",
-      "border border-border-default",
+      "relative z-10 -mt-[33px] md:-mt-[60px]",
+      "rounded-2xl bg-white dark:bg-gray-900",
       "shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]",
-      "px-5 pt-5 pb-6",
-      className
+      "p-4",
+      className,
     )}
   >
     {children}
@@ -91,29 +98,45 @@ const CardContent: React.FC<CardContentProps> = ({ className, children }) => (
 
 /* ---------- Title ---------- */
 const CardTitle: React.FC<CardTitleProps> = ({ className, children }) => (
-  <h3 className={clsx("typo-16-b text-text-primary", className)}>{children}</h3>
+  <h3 className={clsx("typo-14-sb text-text-primary", className)}>
+    {children}
+  </h3>
 );
 
 /* ---------- Meta ---------- */
 const CardMeta: React.FC<CardMetaProps> = ({ rating, count, className }) => {
   if (rating == null && count == null) return null;
   return (
-    <div className={clsx("flex items-center gap-2 text-text-secondary mt-2", className)}>
-      <span aria-hidden>⭐</span>
-      <span className="typo-14-m">
-        {rating?.toFixed(1)}
-        {typeof count === "number" && <span className="ml-1 text-text-secondary">({count})</span>}
-      </span>
+    <div
+      className={clsx(
+        "flex gap-1 items-center mt-2 text-text-secondary",
+        className,
+      )}
+    >
+      <Image src={starIcon} alt="별점 아이콘" className="w-3 h-3" />
+      <div className="flex items-baseline gap-1">
+        <span className="typo-12-m text-text-primary">
+          {rating?.toFixed(1)}
+        </span>
+        {typeof count === "number" && (
+          <span className="typo-12-m text-text-secondary">({count})</span>
+        )}
+      </div>
     </div>
   );
 };
 
 /* ---------- Price ---------- */
-const CardPrice: React.FC<CardPriceProps> = ({ price, unit, right, className }) => (
-  <div className={clsx("flex items-end justify-between mt-4", className)}>
-    <div className="flex items-baseline gap-1">
-      <span className="typo-20-b">{price}</span>
-      {unit && <span className="typo-14-m text-text-secondary">{unit}</span>}
+const CardPrice: React.FC<CardPriceProps> = ({
+  price,
+  unit,
+  right,
+  className,
+}) => (
+  <div className={clsx("flex items-end justify-between mt-2", className)}>
+    <div className="flex items-baseline gap-[2px]">
+      <span className="typo-16-b text-text-primary">{price}</span>
+      {unit && <span className="typo-12-sb text-text-secondary">{unit}</span>}
     </div>
     {right}
   </div>

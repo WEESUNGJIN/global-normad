@@ -7,6 +7,7 @@ import GNB from "@/components/GNB";
 import HeroSection from "@/components/main/HeroSection";
 import Footer from "@/components/Footer";
 import SearchSection from "@/components/main/SearchSection";
+import PopularSection from "@/components/main/PopularSection";
 
 export default function Main() {
   return (
@@ -22,6 +23,8 @@ export default function Main() {
         <HeroSection />
         <SearchSection />
       </div>
+
+      <PopularSection />
 
       <Footer />
     </main>
