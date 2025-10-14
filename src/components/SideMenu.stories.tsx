@@ -1,53 +1,55 @@
 // src/components/SideMenu.stories.tsx
-import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
+import React, { useState } from "react";
 import SideMenu from "./SideMenu";
 
-const meta: Meta<typeof SideMenu> = {
+const meta = {
   title: "Components/SideMenu",
   component: SideMenu,
-};
+  parameters: { layout: "centered" },
+} satisfies Meta<typeof SideMenu>;
 export default meta;
 
-type Story = StoryObj<typeof SideMenu>;
+type Story = StoryObj<typeof meta>;
 
-/** Controls로만 확인하고 싶을 때 */
-export const WithControls: Story = {
-  render: (args) => (
-    <div className="w-[291px] bg-white p-0"> {/* 👈 시안 폭 고정 */}
-      <SideMenu {...args} />
+// ✅ Hook은 대문자 컴포넌트 안에서 사용
+function SideMenuStory(args: React.ComponentProps<typeof SideMenu>) {
+  const [currentPath, setCurrentPath] = useState<string>("/profile");
+
+  const paths = [
+    ["/profile", "내 정보"],
+    ["/bookings", "예약내역"],
+    ["/experiences", "내 체험 관리"],
+    ["/calendar", "예약 현황"],
+  ] as const;
+
+  return (
+    <div className="w-[291px]">
+      <SideMenu {...args} currentPath={currentPath} />
+
+      {/* 스토리북용 경로 스위처 (컴포넌트 외 UI) */}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {paths.map(([p, label]) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => setCurrentPath(p)}
+            className={`rounded-lg border px-3 py-1 text-sm ${
+              currentPath === p ? "bg-[#E5F3FF] text-[#3D9EF2] border-transparent" : "bg-white"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
-  ),
+  );
+}
+
+export const Primary: Story = {
+  render: (args) => <SideMenuStory {...args} />,
   args: {
     size: "lg",
-    currentPath: "/bookings",
-  },
-  argTypes: {
-    currentPath: {
-      control: { type: "select" },
-      options: ["/profile", "/bookings", "/experiences", "/calendar"],
-    },
-    size: { control: { type: "inline-radio" }, options: ["lg", "sm"] },
-  },
-};
-
-/** ✅ 클릭으로 활성 탭 변경 (라우팅 없이 useState로 처리) */
-export const ClickInteractive: Story = {
-  render: () => {
-    const [path, setPath] = useState("/bookings");
-
-    const onClickCapture: React.MouseEventHandler<HTMLDivElement> = (e) => {
-      const a = (e.target as HTMLElement).closest("a");
-      if (!a) return;
-      e.preventDefault(); // 스토리북 페이지 이동 차단
-      const href = a.getAttribute("href") ?? "";
-      setPath(href);
-    };
-
-    return (
-      <div className="w-[291px]" onClickCapture={onClickCapture}>
-        <SideMenu currentPath={path} />
-      </div>
-    );
+    // items를 안 넘기면 컴포넌트 내부 default 아이템(아이콘 포함) 사용
   },
 };
