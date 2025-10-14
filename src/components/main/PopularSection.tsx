@@ -59,7 +59,7 @@ export default function PopularSection() {
               <Card.Meta rating={exp.rating} count={exp.reviewCount} />
               <Card.Price
                 price={`₩ ${exp.price.toLocaleString()}`}
-                unit="/인"
+                unit="/ 인"
               />
             </Card.Content>
           </Card>
