@@ -33,8 +33,6 @@ export interface SideMenuProps {
   currentPath?: string;
 }
 
-const PRIMARY_BG = "#E5F3FF"; // primary_100
-const PRIMARY_FG = "#3D9EF2"; // primary_500
 
 export default function SideMenu({
   className,
