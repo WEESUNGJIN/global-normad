@@ -4,6 +4,7 @@ import { useState } from "react";
 import Input from "@/components/Input";
 import CategorySelect from "../mypage/experience/components/CategorySelect";
 import Button from "@/components/Button";
+import AddressInput from "../mypage/experience/components/AddressInput";
 
 export default function ExperienceRegisterPage() {
   const [selected, setSelected] = useState("");
@@ -60,7 +61,7 @@ export default function ExperienceRegisterPage() {
         {/* 주소 */}
         <div className="mb-6">
           <div className="mb-2 typo-16-b text-gray-950">주소</div>
-          <Input placeholder="주소를 입력해 주세요" />
+          <AddressInput />
         </div>
 
         {/* 예약 가능한 시간대 */}
