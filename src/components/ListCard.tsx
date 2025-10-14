@@ -36,6 +36,8 @@ export interface ListCardProps {
   // 레이아웃
   variant?: "pc" | "mobile";
 
+  showActions?: boolean;
+
   // 모바일 테스트용
   forceMobileState?: MobileState;
   actionsDisabled?: boolean;
