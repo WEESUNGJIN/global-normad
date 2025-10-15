@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Input from "@/components/Input";
-import CategorySelect from "../mypage/experience/components/CategorySelect";
+import CategorySelect from "@/app/mypage/experience/components/CategorySelect";
 import Button from "@/components/Button";
-import AddressInput from "../mypage/experience/components/AddressInput";
+import AddressInput from "@/app/mypage/experience/components/AddressInput";
+import DateSection from "../mypage/experience/components/DateSection";
+import PhotoSection from "../mypage/experience/components/PhotoSection";
 
 export default function ExperienceRegisterPage() {
   const [selected, setSelected] = useState("");
@@ -19,7 +21,7 @@ export default function ExperienceRegisterPage() {
 
   return (
     <main className="flex justify-center px-6">
-      <div className="w-full max-w-[610px] mt-12">
+      <div className="w-full max-w-[700px] mt-12">
         <h3 className="mb-6 typo-18-b">내 체험 등록</h3>
 
         {/* 제목 */}
@@ -66,17 +68,19 @@ export default function ExperienceRegisterPage() {
 
         {/* 예약 가능한 시간대 */}
         <div className="mb-6">
-          <div className="mb-2 typo-16-b text-gray-950">예약 가능한 시간대</div>
+          <DateSection />
         </div>
 
         {/* 배너 이미지 등록 */}
         <div className="mb-6">
           <div className="mb-2 typo-16-b text-gray-950">배너 이미지 등록</div>
+          <PhotoSection limit={1} />
         </div>
 
         {/* 소개 이미지 등록 */}
         <div className="mb-10">
           <div className="mb-2 typo-16-b text-gray-950">소개 이미지 등록</div>
+          <PhotoSection limit={4} />
         </div>
         <div className="flex justify-center mb-24">
           <Button label="등록하기" variant="primary" size="md" />
