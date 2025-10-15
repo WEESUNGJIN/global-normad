@@ -1,3 +1,5 @@
+import streetdanceImg from "@/assets/img/streetdance_main.png";
+
 export interface Activity {
   id: number;
   userId: number;
@@ -32,7 +34,7 @@ export const experienceMockData: ExperienceResponse = {
       category: "음식/음료",
       price: 45000,
       address: "서울시 마포구 연남동",
-      bannerImageUrl: "",
+      bannerImageUrl: streetdanceImg.src,
       rating: 4.9,
       reviewCount: 58,
       createdAt: "2025-10-10T14:00:00.000Z",
@@ -47,7 +49,7 @@ export const experienceMockData: ExperienceResponse = {
       category: "공예",
       price: 38000,
       address: "서울시 성동구 성수동",
-      bannerImageUrl: "",
+      bannerImageUrl: streetdanceImg.src,
       rating: 4.7,
       reviewCount: 32,
       createdAt: "2025-10-09T15:00:00.000Z",
@@ -62,7 +64,7 @@ export const experienceMockData: ExperienceResponse = {
       category: "플라워",
       price: 55000,
       address: "서울시 강남구 논현동",
-      bannerImageUrl: "",
+      bannerImageUrl: streetdanceImg.src,
       rating: 4.8,
       reviewCount: 41,
       createdAt: "2025-10-08T12:00:00.000Z",

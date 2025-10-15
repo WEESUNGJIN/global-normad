@@ -20,7 +20,7 @@ export default function DateInput({ value, onChange }: DateInputProps) {
 
   return (
     <div
-      className="relative flex justify-between items-center  w-[327px] sm:w-[344px] md:w-[360px] h-[54px] px-5 py-4 gap-[10px]
+      className="relative flex justify-between items-center  w-full sm:w-[344px] md:w-[360px] h-[54px] px-5 py-4 gap-[10px]
       bg-white border border-gray-100 shadow-[0_2px_6px_rgba(0,0,0,0.02)] rounded-2xl
       box-border"
     >
