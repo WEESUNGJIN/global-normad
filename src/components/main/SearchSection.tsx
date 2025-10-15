@@ -12,7 +12,7 @@ export default function SearchSection() {
         무엇을 체험하고 싶으신가요?
       </h2>
 
-      <div className="relative w-full max-w-82 mx-auto">
+      <div className="relative w-full mx-auto">
         <Input
           placeholder="내가 원하는 체험은"
           leadingIconSrc={iconSearch}

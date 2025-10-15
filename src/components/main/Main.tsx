@@ -19,8 +19,11 @@ export default function Main() {
         <GNB />
       </div>
 
-      <div className="px-6">
+      <div className="px-6 md:px-8 lg:px-100">
         <HeroSection />
+      </div>
+
+      <div className="px-6 md:px-8">
         <SearchSection />
       </div>
 
