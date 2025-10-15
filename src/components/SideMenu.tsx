@@ -36,27 +36,34 @@ interface SideMenuProps {
   avatarSrc?: StaticImageData | string;
   onEditClick?: () => void;
   size?: "lg" | "sm";
+  /** 스토리북/테스트에서 경로를 강제로 지정 (앱에선 필요 없음) */
+  activePath?: string;
 }
 
 export default function SideMenu({
   className,
   items = [
-    { href: "/#",     label: "내 정보",     icon: iconUser,     activeIcon: iconUserActive },
-    { href: "/#",    label: "예약내역",     icon: iconList,     activeIcon: iconListActive },
-    { href: "/#", label: "내 체험 관리", icon: iconSetting,  activeIcon: iconSettingActive },
-    { href: "/#",    label: "예약 현황",    icon: iconCalendar, activeIcon: iconCalendarActive },
+    { href: "/#", label: "내 정보", icon: iconUser, activeIcon: iconUserActive },
+    { href: "/#", label: "예약내역", icon: iconList, activeIcon: iconListActive },
+    { href: "/#", label: "내 체험 관리", icon: iconSetting, activeIcon: iconSettingActive },
+    { href: "/#", label: "예약 현황", icon: iconCalendar, activeIcon: iconCalendarActive },
   ],
   avatarSrc = avatarPng,
   onEditClick,
   size = "lg",
+  activePath,
 }: SideMenuProps) {
-  const pathname = usePathname();
+  // ✅ 핵심 1: null 가드(스토리북에서 usePathname()이 null이어도 안전)
+  const current = usePathname() ?? "";
+  // ✅ 핵심 2: 스토리북에선 activePath가 있으면 그걸 우선 사용
+  const pathname = activePath ?? current;
+
   const isLg = size === "lg";
   const avatarBox = isLg ? "w-28 h-28" : "w-16 h-16";
   const editSize = isLg ? "w-7 h-7" : "w-6 h-6";
 
   const isActive = (href?: string, exact?: boolean) => {
-    if (!href) return false;
+    if (!href || !pathname) return false;
     if (exact) return pathname === href;
     // /bookings 와 /bookings/123 모두 활성 처리
     return pathname === href || pathname.startsWith(href + "/");
@@ -126,14 +133,9 @@ export default function SideMenu({
                 alt=""
                 width={20}
                 height={20}
-                className={clsx("mr-3 object-contain")}
+                className="mr-3 object-contain"
               />
-              <span
-                className={clsx(
-                  "typo-14-m",
-                  active ? "text-primary-600" : "text-gray-700",
-                )}
-              >
+              <span className={clsx("typo-14-m", active ? "text-primary-600" : "text-gray-700")}>
                 {it.label}
               </span>
             </Link>
