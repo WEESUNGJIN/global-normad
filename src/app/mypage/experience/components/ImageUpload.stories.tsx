@@ -10,16 +10,34 @@ const meta: Meta<typeof ImageUpload> = {
 export default meta;
 type Story = StoryObj<typeof ImageUpload>;
 
-export const SingleImage: Story = {
+export const Default: Story = {
   args: {
-    limit: 1,
-    onChange: (files) => console.log("Single image:", files),
+    limit: 4,
+    count: 0,
+    onChange: (files) => console.log("업로드된 파일:", files),
   },
 };
 
-export const MultiImage: Story = {
+export const SingleUploaded: Story = {
   args: {
     limit: 4,
-    onChange: (files) => console.log("Multi images:", files),
+    count: 1,
+    onChange: (files) => console.log("1개 업로드:", files),
+  },
+};
+
+export const FullUploaded: Story = {
+  args: {
+    limit: 4,
+    count: 4,
+    onChange: (files) => console.log("모두 업로드됨:", files),
+  },
+};
+
+export const OneOfOne: Story = {
+  args: {
+    limit: 1,
+    count: 0,
+    onChange: (files) => console.log("1개 제한 업로드:", files),
   },
 };
