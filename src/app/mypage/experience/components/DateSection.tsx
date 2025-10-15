@@ -35,7 +35,11 @@ export default function DateSection() {
     setSlots((prev) => prev.filter((slot) => slot.id !== id));
   };
 
-  const handleChange = (id: number, key: keyof TimeSlot, value: any) => {
+  const handleChange = <K extends keyof TimeSlot>(
+    id: number,
+    key: K,
+    value: TimeSlot[K],
+  ) => {
     setSlots((prev) =>
       prev.map((slot) => (slot.id === id ? { ...slot, [key]: value } : slot)),
     );
