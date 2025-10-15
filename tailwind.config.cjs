@@ -1,9 +1,7 @@
-// tailwind.config.js (CommonJS 권장)
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    // 앱/컴포넌트
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    // 스토리북 UI와 스토리 파일
     "./.storybook/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.stories.{js,ts,jsx,tsx,mdx}",
   ],
@@ -11,28 +9,49 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "var(--color-primary-500)",
-        red: "var(--color-red-500)",
-        "text-primary": "var(--color-text-primary)",
-        "text-secondary": "var(--color-text-secondary)",
-        "bg-surface": "var(--color-surface)",
-        "bg-default": "var(--color-background)",
-        "border-default": "var(--color-border)",
-        gray: {
-          25: "var(--color-gray-25)",
-          50: "var(--color-gray-50)",
-          100: "var(--color-gray-100)",
-          200: "var(--color-gray-200)",
-          300: "var(--color-gray-300)",
-          400: "var(--color-gray-400)",
-          500: "var(--color-gray-500)",
-          600: "var(--color-gray-600)",
-          700: "var(--color-gray-700)",
-          800: "var(--color-gray-800)",
-          900: "var(--color-gray-900)",
-          950: "var(--color-gray-950)",
+        // === Brand ===
+        primary: {
+          100: "#E5F3FF",
+          500: "#3D9EF2",
+          // 👇 text-primary-600 호환용 (500보다 약간 어둡게)
+          600: "#2F86D1",
+          DEFAULT: "#3D9EF2",
         },
+
+        // === Gray scale ===
+        gray: {
+          25:  "#F8F8F8",
+          50:  "#EDEEF2",
+          100: "#E0E0E5",
+          200: "#C6C8CF",
+          300: "#B3B4BC",
+          400: "#9FA0A7",
+          500: "#84858C",
+          600: "#707177",
+          700: "#5D5D61",
+          800: "#49494C",
+          900: "#323236",
+          950: "#1F1F22",
+        },
+
+        // === Red ===
+        red: {
+          500: "#FF2727",
+          DEFAULT: "#FF2727",
+        },
+
+        // === Common ===
+        white: "#FFFFFF",
+        black: "#000000",
+
+        // === 기존 토큰 유지 ===
+        "text-primary": "var(--color-text-primary, #111827)",
+        "text-secondary": "var(--color-text-secondary, #6B7280)",
+        "bg-surface": "var(--color-surface, #FFFFFF)",
+        "bg-default": "var(--color-background, #FFFFFF)",
+        "border-default": "var(--color-border, #E5E7EB)",
       },
+
       fontSize: {
         "11m": ["11px", "1.36"],
         "11b": ["11px", "1.36"],
@@ -57,9 +76,11 @@ module.exports = {
         "18-body-b": ["18px", "1.4"],
         "20-body-b": ["20px", "1.6"],
       },
+
       spacing: {
         82: "20.5rem",
       },
+
       boxShadow: {
         searchbar: "0 4px 24px rgba(0, 0, 0, 0.09)",
       },
