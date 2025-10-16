@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import Image from "next/image";
 import streetDanceMain from "@/assets/img/streetdance_main.png";
+import emojiFire from "@/assets/img/emoji_fire.png";
 
 export default function HeroSection() {
   return (
@@ -29,7 +30,14 @@ export default function HeroSection() {
             "lg:text-lg lg:mt-5",
           )}
         >
-          1월의 인기 체험 BEST 🔥
+          1월의 인기 체험 BEST
+          <Image
+            src={emojiFire}
+            alt="불 이모지"
+            width={14}
+            height={14}
+            className="ml-1 -mt-1 inline-block md:w-4 md:h-4 object-contain"
+          />
         </p>
       </div>
     </section>
