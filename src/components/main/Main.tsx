@@ -27,7 +27,9 @@ export default function Main() {
         <SearchSection />
       </div>
 
-      <PopularSection />
+      <div className="lg:px-100">
+        <PopularSection />
+      </div>
 
       <CategorySection />
 

@@ -8,7 +8,7 @@ export default function HeroSection() {
   return (
     <section
       className={clsx(
-        "w-full aspect-[16/9] rounded-xl overflow-hidden shadow-lg relative",
+        "w-full aspect-[16/9] rounded-xl md:rounded-2xl lg:rounded-3xl overflow-hidden shadow-lg relative",
         "mt-16 md:mt-25 lg:mt-32",
       )}
     >

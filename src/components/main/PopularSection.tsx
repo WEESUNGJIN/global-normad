@@ -44,13 +44,13 @@ const mockData: Activity[] = [
 
 export default function PopularSection() {
   return (
-    <section className="pt-14 pl-6">
-      <h2 className="typo-18-b mb-4">
+    <section className="pt-14 md:pt-20 lg:pt-24 pl-6 md:pl-8 lg:pl-0">
+      <h2 className="typo-18-b md:text-3xl mb-4 md:mb-5 lg:mb-6">
         <span className="mr-1">🔥</span>
         인기 체험
       </h2>
 
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-3 md:gap-5 lg:gap-6 overflow-x-auto scrollbar-hide">
         {mockData.map((exp) => (
           <Card key={exp.id} className="flex-shrink-0">
             <Card.Image src={exp.bannerImageUrl} alt={exp.title} />
