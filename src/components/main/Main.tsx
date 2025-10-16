@@ -31,7 +31,9 @@ export default function Main() {
         <PopularSection />
       </div>
 
-      <CategorySection />
+      <div className="lg:px-100">
+        <CategorySection />
+      </div>
 
       <Footer />
     </main>

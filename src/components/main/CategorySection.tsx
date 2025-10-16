@@ -101,10 +101,10 @@ export default function CategorySection() {
   const selected = categories.find((c) => c.id === selectedCategory);
 
   return (
-    <section className="px-6 pt-10 pb-32">
-      <div className="flex items-center justify-between mb-4">
+    <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
+      <div className="flex items-center justify-between mb-4 md:mb-5">
         <div className="flex items-center gap-2">
-          <h2 className="typo-18-b text-text-primary">
+          <h2 className="typo-18-b md:text-3xl text-text-primary">
             <span className="mr-1">{selected?.emoji}</span>
             {selected?.name}
           </h2>
@@ -122,27 +122,31 @@ export default function CategorySection() {
         </button>
       </div>
 
-      <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-2 md:gap-5 mb-6 md:mb-8 overflow-x-auto scrollbar-hide">
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => handleSelectCategory(cat.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition whitespace-nowrap
+            className={`flex items-center gap-2 px-4 py-2 md:py-[10px] rounded-full border transition whitespace-nowrap
               ${
                 selectedCategory === cat.id
                   ? "bg-black text-white border-black"
                   : "bg-white text-text-primary border-border-default"
               }`}
           >
-            <Image src={cat.icon} alt={cat.name} width={18} height={18} />
-            <span className="typo-14-m">{cat.name}</span>
+            <Image
+              src={cat.icon}
+              alt={cat.name}
+              className="w-[18px] h-[18px] md:w-[24px] md:h-[24px]"
+            />
+            <span className="typo-14-m md:text-base">{cat.name}</span>
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5">
         {activities.map((act) => (
-          <Card key={act.id} className="flex-shrink-0 w-full">
+          <Card key={act.id} className="!w-full">
             <Card.Image src={act.bannerImageUrl} alt={act.title} />
             <Card.Content>
               <Card.Title className="line-clamp-1">{act.title}</Card.Title>
@@ -156,9 +160,9 @@ export default function CategorySection() {
         ))}
       </div>
 
-      <div className="flex justify-center items-center gap-3 mt-7">
+      <div className="flex justify-center items-center gap-3 mt-7 md:mt-10">
         <button className="text-gray-400 hover:text-gray-700">&lt;</button>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {[1, 2, 3, 4, 5].map((p) => (
             <button
               key={p}

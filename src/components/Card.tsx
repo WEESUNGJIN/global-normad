@@ -88,7 +88,7 @@ const CardContent: React.FC<CardContentProps> = ({ className, children }) => (
       "relative z-10 -mt-[33px] md:-mt-[60px]",
       "rounded-2xl md:rounded-3xl bg-white dark:bg-gray-900",
       "shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]",
-      "p-4",
+      "p-4 md:p-6",
       className,
     )}
   >
