@@ -11,7 +11,7 @@ import iconX from "@/assets/icon/icon_X.svg";
 export default function Footer() {
   return (
     <footer className="border-t border-border-default bg-white dark:bg-gray-900">
-      <div className="mx-auto max-w-[1200px] w-full px-6 py-6 text-text-secondary">
+      <div className="mx-auto max-w-[1200px] w-full px-6 py-14 text-text-secondary">
         {/* ✅ 데스크탑 기본: 한 줄 3분할 */}
         <div className="hidden md:flex items-center justify-between">
           {/* 왼쪽 */}
@@ -26,13 +26,30 @@ export default function Footer() {
 
           {/* 오른쪽 */}
           <div className="flex items-center gap-4">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Image src={iconFacebook} alt="Facebook" width={20} height={20} />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-              <Image src={iconInstagram} alt="Instagram" width={20} height={20} />
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Image
+                src={iconInstagram}
+                alt="Instagram"
+                width={20}
+                height={20}
+              />
             </a>
-            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Image src={iconYoutube} alt="YouTube" width={20} height={20} />
             </a>
             <a href="https://x.com" target="_blank" rel="noopener noreferrer">
@@ -54,13 +71,35 @@ export default function Footer() {
           <div className="flex justify-between items-center w-full">
             <p className="typo-12-m">©codeit - 2023</p>
             <div className="flex items-center gap-4">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
-                <Image src={iconFacebook} alt="Facebook" width={20} height={20} />
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Image
+                  src={iconFacebook}
+                  alt="Facebook"
+                  width={20}
+                  height={20}
+                />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-                <Image src={iconInstagram} alt="Instagram" width={20} height={20} />
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Image
+                  src={iconInstagram}
+                  alt="Instagram"
+                  width={20}
+                  height={20}
+                />
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Image src={iconYoutube} alt="YouTube" width={20} height={20} />
               </a>
               <a href="https://x.com" target="_blank" rel="noopener noreferrer">

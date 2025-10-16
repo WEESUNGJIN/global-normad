@@ -20,8 +20,8 @@ module.exports = {
 
         // === Gray scale ===
         gray: {
-          25:  "#F8F8F8",
-          50:  "#EDEEF2",
+          25: "#F8F8F8",
+          50: "#EDEEF2",
           100: "#E0E0E5",
           200: "#C6C8CF",
           300: "#B3B4BC",
@@ -79,6 +79,7 @@ module.exports = {
 
       spacing: {
         82: "20.5rem",
+        100: "25rem",
       },
 
       boxShadow: {
