@@ -23,7 +23,7 @@ export default function Main() {
         <HeroSection />
       </div>
 
-      <div className="px-6 md:px-8">
+      <div className="px-6 md:px-16 lg:px-[439px]">
         <SearchSection />
       </div>
 
