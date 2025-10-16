@@ -38,7 +38,7 @@ export default function Modal({
         className={clsx(
           "relative w-full",
           widthClass,
-          "bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-border-default p-6"
+          "bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-border-default p-6",
         )}
       >
         {/* Header */}
@@ -58,7 +58,12 @@ export default function Modal({
 
         {/* Footer */}
         <div className="mt-6 flex justify-end gap-2">
-          <Button variant="ghost" size="sm" label={cancelText} onClick={onClose} />
+          <Button
+            variant="ghost"
+            size="sm"
+            label={cancelText}
+            onClick={onClose}
+          />
           <Button size="sm" label={confirmText} onClick={onConfirm} />
         </div>
       </div>
