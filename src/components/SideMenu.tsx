@@ -45,7 +45,7 @@ export default function SideMenu({
   items = [
     { href: "/#", label: "내 정보", icon: iconUser, activeIcon: iconUserActive },
     { href: "/#", label: "예약내역", icon: iconList, activeIcon: iconListActive },
-    { href: "/#", label: "내 체험 관리", icon: iconSetting, activeIcon: iconSettingActive },
+    { href: "/mypage/experience", label: "내 체험 관리", icon: iconSetting, activeIcon: iconSettingActive },
     { href: "/mypage/calendar", label: "예약 현황", icon: iconCalendar, activeIcon: iconCalendarActive },
   ],
   avatarSrc = avatarPng,

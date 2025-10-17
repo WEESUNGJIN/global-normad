@@ -1,14 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import Card from "@/components/Card";
 
 import iconArrowDown from "@/assets/icon/icon_alt arrow_down.svg";
 import iconCulture from "@/assets/icon/icon_music.svg";
+import iconCultureWhite from "@/assets/icon/white/icon_music_white.svg";
 import iconFood from "@/assets/icon/icon_food.svg";
+import iconFoodWhite from "@/assets/icon/white/icon_food_white.svg";
 import iconTour from "@/assets/icon/icon_tour.svg";
+import iconTourWhite from "@/assets/icon/white/icon_tour_white.svg";
 import iconTravel from "@/assets/icon/icon_bus.svg";
+import iconTravelWhite from "@/assets/icon/white/icon_bus_white.svg";
+
+import emojiPalette from "@/assets/img/emoji_palette.png";
+import emojiPlate from "@/assets/img/emoji_plate.png";
+import emojiCity from "@/assets/img/emoji_city.png";
+import emojiCar from "@/assets/img/emoji_car.png";
 
 import fjordImg from "@/assets/img/fjord.png";
 import coastalvillageImg from "@/assets/img/coastalvillage.png";
@@ -21,7 +30,8 @@ interface Category {
   id: number;
   name: string;
   icon: string;
-  emoji?: string;
+  emojiSrc?: string | StaticImageData;
+  iconWhite?: string;
 }
 
 interface Activity {
@@ -34,10 +44,34 @@ interface Activity {
 }
 
 const categories: Category[] = [
-  { id: 1, emoji: "🛼", name: "문화·예술", icon: iconCulture },
-  { id: 2, emoji: "🍽️", name: "식음료", icon: iconFood },
-  { id: 3, emoji: "🏙️", name: "투어", icon: iconTour },
-  { id: 4, emoji: "🚘", name: "관광", icon: iconTravel },
+  {
+    id: 1,
+    name: "문화·예술",
+    icon: iconCulture,
+    iconWhite: iconCultureWhite,
+    emojiSrc: emojiPalette,
+  },
+  {
+    id: 2,
+    name: "식음료",
+    icon: iconFood,
+    iconWhite: iconFoodWhite,
+    emojiSrc: emojiPlate,
+  },
+  {
+    id: 3,
+    name: "투어",
+    icon: iconTour,
+    iconWhite: iconTourWhite,
+    emojiSrc: emojiCity,
+  },
+  {
+    id: 4,
+    name: "관광",
+    icon: iconTravel,
+    iconWhite: iconTravelWhite,
+    emojiSrc: emojiCar,
+  },
 ];
 
 const activities: Activity[] = [
@@ -101,11 +135,19 @@ export default function CategorySection() {
   const selected = categories.find((c) => c.id === selectedCategory);
 
   return (
-    <section className="px-6 pt-10 pb-32">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <h2 className="typo-18-b text-text-primary">
-            <span className="mr-1">{selected?.emoji}</span>
+    <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
+      <div className="flex items-center justify-between mb-4 md:mb-5">
+        <div className="flex items-center gap-1">
+          {selected?.emojiSrc && (
+            <Image
+              src={selected.emojiSrc}
+              alt={selected.name}
+              width={24}
+              height={24}
+              className="-mt-[6px] md:mr-1 object-contain md:w-8 md:h-8"
+            />
+          )}
+          <h2 className="typo-18-b md:text-3xl text-text-primary">
             {selected?.name}
           </h2>
         </div>
@@ -122,27 +164,38 @@ export default function CategorySection() {
         </button>
       </div>
 
-      <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-2 md:gap-5 mb-6 md:mb-8 overflow-x-auto scrollbar-hide">
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => handleSelectCategory(cat.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition whitespace-nowrap
+            className={`flex items-center gap-2 px-4 py-[10px] rounded-full border transition whitespace-nowrap
               ${
                 selectedCategory === cat.id
                   ? "bg-black text-white border-black"
                   : "bg-white text-text-primary border-border-default"
               }`}
           >
-            <Image src={cat.icon} alt={cat.name} width={18} height={18} />
-            <span className="typo-14-m">{cat.name}</span>
+            <div className="relative w-4 h-4 md:w-6 md:h-6 flex-shrink-0">
+              <Image
+                src={
+                  selectedCategory === cat.id
+                    ? (cat.iconWhite ?? cat.icon)
+                    : cat.icon
+                }
+                alt={cat.name}
+                fill
+                className="object-contain"
+              />
+            </div>
+            <span className="typo-14-m md:text-base">{cat.name}</span>
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5">
         {activities.map((act) => (
-          <Card key={act.id} className="flex-shrink-0 w-full">
+          <Card key={act.id} className="!w-full">
             <Card.Image src={act.bannerImageUrl} alt={act.title} />
             <Card.Content>
               <Card.Title className="line-clamp-1">{act.title}</Card.Title>
@@ -156,9 +209,9 @@ export default function CategorySection() {
         ))}
       </div>
 
-      <div className="flex justify-center items-center gap-3 mt-7">
+      <div className="flex justify-center items-center gap-3 mt-7 md:mt-10">
         <button className="text-gray-400 hover:text-gray-700">&lt;</button>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {[1, 2, 3, 4, 5].map((p) => (
             <button
               key={p}

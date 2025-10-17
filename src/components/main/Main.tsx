@@ -19,14 +19,21 @@ export default function Main() {
         <GNB />
       </div>
 
-      <div className="px-6">
+      <div className="px-6 md:px-8 lg:px-100">
         <HeroSection />
+      </div>
+
+      <div className="px-6 md:px-16 lg:px-[439px]">
         <SearchSection />
       </div>
 
-      <PopularSection />
+      <div className="lg:px-100">
+        <PopularSection />
+      </div>
 
-      <CategorySection />
+      <div className="lg:px-100">
+        <CategorySection />
+      </div>
 
       <Footer />
     </main>
