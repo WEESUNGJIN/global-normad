@@ -11,11 +11,10 @@ module.exports = {
       colors: {
         // === Brand ===
         primary: {
-          100: "#E5F3FF",
-          500: "#3D9EF2",
-          // 👇 text-primary-600 호환용 (500보다 약간 어둡게)
-          600: "#2F86D1",
-          DEFAULT: "#3D9EF2",
+          100: "#F1E1FF",
+          300: "#A88DFF",
+          500: "#8A66FF",
+          DEFAULT: "#8A66FF",  // 500과 동일하게 수정
         },
 
         // === Gray scale ===
