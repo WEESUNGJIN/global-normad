@@ -4,10 +4,10 @@ import Image from "next/image";
 import IconEyeOff from "@/assets/icon/icon_eye_off.svg";
 
 interface ImageUploadProps {
-  onChange: (files: File[]) => void;
-  limit?: number;
-  count?: number;
-  disabled?: boolean;
+  onChange: (files: File[]) => void; //부모한테 선택한 파일 배열 전달
+  limit?: number; // 업로드 가능한 총 개수
+  count?: number; // 현재 업로드 된 개수
+  disabled?: boolean; // 업로드 비활성화 여부
 }
 
 export default function ImageUpload({
