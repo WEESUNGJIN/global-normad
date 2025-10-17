@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Script from "next/script";
 import Input from "@/components/Input";
 
@@ -15,9 +14,12 @@ interface DaumPostcodeData {
   userSelectedType: "R" | "J"; // 사용자가 선택한 주소 타입
 }
 
-export default function AddressInput() {
-  const [address, setAddress] = useState("");
+interface AddressInputProps {
+  value: string;
+  onChange: (value: string) => void;
+}
 
+export default function AddressInput({ value, onChange }: AddressInputProps) {
   const openDaumPostcode = () => {
     // 우편번호 검색 위젯을 생성하는 생성자
     new window.daum.Postcode({
@@ -35,7 +37,7 @@ export default function AddressInput() {
           fullAddr += extraAddr !== "" ? ` (${extraAddr})` : "";
         }
         // 최종 주소 저장
-        setAddress(fullAddr);
+        onChange(fullAddr);
       },
     }).open();
   };
@@ -52,7 +54,7 @@ export default function AddressInput() {
       <div className="flex gap-2 mb-3">
         <Input
           placeholder="주소를 입력해 주세요"
-          value={address}
+          value={value}
           readOnly
           onClick={openDaumPostcode}
         />

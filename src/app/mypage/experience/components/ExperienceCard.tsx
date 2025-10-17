@@ -64,7 +64,7 @@ export default function ExperienceCard({
         </div>
       </div>
       {/* 오른쪽 이미지 */}
-      <div className="relative ml-6 w-[82px] h-[82px]">
+      <div className="relative ml-6 w-20 h-20 md:w-36 md:h-36 ">
         <Image
           src={imageUrl}
           alt={title}

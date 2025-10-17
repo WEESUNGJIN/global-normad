@@ -1,12 +1,18 @@
 "use client";
 
-import { experienceMockData } from "@/app/mypage/experience/mock/experienceMock";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import emptyState from "@/assets/img/empty_state.png";
 import ExperienceCard from "./components/ExperienceCard";
+import { Activity } from "@/types/experience";
 
-export default function experiencePage() {
-  const activities = experienceMockData.activities;
+export default function ExperiencePage() {
+  const [activities, setActivities] = useState<Activity[]>([]);
+
+  useEffect(() => {
+    const localData = JSON.parse(localStorage.getItem("activities") || "[]");
+    setActivities(localData);
+  }, []);
 
   if (activities.length === 0) {
     return (
@@ -33,7 +39,7 @@ export default function experiencePage() {
           title={act.title}
           rating={act.rating}
           reviewCount={act.reviewCount}
-          price={act.price}
+          price={Number(act.price)}
           imageUrl={act.bannerImageUrl}
           onEdit={() => console.log("수정 클릭:", act.id)}
           onDelete={() => console.log("삭제 클릭:", act.id)}
