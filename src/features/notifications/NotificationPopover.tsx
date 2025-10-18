@@ -50,14 +50,20 @@ function loadReadSet(): Set<number> {
     if (!raw) return new Set();
     const arr = JSON.parse(raw) as number[];
     return new Set(arr);
-  } catch {
+  } catch (error) {
+    // localStorage 접근 실패 또는 JSON 파싱 실패시 빈 Set 반환
+    console.warn('Failed to load read notifications from localStorage:', error);
     return new Set();
   }
 }
+
 function saveReadSet(s: Set<number>) {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(Array.from(s)));
-  } catch {}
+  } catch (error) {
+    // localStorage 저장 실패시 무시 (쿠키 비활성화 등)
+    console.warn('Failed to save read notifications to localStorage:', error);
+  }
 }
 
 /* -------------------- 메인 컴포넌트 -------------------- */

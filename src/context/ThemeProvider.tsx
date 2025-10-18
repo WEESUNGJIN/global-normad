@@ -1,61 +1,76 @@
 // src/context/ThemeProvider.tsx
+"use client";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { THEME_STORAGE_KEY, getSystemTheme, applyTheme } from "./theme-utils";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+type Theme = "light" | "dark" | "system";
+type Resolved = "light" | "dark";
 
-// Theme 타입 정의 (export를 위해 위로 올립니다.)
-type Theme = 'light' | 'dark';
-
-// Context가 제공할 값의 타입 정의 (export를 위해 위로 올립니다.)
-type ThemeContextType = {
+interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
-};
-
-// 1. Context 생성
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-interface ThemeProviderProps {
-  children: ReactNode;
+  setTheme: (theme: Theme) => void;
+  resolvedTheme: Resolved;
 }
 
-// 2. Provider 컴포넌트 정의
-const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  // ... (기존 로직 그대로 유지) ...
-  const [theme, setTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    return savedTheme || 'light';
-  });
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
+}
+
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+}
+
+export default function ThemeProvider({
+  children,
+  defaultTheme = "system",
+}: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [mounted, setMounted] = useState(false);
+  const [systemTheme, setSystemTheme] = useState<Resolved>(() => getSystemTheme());
+
+  // OS 테마 변경 감지 (system 선택 시 자동 반영)
   useEffect(() => {
-    document.body.className = theme;
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => setSystemTheme(mql.matches ? "dark" : "light");
+    handler();
+    mql.addEventListener?.("change", handler);
+    return () => mql.removeEventListener?.("change", handler);
+  }, []);
 
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
+  // 초기 로드: 저장된 값 복구
+  useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    if (stored) setTheme(stored);
+  }, []);
+
+  // 실제 적용될 테마 계산
+  const resolvedTheme = useMemo<Resolved>(() => {
+    return theme === "system" ? systemTheme : theme;
+  }, [theme, systemTheme]);
+
+  // 테마 적용 + 사용자 설정 저장
+  useEffect(() => {
+    if (!mounted) return;
+    applyTheme(resolvedTheme);            // 실제 DOM에는 resolvedTheme 적용
+    localStorage.setItem(THEME_STORAGE_KEY, theme); // 사용자는 'system' 같은 선호값 저장
+  }, [resolvedTheme, theme, mounted]);
+
+  // Hydration 깜빡임 방지
+  if (!mounted) {
+    return <div style={{ visibility: "hidden" }}>{children}</div>;
+  }
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
       {children}
     </ThemeContext.Provider>
   );
-};
-
-// 3. 커스텀 훅 정의
-const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
-
-// 일관된 내보내기를 위해 파일 하단에서 한 번에 export 합니다.
-export {
-  ThemeProvider,
-  useTheme
-};
-
-// 추가적으로, 필요하다면 타입 정의도 여기서 함께 내보낼 수 있습니다.
-export type { Theme, ThemeContextType };
+}
