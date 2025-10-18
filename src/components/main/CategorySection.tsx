@@ -1,0 +1,233 @@
+"use client";
+
+import React, { useState } from "react";
+import Image, { type StaticImageData } from "next/image";
+import Card from "@/components/Card";
+
+import iconArrowDown from "@/assets/icon/icon_alt arrow_down.svg";
+import iconCulture from "@/assets/icon/icon_music.svg";
+import iconCultureWhite from "@/assets/icon/white/icon_music_white.svg";
+import iconFood from "@/assets/icon/icon_food.svg";
+import iconFoodWhite from "@/assets/icon/white/icon_food_white.svg";
+import iconTour from "@/assets/icon/icon_tour.svg";
+import iconTourWhite from "@/assets/icon/white/icon_tour_white.svg";
+import iconTravel from "@/assets/icon/icon_bus.svg";
+import iconTravelWhite from "@/assets/icon/white/icon_bus_white.svg";
+
+import emojiPalette from "@/assets/img/emoji_palette.png";
+import emojiPlate from "@/assets/img/emoji_plate.png";
+import emojiCity from "@/assets/img/emoji_city.png";
+import emojiCar from "@/assets/img/emoji_car.png";
+
+import fjordImg from "@/assets/img/fjord.png";
+import coastalvillageImg from "@/assets/img/coastalvillage.png";
+import reedforestImg from "@/assets/img/reedforest.png";
+import hotairballoonImg from "@/assets/img/hotairballoon.png";
+import bicycleImg from "@/assets/img/bicycle.png";
+import tropicalfishImg from "@/assets/img/tropicalfish.png";
+
+interface Category {
+  id: number;
+  name: string;
+  icon: string;
+  emojiSrc?: string | StaticImageData;
+  iconWhite?: string;
+}
+
+interface Activity {
+  id: number;
+  title: string;
+  bannerImageUrl: string;
+  rating: number;
+  reviewCount: number;
+  price: number;
+}
+
+const categories: Category[] = [
+  {
+    id: 1,
+    name: "문화·예술",
+    icon: iconCulture,
+    iconWhite: iconCultureWhite,
+    emojiSrc: emojiPalette,
+  },
+  {
+    id: 2,
+    name: "식음료",
+    icon: iconFood,
+    iconWhite: iconFoodWhite,
+    emojiSrc: emojiPlate,
+  },
+  {
+    id: 3,
+    name: "투어",
+    icon: iconTour,
+    iconWhite: iconTourWhite,
+    emojiSrc: emojiCity,
+  },
+  {
+    id: 4,
+    name: "관광",
+    icon: iconTravel,
+    iconWhite: iconTravelWhite,
+    emojiSrc: emojiCar,
+  },
+];
+
+const activities: Activity[] = [
+  {
+    id: 1,
+    title: "피오르 체험",
+    bannerImageUrl: fjordImg.src,
+    rating: 3.9,
+    reviewCount: 108,
+    price: 42800,
+  },
+  {
+    id: 2,
+    title: "해안가 마을에서 1주일 살아보기",
+    bannerImageUrl: coastalvillageImg.src,
+    rating: 2.9,
+    reviewCount: 67,
+    price: 217000,
+  },
+  {
+    id: 3,
+    title: "부모님과 함께 갈대숲 체험",
+    bannerImageUrl: reedforestImg.src,
+    rating: 4.0,
+    reviewCount: 113,
+    price: 6000,
+  },
+  {
+    id: 4,
+    title: "열기구 페스티벌",
+    bannerImageUrl: hotairballoonImg.src,
+    rating: 4.1,
+    reviewCount: 85,
+    price: 35000,
+  },
+  {
+    id: 5,
+    title: "베트남 자전거 여행",
+    bannerImageUrl: bicycleImg.src,
+    rating: 3.9,
+    reviewCount: 108,
+    price: 42800,
+  },
+  {
+    id: 6,
+    title: "다양한 열대어 구경하기",
+    bannerImageUrl: tropicalfishImg.src,
+    rating: 4.3,
+    reviewCount: 18,
+    price: 12000,
+  },
+];
+
+export default function CategorySection() {
+  const [selectedCategory, setSelectedCategory] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const handleSelectCategory = (id: number) => setSelectedCategory(id);
+  const handlePageChange = (page: number) => setCurrentPage(page);
+
+  const selected = categories.find((c) => c.id === selectedCategory);
+
+  return (
+    <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
+      <div className="flex items-center justify-between mb-4 md:mb-5">
+        <div className="flex items-center gap-1">
+          {selected?.emojiSrc && (
+            <Image
+              src={selected.emojiSrc}
+              alt={selected.name}
+              width={24}
+              height={24}
+              className="-mt-[6px] md:mr-1 object-contain md:w-8 md:h-8"
+            />
+          )}
+          <h2 className="typo-18-b md:text-3xl text-text-primary">
+            {selected?.name}
+          </h2>
+        </div>
+        <button className="flex items-center gap-[4px] typo-16-m text-text-primary leading-none">
+          가격
+          <span className="relative w-5 h-5 flex-shrink-0">
+            <Image
+              src={iconArrowDown}
+              alt="가격 필터 버튼"
+              fill
+              className="object-contain"
+            />
+          </span>
+        </button>
+      </div>
+
+      <div className="flex gap-2 md:gap-5 mb-6 md:mb-8 overflow-x-auto scrollbar-hide">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => handleSelectCategory(cat.id)}
+            className={`flex items-center gap-2 px-4 py-[10px] rounded-full border transition whitespace-nowrap
+              ${
+                selectedCategory === cat.id
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-text-primary border-border-default"
+              }`}
+          >
+            <div className="relative w-4 h-4 md:w-6 md:h-6 flex-shrink-0">
+              <Image
+                src={
+                  selectedCategory === cat.id
+                    ? (cat.iconWhite ?? cat.icon)
+                    : cat.icon
+                }
+                alt={cat.name}
+                fill
+                className="object-contain"
+              />
+            </div>
+            <span className="typo-14-m md:text-base">{cat.name}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5">
+        {activities.map((act) => (
+          <Card key={act.id} className="!w-full">
+            <Card.Image src={act.bannerImageUrl} alt={act.title} />
+            <Card.Content>
+              <Card.Title className="line-clamp-1">{act.title}</Card.Title>
+              <Card.Meta rating={act.rating} count={act.reviewCount} />
+              <Card.Price
+                price={`₩ ${act.price.toLocaleString()}`}
+                unit="/ 인"
+              />
+            </Card.Content>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex justify-center items-center gap-3 mt-7 md:mt-10">
+        <button className="text-gray-400 hover:text-gray-700">&lt;</button>
+        <div className="flex items-center gap-3">
+          {[1, 2, 3, 4, 5].map((p) => (
+            <button
+              key={p}
+              onClick={() => handlePageChange(p)}
+              className={`w-6 h-6 rounded-md text-center ${
+                currentPage === p
+                  ? "text-blue-500 font-semibold border-b-2 border-blue-500"
+                  : "text-gray-400"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+        <button className="text-gray-400 hover:text-gray-700">&gt;</button>
+      </div>
+    </section>
+  );
+}

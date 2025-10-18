@@ -20,8 +20,7 @@ export default function Pagination({
   onChange,
   className,
 }: PaginationProps) {
-  const go = (p: number) =>
-    onChange?.(Math.max(1, Math.min(totalPages, p)));
+  const go = (p: number) => onChange?.(Math.max(1, Math.min(totalPages, p)));
 
   const items = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -29,7 +28,7 @@ export default function Pagination({
     <div
       className={clsx(
         "w-full flex items-center justify-center gap-1 py-3 rounded-xl border-2 border-violet-300/60 border-dashed bg-white dark:bg-gray-900",
-        className
+        className,
       )}
     >
       {/* 이전 버튼 */}
@@ -60,10 +59,10 @@ export default function Pagination({
           key={n}
           onClick={() => go(n)}
           className={clsx(
-            "h-8 w-8 rounded-lg typo-12b",
+            "h-8 w-8 rounded-lg typo-12-b",
             n === page
               ? "bg-primary text-white"
-              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800",
           )}
         >
           {n}

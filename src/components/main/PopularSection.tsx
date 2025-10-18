@@ -1,0 +1,78 @@
+"use client";
+
+import React from "react";
+import Image from "next/image";
+import Card from "@/components/Card";
+import streetdanceImg from "@/assets/img/streetdance_main.png";
+import steppingstoneImg from "@/assets/img/steppingstone.png";
+import vrgameImg from "@/assets/img/vrgame.png";
+import emojiFire from "@/assets/img/emoji_fire.png";
+
+interface Activity {
+  id: number;
+  title: string;
+  bannerImageUrl: string;
+  rating: number;
+  reviewCount: number;
+  price: number;
+}
+
+const mockData: Activity[] = [
+  {
+    id: 1,
+    title: "함께 배우면 즐거운 스트릿 댄스",
+    bannerImageUrl: streetdanceImg.src,
+    rating: 4.9,
+    reviewCount: 703,
+    price: 38000,
+  },
+  {
+    id: 2,
+    title: "연인과 사랑의 징검다리 건너기",
+    bannerImageUrl: steppingstoneImg.src,
+    rating: 3.9,
+    reviewCount: 108,
+    price: 35000,
+  },
+  {
+    id: 3,
+    title: "VR 게임 마스터 하는 법",
+    bannerImageUrl: vrgameImg.src,
+    rating: 4.9,
+    reviewCount: 293,
+    price: 38000,
+  },
+];
+
+export default function PopularSection() {
+  return (
+    <section className="pt-14 md:pt-20 lg:pt-24 pl-6 md:pl-8 lg:pl-0">
+      <h2 className="typo-18-b md:text-3xl mb-4 md:mb-5">
+        <Image
+          src={emojiFire}
+          alt="불 이모지"
+          width={20}
+          height={20}
+          className="-mt-[6px] mr-[3px] inline-block md:w-7 md:h-7 object-contain"
+        />
+        인기 체험
+      </h2>
+
+      <div className="flex gap-3 md:gap-5 lg:gap-6 overflow-x-auto scrollbar-hide">
+        {mockData.map((exp) => (
+          <Card key={exp.id} className="flex-shrink-0">
+            <Card.Image src={exp.bannerImageUrl} alt={exp.title} />
+            <Card.Content>
+              <Card.Title className="line-clamp-1">{exp.title}</Card.Title>
+              <Card.Meta rating={exp.rating} count={exp.reviewCount} />
+              <Card.Price
+                price={`₩ ${exp.price.toLocaleString()}`}
+                unit="/ 인"
+              />
+            </Card.Content>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}

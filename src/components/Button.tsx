@@ -6,16 +6,21 @@ import Image, { StaticImageData } from "next/image";
 
 // ✅ 아이콘 파일 (세진 경로 그대로)
 import iconGoogle from "@/assets/icon/icon_google.svg";
-import iconArt from "@/assets/icon/icon_art.svg";
+import iconCulture from "@/assets/icon/icon_music.svg";
 import iconUser from "@/assets/icon/icon_user.svg";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "outline";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "danger"
+  | "outline";
 export type ButtonSize = "lg" | "md" | "sm";
 export type IconKey = "google" | "art" | "user";
 
 const ICONS: Record<IconKey, StaticImageData> = {
   google: iconGoogle,
-  art: iconArt,
+  art: iconCulture,
   user: iconUser,
 };
 
@@ -90,7 +95,13 @@ const Button: React.FC<ButtonProps> = ({
       size === "lg" ? "h-12 w-12" : size === "md" ? "h-10 w-10" : "h-8 w-8";
     return (
       <button
-        className={clsx(base, dim, "rounded-full", variantMap[variant], className)}
+        className={clsx(
+          base,
+          dim,
+          "rounded-full",
+          variantMap[variant],
+          className,
+        )}
         {...rest}
       >
         <Icon name={iconOnly} size={size} />
@@ -105,7 +116,7 @@ const Button: React.FC<ButtonProps> = ({
         sizeMap[size],
         variantMap[variant],
         fullWidth && "w-full",
-        className
+        className,
       )}
       {...rest}
     >
@@ -147,13 +158,13 @@ export const FilterChip: React.FC<ChipProps> = ({
         size === "lg"
           ? "h-12 px-4 text-16b"
           : size === "md"
-          ? "h-10 px-3.5 text-14b"
-          : "h-8 px-3 text-12b",
+            ? "h-10 px-3.5 text-14b"
+            : "h-8 px-3 text-12b",
         "rounded-full",
         filled
           ? "bg-gray-900 text-white hover:brightness-105 active:brightness-95"
           : "bg-white text-text-primary border border-border-default hover:bg-gray-50 active:bg-gray-100",
-        className
+        className,
       )}
       {...rest}
     >
@@ -177,10 +188,10 @@ export const LabelChip: React.FC<ChipProps> = ({
         size === "lg"
           ? "h-12 px-4 text-16b"
           : size === "md"
-          ? "h-10 px-3.5 text-14b"
-          : "h-8 px-3 text-12b",
+            ? "h-10 px-3.5 text-14b"
+            : "h-8 px-3 text-12b",
         "rounded-full bg-white text-text-primary border border-border-default hover:bg-gray-50 active:bg-gray-100",
-        className
+        className,
       )}
       {...rest}
     >

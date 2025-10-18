@@ -10,87 +10,221 @@ export type ReservationStatus =
   | "canceled"
   | "completed";
 
+type MobileState = "done" | "ing"; // done=후기작성 / ing=예약변경·취소
+
 export interface ListCardProps {
+  // 공통 필수
   thumbnail: string;
   title: string;
-  subtitle?: string; // 예: 인원/시간 등
-  status?: ReservationStatus; // API 상태값 그대로 받음
-  price: string; // "₩ 35,000~"
-  priceSub?: string; // "세금 포함" 등
-  ctaLabel?: string; // 버튼 텍스트
+  price: string;
+
+  // 공통 선택
+  subtitle?: string;        // 보조정보(인원/장소/시간 등)
+  status?: ReservationStatus;
+  priceSub?: string;        // "세금 포함" 등
+  peopleText?: string;      // "00명"
+  dateText?: string;        // "0000.00.00"
+  timeText?: string;        // "11:00 - 12:30"
   className?: string;
+
+  // 액션
+  ctaLabel?: string;        // 기본 "후기 작성"
   onClickCTA?: () => void;
+  onClickChange?: () => void;
+  onClickCancel?: () => void;
+
+  // 레이아웃
+  variant?: "pc" | "mobile";
+
+  showActions?: boolean;
+
+  // 모바일 테스트용
+  forceMobileState?: MobileState;
+  actionsDisabled?: boolean;
 }
 
-function mapReservationStatus(apiStatus: ReservationStatus | undefined) {
-  switch (apiStatus) {
-    case "pending":
-      return { variant: "warning" as const, text: "확인 요청" };
-    case "confirmed":
-      return { variant: "success" as const, text: "예약 완료" };
-    case "declined":
-      return { variant: "error" as const, text: "거절됨" };
-    case "canceled":
-      return { variant: "default" as const, text: "취소됨" };
-    case "completed":
-      return { variant: "info" as const, text: "이용 완료" };
-    default:
-      return { variant: "default" as const, text: "" };
+/** 상태 → 배지 매핑 */
+function badge(s?: ReservationStatus) {
+  switch (s) {
+    case "pending":   return { v: "warning" as const, t: "확인 요청" };
+    case "confirmed": return { v: "success" as const,  t: "예약 완료" };
+    case "declined":  return { v: "error" as const,    t: "거절됨" };
+    case "canceled":  return { v: "default" as const,  t: "취소됨" };
+    case "completed": return { v: "success" as const,  t: "예약 완료" };
+    default:          return { v: "default" as const,  t: "" };
   }
 }
 
 export default function ListCard({
   thumbnail,
   title,
+  price,
   subtitle,
   status,
-  price,
   priceSub,
-  ctaLabel = "자세히",
+  peopleText = "00명",
+  dateText = "0000.00.00",
+  timeText = "11:00 - 12:30",
   className,
+  ctaLabel = "후기 작성",
   onClickCTA,
+  onClickChange,
+  onClickCancel,
+  variant = "pc",
+  forceMobileState,
+  actionsDisabled,
 }: ListCardProps) {
-  const { variant, text } = mapReservationStatus(status);
+  const { v: tagVariant, t: tagText } = badge(status);
+  const mobileState: MobileState =
+    forceMobileState ?? (status === "completed" ? "done" : "ing");
+  const hasSubtitle = !!subtitle?.trim();
 
+  const ProgressActions = (
+    <div className={clsx(variant === "mobile" ? "grid grid-cols-2 gap-3" : "flex gap-2")}>
+      <button
+        className={clsx(
+          "typo-12-m rounded-xl px-3",
+          variant === "mobile" ? "h-11 w-full" : "h-9",
+          actionsDisabled
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-gray-100 text-text-secondary hover:bg-gray-200"
+        )}
+        onClick={actionsDisabled ? undefined : onClickChange}
+      >
+        예약 변경
+      </button>
+      <button
+        className={clsx(
+          "typo-12-m rounded-xl px-3",
+          variant === "mobile" ? "h-11 w-full" : "h-9",
+          actionsDisabled
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-gray-100 text-text-secondary hover:bg-gray-200"
+        )}
+        onClick={actionsDisabled ? undefined : onClickCancel}
+      >
+        예약 취소
+      </button>
+    </div>
+  );
+
+  const DoneCTA = (
+    <Button
+      label={ctaLabel}
+      size={variant === "mobile" ? "md" : "sm"}
+      variant="primary"
+      className={clsx(variant === "mobile" ? "w-full h-11 rounded-xl" : "h-9 rounded-xl")}
+      onClick={onClickCTA}
+    />
+  );
+
+  /* ───────────── MOBILE (시안 동일: 309/139, 38px 겹침, 버튼 410px) ───────────── */
+  if (variant === "mobile") {
+    // 고정값: 카드 309, 이미지 139, 카드가 가리는 폭 38 → 밖으로 보이는 폭 101
+    // 총 너비(버튼 기준) = 309 + 101 = 410
+    return (
+      <div className={clsx("relative w-[410px]", className)}>
+        {/* 이미지: 카드 뒤에 깔리고, 오른쪽으로 101px 노출되도록 right:0에 배치 */}
+        <div className="absolute right-0 top-0 -z-10 w-[139px] h-[139px] rounded-[20px] overflow-hidden">
+          <img src={thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
+        </div>
+
+        {/* 카드: 폭 309, 높이 139, 이미지 위 38px 덮음 */}
+        <div className="relative z-0 h-[139px] w-[309px] rounded-[20px] bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="h-full px-5 py-5 flex flex-col justify-between">
+            <div>
+              {tagText && (
+                <Tag
+                  variant={tagVariant}
+                  size="sm"
+                  className="inline-flex items-center h-fit px-2 py-[2px] mb-2"
+                >
+                  {tagText}
+                </Tag>
+              )}
+              <h4 className="typo-16-b text-text-primary mb-1">{title}</h4>
+
+              {/* subtitle이 있으면 날짜/시간 줄 숨김 */}
+              {hasSubtitle ? (
+                <p className="typo-12-m text-text-secondary mb-1 line-clamp-2">{subtitle}</p>
+              ) : (
+                <p className="typo-12-m text-text-secondary">
+                  {dateText}
+                  <span className="mx-2">·</span>
+                  {timeText}
+                </p>
+              )}
+            </div>
+
+            <div className="mt-2">
+              <span className="typo-16-b text-text-primary">{price}</span>
+              {priceSub && <span className="typo-12-m text-text-secondary ml-1">{priceSub}</span>}
+              <span className="typo-12-m text-text-secondary ml-1">/ {peopleText}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 버튼: 카드+이미지 전체 폭(410px)에 맞춤 */}
+        <div className="mt-3 w-[410px]">
+          {mobileState === "done" ? DoneCTA : ProgressActions}
+        </div>
+      </div>
+    );
+  }
+
+  /* ───────────── PC ───────────── */
   return (
     <div
       className={clsx(
-        "rounded-2xl bg-white dark:bg-gray-900 border border-border-default p-4 flex items-center gap-4",
+        "flex items-stretch bg-white rounded-[20px] shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100 overflow-hidden",
         className
       )}
     >
-      <img
-        src={thumbnail}
-        alt=""
-        className="w-24 h-24 rounded-xl object-cover shrink-0"
-        loading="lazy"
-      />
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          {text && <Tag variant={variant}>{text}</Tag>}
-        </div>
-
-        <div className="mt-1 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h4 className="typo-16-b truncate">{title}</h4>
-            {subtitle && (
-              <p className="typo-12-m text-text-secondary mt-0.5 truncate">
-                {subtitle}
+      {/* 좌 텍스트 */}
+      <div className="flex-1 p-5 flex flex-col justify-between">
+        <div className="space-y-2">
+          {tagText && (
+            <Tag
+              variant={tagVariant}
+              size="sm"
+              className="inline-flex items-center h-fit px-2 py-[2px]"
+            >
+              {tagText}
+            </Tag>
+          )}
+          <div>
+            <h4 className="typo-16-b text-text-primary mb-1">{title}</h4>
+            {hasSubtitle ? (
+              <p className="typo-12-m text-text-secondary">{subtitle}</p>
+            ) : (
+              <p className="typo-12-m text-text-secondary mt-1">
+                {dateText}
+                <span className="mx-2">·</span>
+                {timeText}
               </p>
             )}
           </div>
+        </div>
 
-          <div className="text-right shrink-0">
-            <div className="typo-16-b">{price}</div>
-            {priceSub && (
-              <div className="typo-12-m text-text-secondary">{priceSub}</div>
-            )}
+        <div className="flex justify-between items-center mt-4">
+          <div>
+            <span className="typo-16-b text-text-primary">{price}</span>
+            {priceSub && <span className="typo-12-m text-text-secondary ml-1">{priceSub}</span>}
+            <span className="typo-12-m text-text-secondary ml-1">/ {peopleText}</span>
           </div>
+          {status === "completed" ? DoneCTA : ProgressActions}
         </div>
       </div>
 
-      <Button label={ctaLabel} size="sm" onClick={onClickCTA} />
+      {/* 우 이미지: 카드 내부에서 꽉 차게, 오른쪽 라운드만 */}
+      <div className="w-[180px] shrink-0 overflow-hidden">
+        <img
+          src={thumbnail}
+          alt=""
+          className="w-full h-full object-cover rounded-r-[20px]"
+          loading="lazy"
+        />
+      </div>
     </div>
   );
 }
