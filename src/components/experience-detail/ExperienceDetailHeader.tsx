@@ -7,6 +7,7 @@ import streetDanceZoom from "@/assets/img/streetdance_zoom.png";
 import streetDanceBasketball from "@/assets/img/streetdance_basketball.png";
 import starIcon from "@/assets/icon/icon_star_on.svg";
 import MapIcon from "@/assets/icon/icon_map.svg";
+import MoreIcon from "@/assets/icon/icon_more.svg";
 
 interface ImageData {
   src: string;
@@ -24,7 +25,7 @@ export default function ExperienceDetailHeader() {
     <section>
       {/* 체험 이미지 섹션 */}
       <div className="grid grid-cols-2 grid-template-rows:repeat(2,1fr)] gap-2 pt-8">
-        {/* 왼쪽 큰 이미지 (세로형) */}
+        {/* 왼쪽 큰 이미지 */}
         <div className="relative row-span-2 overflow-hidden w-full rounded-tl-2xl rounded-bl-2xl bg-gray-200">
           <Image
             src={mockImages[0].src}
@@ -56,7 +57,7 @@ export default function ExperienceDetailHeader() {
       </div>
 
       {/* 체험 이름 및 정보 섹션 */}
-      <div className="pt-5 border-b border-gray-100">
+      <div className="relative pt-5 border-b border-gray-100">
         {/* 카테고리 및 체험 이름 */}
         <div className="pb-4">
           <p className="typo-13-m text-gray-700 mb-1">문화 · 예술</p>
@@ -76,6 +77,16 @@ export default function ExperienceDetailHeader() {
             </span>
           </div>
         </div>
+
+        <button type="button" className="absolute right-0 top-5">
+          <Image
+            src={MoreIcon}
+            alt="더보기 메뉴"
+            width={30}
+            height={30}
+            className="w-6 h-6"
+          />
+        </button>
       </div>
     </section>
   );
