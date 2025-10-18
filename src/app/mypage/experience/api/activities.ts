@@ -21,7 +21,7 @@ export const createActivity = async (
   return await api.post("/activities", payload);
 };
 
-// 내 체험 수정 (PATCH : /my-activities/{activityId})
+// 내 체험 수정 (PATCH: /my-activities/{activityId})
 export const updateActivity = async (
   activityId: number,
   payload: UpdateActivityRequest,
@@ -29,7 +29,7 @@ export const updateActivity = async (
   return await api.patch(`/my-activities/${activityId}`, payload);
 };
 
-// 내 체험 삭제 (DELETE: /my-activities/${activityId})
+// 내 체험 삭제 (DELETE: /my-activities/{activityId})
 export const deleteActivity = async (activityId: number): Promise<void> => {
   await api.delete(`/my-activities/${activityId}`);
 };
