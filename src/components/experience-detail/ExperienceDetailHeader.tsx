@@ -5,6 +5,8 @@ import Image from "next/image";
 import streetDanceMain from "@/assets/img/streetdance_main.png";
 import streetDanceZoom from "@/assets/img/streetdance_zoom.png";
 import streetDanceBasketball from "@/assets/img/streetdance_basketball.png";
+import starIcon from "@/assets/icon/icon_star_on.svg";
+import MapIcon from "@/assets/icon/icon_map.svg";
 
 interface ImageData {
   src: string;
@@ -54,6 +56,27 @@ export default function ExperienceDetailHeader() {
       </div>
 
       {/* 체험 이름 및 정보 섹션 */}
+      <div className="pt-5 border-b border-gray-100">
+        {/* 카테고리 및 체험 이름 */}
+        <div className="pb-4">
+          <p className="typo-13-m text-gray-700 mb-1">문화 · 예술</p>
+          <h1 className="typo-18-b">함께 배우면 즐거운 스트릿 댄스</h1>
+        </div>
+
+        {/* 체험 평점, 주소 등 관련 정보*/}
+        <div className="pb-5">
+          <div className="flex gap-1 items-center mb-2">
+            <Image src={starIcon} alt="별점 아이콘" className="w-4 h-4" />
+            <span className="typo-14-m text-gray-700">4.9 (293)</span>
+          </div>
+          <div className="flex gap-1 items-center">
+            <Image src={MapIcon} alt="지도 아이콘" className="w-4 h-4" />
+            <span className="typo-14-m text-gray-700">
+              서울 중구 청계천로 100 10F
+            </span>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

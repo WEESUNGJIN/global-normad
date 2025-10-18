@@ -3,6 +3,7 @@
 import GNB from "@/components/GNB";
 import Footer from "@/components/Footer";
 import ExperienceDetailHeader from "./ExperienceDetailHeader";
+import ExperienceDetailDescription from "./ExperienceDetailDescription";
 
 export default function ExperienceDetail() {
   return (
@@ -14,6 +15,7 @@ export default function ExperienceDetail() {
         <ExperienceDetailHeader />
 
         {/* 체험 설명 */}
+        <ExperienceDetailDescription />
 
         {/* 오시는 길 (지도) */}
 
