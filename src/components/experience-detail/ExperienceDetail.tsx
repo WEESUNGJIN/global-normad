@@ -44,7 +44,7 @@ export default function ExperienceDetail() {
       <div className="lg:hidden fixed bottom-0 left-0 w-full z-[9999] bg-white border-t border-gray-100 px-6 pt-[22px] pb-[max(env(safe-area-inset-bottom),16px)]">
         <div className="flex items-center justify-between mb-3">
           <p className="typo-18-b text-gray-950">
-            ₩1,0000 <span className="typo-16-m text-gray-600">/ 인</span>
+            ₩10,000 <span className="typo-16-m text-gray-600">/ 인</span>
           </p>
           <button className="typo-16-b text-primary border-b-2 border-primary">
             날짜 선택하기
