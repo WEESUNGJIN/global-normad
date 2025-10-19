@@ -64,7 +64,7 @@ export default function ExperienceDetailReviews() {
       </div>
 
       {/* 후기 리스트 */}
-      <div className="flex flex-col gap-10 lg:gap-5 pb-20">
+      <div className="flex flex-col gap-10 lg:gap-5">
         {data.reviews.map((review) => (
           <div
             key={review.id}
