@@ -187,6 +187,11 @@ body {
   line-height: 1.25;
   font-weight: 500;
 }
+.typo-24-sb {
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 600;
+}
 .typo-24-b {
   font-size: 24px;
   line-height: 1.25;
