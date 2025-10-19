@@ -12,7 +12,7 @@ export default function ExperienceDetail() {
     <main>
       <GNB />
 
-      <div className="px-6 pb-[120px]">
+      <div className="px-6 md:px-8 pb-[120px]">
         {/* 상단 이미지 + 제목 + 별점 영역 */}
         <ExperienceDetailHeader />
 

@@ -24,7 +24,7 @@ export default function ExperienceDetailHeader() {
   return (
     <section>
       {/* 체험 이미지 섹션 */}
-      <div className="grid grid-cols-2 grid-template-rows:repeat(2,1fr)] gap-2 pt-8">
+      <div className="grid grid-cols-2 grid-template-rows:repeat(2,1fr)] gap-2 md:gap-3 pt-8 md:pt-9">
         {/* 왼쪽 큰 이미지 */}
         <div className="relative row-span-2 overflow-hidden w-full rounded-tl-2xl rounded-bl-2xl bg-gray-200">
           <Image
@@ -57,15 +57,19 @@ export default function ExperienceDetailHeader() {
       </div>
 
       {/* 체험 이름 및 정보 섹션 */}
-      <div className="relative pt-5 border-b border-gray-100">
+      <div className="relative pt-5 md:pt-6 border-b border-gray-100">
         {/* 카테고리 및 체험 이름 */}
         <div className="pb-4">
-          <p className="typo-13-m text-gray-700 mb-1">문화 · 예술</p>
-          <h1 className="typo-18-b">함께 배우면 즐거운 스트릿 댄스</h1>
+          <p className="typo-13-m md:text-sm text-gray-700 mb-1 md:mb-2">
+            문화 · 예술
+          </p>
+          <h1 className="typo-18-b md:text-2xl">
+            함께 배우면 즐거운 스트릿 댄스
+          </h1>
         </div>
 
         {/* 체험 평점, 주소 등 관련 정보*/}
-        <div className="pb-5">
+        <div className="pb-5 md:pb-6">
           <div className="flex gap-1 items-center mb-2">
             <Image src={starIcon} alt="별점 아이콘" className="w-4 h-4" />
             <span className="typo-14-m text-gray-700">4.9 (293)</span>
