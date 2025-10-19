@@ -48,15 +48,15 @@ export default function ExperienceDetailReviews() {
   return (
     <section>
       <div className="pt-5 flex gap-2 items-center">
-        <h2 className="typo-16-b text-gray-950">체험 후기</h2>
-        <p className="typo-14-sb text-gray-700">1,300개</p>
+        <h2 className="typo-16-b md:text-lg text-gray-950">체험 후기</h2>
+        <p className="typo-14-sb md:text-base text-gray-700">1,300개</p>
       </div>
 
-      <div className="pt-2 pb-7 text-center">
-        <p className="typo-24-sb mb-2 text-gray-950">
+      <div className="pt-2 md:pt-3 md:pb-8 pb-7 text-center">
+        <p className="typo-24-sb md:text-3xl mb-2 text-gray-950">
           {data.averageRating.toFixed(1)}
         </p>
-        <p className="typo-14-b text-gray-950 mb-2">매우 만족</p>
+        <p className="typo-14-b md:text-base text-gray-950 mb-2">매우 만족</p>
         <div className="flex justify-center items-center gap-1 typo-14-m text-gray-700">
           <Image src={starIconOn} alt="별 아이콘" width={16} height={16} />
           {data.totalCount.toLocaleString()}개의 후기
@@ -64,22 +64,24 @@ export default function ExperienceDetailReviews() {
       </div>
 
       {/* 후기 리스트 */}
-      <div className="flex flex-col gap-10 pb-20">
+      <div className="flex flex-col gap-10 lg:gap-5 pb-20">
         {data.reviews.map((review) => (
           <div
             key={review.id}
             className="rounded-2xl bg-white shadow-searchbar p-5"
           >
             {/* 사용자 정보 */}
-            <div className="flex items-center gap-2 mb-2">
-              <p className="typo-14-sb text-gray-950">{review.user.nickname}</p>
-              <span className="typo-12-sb text-gray-500">
+            <div className="flex items-center gap-2 mb-2 md:mb-3">
+              <p className="typo-14-sb md:text-base text-gray-950">
+                {review.user.nickname}
+              </p>
+              <span className="typo-12-sb md:text-sm text-gray-500">
                 {review.createdAt.split("T")[0].replace(/-/g, ". ")}
               </span>
             </div>
 
             {/* 별점 */}
-            <div className="flex gap-[1px] mb-2">
+            <div className="flex gap-[1px] mb-2 md:mb-3">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Image
                   key={i}
@@ -91,7 +93,7 @@ export default function ExperienceDetailReviews() {
             </div>
 
             {/* 후기 내용 */}
-            <p className="typo-14-m leading-[1.7] text-gray-950">
+            <p className="typo-14-m md:text-base !leading-[1.7] text-gray-950">
               {review.content}
             </p>
           </div>
