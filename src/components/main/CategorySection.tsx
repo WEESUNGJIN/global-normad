@@ -5,8 +5,8 @@ import Image, { type StaticImageData } from "next/image";
 import Card from "@/components/Card";
 
 import iconArrowDown from "@/assets/icon/icon_alt arrow_down.svg";
-import iconCulture from "@/assets/icon/icon_music.svg";
-import iconCultureWhite from "@/assets/icon/white/icon_music_white.svg";
+import iconCulture from "@/assets/icon/icon_art.svg";
+import iconCultureWhite from "@/assets/icon/white/icon_art_white.svg";
 import iconFood from "@/assets/icon/icon_food.svg";
 import iconFoodWhite from "@/assets/icon/white/icon_food_white.svg";
 import iconTour from "@/assets/icon/icon_tour.svg";

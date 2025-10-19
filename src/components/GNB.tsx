@@ -16,14 +16,18 @@ type GNBProps = {
 
 export default function GNB({ isLoggedIn = false, unread = 0 }: GNBProps) {
   const hasUnread = Number.isFinite(unread) && (unread as number) > 0;
-  const unreadLabel = hasUnread ? (unread! > 99 ? "99+" : String(unread)) : null;
+  const unreadLabel = hasUnread
+    ? unread! > 99
+      ? "99+"
+      : String(unread)
+    : null;
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-border-default">
       <div className="mx-auto w-full max-w-[1200px] h-14 px-6 flex items-center justify-between">
         {/* Left: Logo */}
         <Link href="/" className="flex items-center no-underline">
-          <Image src={Logo} alt="GlobalNomad 로고" height={28} priority />
+          <Image src={Logo} alt="In My Day 로고" height={28} priority />
         </Link>
 
         {/* Right */}
@@ -66,10 +70,16 @@ export default function GNB({ isLoggedIn = false, unread = 0 }: GNBProps) {
           </nav>
         ) : (
           <nav className="flex items-center gap-6">
-            <Link href="/login" className="typo-14-m text-gray-900 hover:text-primary">
+            <Link
+              href="/login"
+              className="typo-14-m text-gray-900 hover:text-primary"
+            >
               로그인
             </Link>
-            <Link href="/signup" className="typo-14-m text-gray-900 hover:text-primary">
+            <Link
+              href="/signup"
+              className="typo-14-m text-gray-900 hover:text-primary"
+            >
               회원가입
             </Link>
           </nav>

@@ -11,7 +11,7 @@ import iconX from "@/assets/icon/icon_X.svg";
 export default function Footer() {
   return (
     <footer className="border-t border-border-default bg-white dark:bg-gray-900">
-      <div className="mx-auto max-w-[1200px] w-full px-6 py-14 text-text-secondary">
+      <div className="mx-auto max-w-[1200px] w-full px-6 py-8 md:py-14 text-text-secondary">
         {/* ✅ 데스크탑 기본: 한 줄 3분할 */}
         <div className="hidden md:flex items-center justify-between">
           {/* 왼쪽 */}
