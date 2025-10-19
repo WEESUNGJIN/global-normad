@@ -82,9 +82,9 @@ export default function ExperienceDetailHeader() {
           <Image
             src={MoreIcon}
             alt="더보기 메뉴"
-            width={30}
-            height={30}
-            className="w-6 h-6"
+            width={28}
+            height={28}
+            className="w-7 h-7"
           />
         </button>
       </div>
