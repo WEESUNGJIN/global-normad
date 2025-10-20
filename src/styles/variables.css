@@ -150,7 +150,8 @@ body {
   font-size: 16px;
   line-height: 1.5;
   font-weight: 500;
-} /* 16px / auto (약 150%) */
+}
+/* 16px / auto (약 150%) */
 .typo-16-b {
   font-size: 16px;
   line-height: 1.5;
@@ -186,6 +187,11 @@ body {
   font-size: 24px;
   line-height: 1.25;
   font-weight: 500;
+}
+.typo-24-sb {
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 600;
 }
 .typo-24-b {
   font-size: 24px;

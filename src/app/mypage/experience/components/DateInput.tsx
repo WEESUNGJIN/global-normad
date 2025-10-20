@@ -29,7 +29,8 @@ export default function DateInput({ value, onChange }: DateInputProps) {
         onChange={(date) => onChange(date)}
         dateFormat="yy/MM/dd"
         placeholderText="yy/mm/dd"
-        className="typo-16-m text-gray-400 focus:outline-none"
+        className={`typo-16-m focus:outline-none
+        ${value ? "text-gray-950" : "text-gray-400"}`}
       />
       <button type="button" onClick={handleIconClick}>
         <Image src={IconCalendar} alt="캘린더 아이콘" width={24} height={24} />

@@ -2,32 +2,75 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createActivity } from "@/app/mypage/experience/api/activities";
+import { ApiError, CreateActivityRequest } from "@/types/experience";
 import Input from "@/components/Input";
 import CategorySelect from "@/app/mypage/experience/components/CategorySelect";
 import Button from "@/components/Button";
 import AddressInput from "@/app/mypage/experience/components/AddressInput";
 import DateSection from "../mypage/experience/components/DateSection";
 import PhotoSection from "../mypage/experience/components/PhotoSection";
-import { ExperienceForm, Activity } from "@/types/experience";
+import Modal from "@/components/Modal";
 
 export default function ExperienceRegisterPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const [form, setForm] = useState<ExperienceForm>({
+  const [form, setForm] = useState<CreateActivityRequest>({
     title: "",
     category: "",
     description: "",
-    price: "",
     address: "",
+    price: 0,
+    schedules: [{ date: "", startTime: "", endTime: "" }],
     bannerImageUrl: "",
-    subImages: [],
-    schedules: [],
+    subImageUrls: [],
   });
 
-  // string | string[] | Schedule[] 받을 수 있게
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (payload: CreateActivityRequest) => createActivity(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myActivities"] });
+      setIsModalOpen(true);
+    },
+    onError: (err: unknown) => {
+      const apiError = err as ApiError & { response?: { data?: ApiError } };
+      const msg =
+        apiError?.response?.data?.message ||
+        apiError?.message ||
+        "등록 중 오류가 발생했습니다.";
+      alert(msg);
+      console.error("등록 실패:", err);
+    },
+  });
+
+  const handleSubmit = () => {
+    if (
+      !form.title ||
+      !form.category ||
+      !form.description ||
+      !form.price ||
+      !form.address ||
+      !form.schedules.length ||
+      !form.bannerImageUrl
+    ) {
+      alert("필수 항목을 입력해 주세요.");
+      return;
+    }
+    mutate(form);
+  };
+
+  const handleModalConfirm = () => {
+    setIsModalOpen(false);
+    router.push("/mypage/experience");
+  };
+
   const handleChange = (
-    key: keyof ExperienceForm,
-    value: string | string[] | ExperienceForm["schedules"],
+    key: keyof CreateActivityRequest,
+    value: string | number | string[] | CreateActivityRequest["schedules"],
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -39,44 +82,6 @@ export default function ExperienceRegisterPage() {
     { label: "관광", value: "관광" },
     { label: "웰빙", value: "웰빙" },
   ];
-
-  const handleSubmit = () => {
-    if (!form.title || !form.category || !form.price) {
-      alert("필수 항목을 입력해 주세요.");
-      return;
-    }
-
-    const stored: Activity[] = JSON.parse(
-      localStorage.getItem("activities") || "[]",
-    );
-
-    const newActivity: Activity = {
-      id: Date.now(),
-      userId: 101,
-      title: form.title,
-      description: form.description,
-      category: form.category,
-      price: Number(form.price).toString(),
-      address: form.address,
-      bannerImageUrl: form.bannerImageUrl,
-      subImages: form.subImages.map((url, idx) => ({
-        id: idx + 1,
-        imageUrl: url,
-      })),
-      schedules: form.schedules,
-      rating: 0,
-      reviewCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem(
-      "activities",
-      JSON.stringify([newActivity, ...stored]),
-    );
-    alert("체험이 등록되었습니다!");
-    router.push("/mypage/experience");
-  };
 
   return (
     <main className="flex justify-center px-6">
@@ -124,7 +129,7 @@ export default function ExperienceRegisterPage() {
           <Input
             value={form.price}
             placeholder="체험 금액을 입력해 주세요"
-            onChange={(e) => handleChange("price", e.target.value)}
+            onChange={(e) => handleChange("price", Number(e.target.value))}
           />
         </div>
 
@@ -133,7 +138,7 @@ export default function ExperienceRegisterPage() {
           <div className="mb-2 typo-16-b text-gray-950">주소</div>
           <AddressInput
             value={form.address}
-            onChange={(v: string) => handleChange("address", v)}
+            onChange={(v) => handleChange("address", v)}
           />
         </div>
 
@@ -151,9 +156,7 @@ export default function ExperienceRegisterPage() {
           <PhotoSection
             limit={1}
             value={form.bannerImageUrl ? [form.bannerImageUrl] : []}
-            onChange={(urls: string[]) =>
-              handleChange("bannerImageUrl", urls[0])
-            }
+            onChange={(urls) => handleChange("bannerImageUrl", urls[0] ?? "")}
           />
         </div>
 
@@ -162,19 +165,33 @@ export default function ExperienceRegisterPage() {
           <div className="mb-2 typo-16-b text-gray-950">소개 이미지 등록</div>
           <PhotoSection
             limit={4}
-            value={form.subImages}
-            onChange={(urls: string[]) => handleChange("subImages", urls)}
+            value={form.subImageUrls}
+            onChange={(urls) => handleChange("subImageUrls", urls)}
           />
         </div>
 
         <div className="flex justify-center mb-24">
           <Button
-            label="등록하기"
+            label={isPending ? "등록 중..." : "등록하기"}
             variant="primary"
             size="md"
             onClick={handleSubmit}
+            disabled={isPending}
           />
         </div>
+
+        {/* 등록 완료 모달 */}
+        <Modal
+          open={isModalOpen}
+          title=" "
+          confirmText="확인"
+          cancelText=""
+          onConfirm={handleModalConfirm}
+          onClose={handleModalConfirm}
+          widthClass="max-w-sm"
+        >
+          <p> 체험 등록이 완료되었습니다.</p>
+        </Modal>
       </div>
     </main>
   );

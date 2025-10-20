@@ -29,9 +29,9 @@ export default function CategorySelect({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="appearance-none w-full justify-between items-center p-4 gap-3 box-border
+        className={`appearance-none w-full justify-between items-center p-4 gap-3 box-border
       bg-white border border-gray-100 shadow-[0_2px_6px_rgba(0,0,0,0.02)] rounded-2xl
-      text-gray-400 focus:outline-none "
+        ${value ? "text-gray-950" : "text-gray-400"}`}
       >
         <option value="">{placeholder}</option>
         {options.map((opt) => (

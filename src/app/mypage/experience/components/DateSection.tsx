@@ -6,37 +6,49 @@ import CategorySelect from "./CategorySelect";
 import IconPlus from "@/assets/icon/icon_plus_button.svg";
 import IconMinus from "@/assets/icon/icon_minus_button.svg";
 
-interface DateSectionProps {
-  value: { id: number; date: string; startTime: string; endTime: string }[];
-  onChange?: (
-    slots: { id: number; date: string; startTime: string; endTime: string }[],
-  ) => void;
+interface Slot {
+  date: string;
+  startTime: string;
+  endTime: string;
 }
-export default function DateSection({ value, onChange }: DateSectionProps) {
+
+interface DateSectionProps {
+  value?: Slot[];
+  onChange?: (slots: Slot[]) => void;
+}
+
+export default function DateSection({
+  value = [],
+  onChange,
+}: DateSectionProps) {
   const timeOptions = Array.from({ length: 24 }, (_, i) => {
     const label = `${i.toString().padStart(2, "0")}:00`;
     return { label, value: label };
   });
 
+  // 맨 위 슬롯이 다 입력됐는지 확인
+  const isTopSlotFilled = () => {
+    if (value.length === 0) return false;
+    const top = value[0];
+    return top.date && top.startTime && top.endTime;
+  };
+
   const handleAdd = () => {
-    onChange?.([
-      ...value,
-      { id: Date.now(), date: "", startTime: "", endTime: "" },
-    ]);
+    if (!isTopSlotFilled()) return;
+    const newSlot: Slot = { date: "", startTime: "", endTime: "" };
+    onChange?.([newSlot, ...value]);
   };
 
-  const handleRemove = (id: number) => {
-    onChange?.(value.filter((slot) => slot.id !== id));
+  const handleRemove = (index: number) => {
+    const updated = value.filter((_, i) => i !== index);
+    onChange?.(updated);
   };
 
-  const handleChange = (
-    id: number,
-    key: "date" | "startTime" | "endTime",
-    val: string,
-  ) => {
-    onChange?.(
-      value.map((slot) => (slot.id === id ? { ...slot, [key]: val } : slot)),
+  const handleChange = (index: number, key: keyof Slot, val: string) => {
+    const updated = value.map((slot, i) =>
+      i === index ? { ...slot, [key]: val } : slot,
     );
+    onChange?.(updated);
   };
 
   return (
@@ -44,17 +56,13 @@ export default function DateSection({ value, onChange }: DateSectionProps) {
       <h3 className="typo-16-b text-gray-950">예약 가능한 시간대</h3>
 
       {value.map((slot, i) => (
-        <div key={slot.id} className="flex flex-col gap-3">
+        <div key={i} className="flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex-1">
               <DateInput
                 value={slot.date ? new Date(slot.date) : null}
                 onChange={(d) =>
-                  handleChange(
-                    slot.id,
-                    "date",
-                    d?.toISOString().split("T")[0] ?? "",
-                  )
+                  handleChange(i, "date", d?.toISOString().split("T")[0] ?? "")
                 }
               />
             </div>
@@ -62,30 +70,34 @@ export default function DateSection({ value, onChange }: DateSectionProps) {
             <div className="flex flex-row items-center gap-3 sm:gap-2 w-full sm:w-[340px]">
               <CategorySelect
                 value={slot.startTime}
-                onChange={(v) => handleChange(slot.id, "startTime", v)}
+                onChange={(v) => handleChange(i, "startTime", v)}
                 options={timeOptions}
                 placeholder="00:00"
               />
               <span className="text-gray-500">-</span>
               <CategorySelect
                 value={slot.endTime}
-                onChange={(v) => handleChange(slot.id, "endTime", v)}
+                onChange={(v) => handleChange(i, "endTime", v)}
                 options={timeOptions}
                 placeholder="00:00"
               />
+
               {i === 0 ? (
                 <button
                   onClick={handleAdd}
-                  className="bg-primary rounded-full w-[42px] h-[42px] flex items-center justify-center"
+                  disabled={!isTopSlotFilled()}
+                  aria-label="추가"
+                  className="shrink-0 flex items-center justify-center w-[42px] h-[42px] bg-primary rounded-full sm:ml-2 hover:brightness-110 transition"
                 >
                   <Image src={IconPlus} alt="추가" width={24} height={24} />
                 </button>
               ) : (
                 <button
-                  onClick={() => handleRemove(slot.id)}
-                  className="bg-gray-50 rounded-full w-[42px] h-[42px] flex items-center justify-center"
+                  onClick={() => handleRemove(i)}
+                  aria-label="삭제"
+                  className="shrink-0 flex items-center justify-center w-[42px] h-[42px] bg-gray-50 rounded-full sm:ml-2 hover:bg-gray-100 transition"
                 >
-                  <Image src={IconMinus} alt="삭제" width={24} height={24} />
+                  <Image src={IconMinus} alt="삭제" width={32} height={32} />
                 </button>
               )}
             </div>
