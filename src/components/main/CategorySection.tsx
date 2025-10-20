@@ -45,13 +45,6 @@ interface Activity {
   category: string;
 }
 
-const categoryMap = {
-  "문화·예술": 1,
-  식음료: 2,
-  투어: 3,
-  관광: 4,
-};
-
 const categories: Category[] = [
   {
     id: 1,
