@@ -1,7 +1,7 @@
 // src/store/useAuthStore.ts
 import { create } from "zustand";
 
-interface User {
+export interface User {
   id: number;
   email: string;
   nickname: string;

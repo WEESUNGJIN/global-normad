@@ -84,7 +84,7 @@ export default function Login() {
         <div className="mt-8 text-center">
           <span className="text-gray-400">
             회원이 아니신가요?{" "}
-            <a href="/signup" className="border-b">
+            <a href="/auth/signup" className="border-b">
               회원가입하기
             </a>
           </span>

@@ -71,13 +71,13 @@ export default function GNB({ isLoggedIn = false, unread = 0 }: GNBProps) {
         ) : (
           <nav className="flex items-center gap-6">
             <Link
-              href="/login"
+              href="/auth/login"
               className="typo-14-m text-gray-900 hover:text-primary"
             >
               로그인
             </Link>
             <Link
-              href="/signup"
+              href="/auth/signup"
               className="typo-14-m text-gray-900 hover:text-primary"
             >
               회원가입

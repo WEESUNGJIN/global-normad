@@ -17,7 +17,7 @@ export function useSignup() {
 
   const signup = async (data: SignupReqeust) => {
     const res = await api.post<{ message: string }, SignupReqeust>(
-      "/user",
+      "/users",
       data,
     );
     return res;
