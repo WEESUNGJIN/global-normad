@@ -5,12 +5,14 @@ import emptyState from "@/assets/img/empty_state.png";
 import ExperienceCard from "./components/ExperienceCard";
 import Modal from "@/components/Modal";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import warning from "@/assets/img/warning_state.png";
 // testImg 나중에 인증 권한 해결 후 지울 예정
 import streetdanceImg from "@/assets/img/streetdance_main.png";
 
 export default function ExperiencePage() {
+  const router = useRouter();
   // --------------------------
   // 모달 상태 관리
   // --------------------------
@@ -102,6 +104,10 @@ export default function ExperiencePage() {
     deleteMutation.mutate(selectedActivity.id);
   };
 
+  const handleEditClick = (id: number) => {
+    router.push(`/experience-edit/${id}`); // 수정 페이지로 이동
+  };
+
   // --------------------------
   // 상태별 렌더링
   // --------------------------
@@ -151,7 +157,7 @@ export default function ExperiencePage() {
           reviewCount={act.reviewCount}
           price={Number(act.price)}
           imageUrl={act.bannerImageUrl}
-          onEdit={() => console.log("수정 클릭:", act.id)}
+          onEdit={() => handleEditClick(act.id)}
           onDelete={() => handleDeleteClick(act)}
         />
       ))}
