@@ -64,9 +64,14 @@ export default function MockCalendarPage() {
         ))}
       </select>
 
-      {/* 새 CalendarBoardWithPanel 사용 */}
+    {/* ✅ CalendarBoardWithPanel 사용 */}
       {selectedActivity && (
-        <CalendarBoardWithPanel />
+        <CalendarBoardWithPanel
+          // 캘린더에서 사용할 예약 데이터
+          data={dashboard}
+          // 달 바뀔 때 API 다시 호출용
+          onMonthChange={(date) => setActiveDate(date)}
+        />
       )}
     </div>
   );

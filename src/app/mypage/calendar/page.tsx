@@ -6,7 +6,9 @@ import Link from "next/link";
 import Button from "@/components/Button";
 import emptyState from "@/assets/img/empty_state.png";
 import api from "@/utils/api";
-import CalendarBoard from "@/app/mypage/calendar/components/calendarBoard/CalendarBoard"; // ✅ 공용 달력 컴포넌트 import
+
+// ✅ 패널 포함된 캘린더 컴포넌트로 교체
+import CalendarBoardWithPanel from "@/app/mypage/calendar/components/CalendarBoardWithPanel";
 
 /** 내 체험 요약 타입 */
 type MyActivity = {
@@ -113,15 +115,13 @@ export default function CalendarPage() {
         ))}
       </select>
 
-      {/* ✅ 공용 CalendarBoard 컴포넌트 사용 */}
+      {/* ✅ CalendarBoardWithPanel 사용 */}
       {selectedActivity && (
-        <CalendarBoard
+        <CalendarBoardWithPanel
+          // 캘린더에서 사용할 예약 데이터
           data={dashboard}
+          // 달 바뀔 때 API 다시 호출용
           onMonthChange={(date) => setActiveDate(date)}
-          onDateClick={(date) => {
-            console.log("날짜 클릭:", date);
-            // TODO: 이후 모달 연결 시 여기서 openModal(date) 호출
-          }}
         />
       )}
     </div>
