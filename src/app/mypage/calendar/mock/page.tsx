@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/Button";
 import emptyState from "@/assets/img/empty_state.png";
-import CalendarBoard from "@/app/mypage/calendar/components/calendarBoard/CalendarBoard"; // ✅ 공용 캘린더 불러오기
+import CalendarBoardWithPanel from "@/app/mypage/calendar/components/CalendarBoardWithPanel";
 
 import {
   mockActivities,
@@ -64,16 +64,9 @@ export default function MockCalendarPage() {
         ))}
       </select>
 
-      {/* ✅ 공용 CalendarBoard 컴포넌트 사용 */}
+      {/* 새 CalendarBoardWithPanel 사용 */}
       {selectedActivity && (
-        <CalendarBoard
-          data={dashboard}
-          onMonthChange={(date) => setActiveDate(date)}
-          onDateClick={(date) => {
-            console.log("날짜 클릭:", date);
-            // TODO: 추후 예약 상세 모달 연결 예정
-          }}
-        />
+        <CalendarBoardWithPanel />
       )}
     </div>
   );
