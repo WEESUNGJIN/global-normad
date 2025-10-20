@@ -10,8 +10,6 @@ import warning from "@/assets/img/warning_state.png";
 // testImg 나중에 인증 권한 해결 후 지울 예정
 import streetdanceImg from "@/assets/img/streetdance_main.png";
 
-// import { getMyActivities } from "./api/activities";
-
 export default function ExperiencePage() {
   // --------------------------
   // 모달 상태 관리
