@@ -1,8 +1,9 @@
 // src/app/auth/signup/hooks/useSignup.ts
 
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import api from "@/utils/api";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/app/store/useAuthStore";
 
 interface SignupReqeust {
   email: string;
@@ -12,6 +13,7 @@ interface SignupReqeust {
 
 export function useSignup() {
   const router = useRouter();
+  const { setUser } = useAuthStore(); // zustand 전역 상태 접근
 
   const signup = async (data: SignupReqeust) => {
     const res = await api.post<{ message: string }, SignupReqeust>(
@@ -37,6 +39,8 @@ export function useSignup() {
 
       localStorage.setItem("accessToken", loginReq.accessToken);
       localStorage.setItem("refreshToken", loginReq.refreshToken);
+
+      setUser(loginReq.user); //로그인시 전역 상태 업데이트
 
       router.push("/");
     } catch (error: unknown) {
