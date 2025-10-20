@@ -6,7 +6,7 @@ import Image, { StaticImageData } from "next/image";
 
 // ✅ 아이콘 파일 (세진 경로 그대로)
 import iconGoogle from "@/assets/icon/icon_google.svg";
-import iconCulture from "@/assets/icon/icon_music.svg";
+import iconCulture from "@/assets/icon/icon_art.svg";
 import iconUser from "@/assets/icon/icon_user.svg";
 
 export type ButtonVariant =

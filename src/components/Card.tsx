@@ -49,7 +49,7 @@ interface CardPriceProps {
 const CardRoot: React.FC<CardProps> = ({ className, children }) => (
   <div
     className={clsx(
-      "relative w-[132px] rounded-[20px] bg-white dark:bg-gray-900",
+      "relative w-[132px] md:w-82 lg:w-[262px] rounded-2xl md:rounded-3xl bg-white dark:bg-gray-900",
       "shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]",
       "overflow-hidden transition-shadow",
       className,
@@ -86,9 +86,9 @@ const CardContent: React.FC<CardContentProps> = ({ className, children }) => (
   <div
     className={clsx(
       "relative z-10 -mt-[33px] md:-mt-[60px]",
-      "rounded-2xl bg-white dark:bg-gray-900",
+      "rounded-2xl md:rounded-3xl bg-white dark:bg-gray-900",
       "shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]",
-      "p-4",
+      "p-4 md:p-6",
       className,
     )}
   >
@@ -98,7 +98,7 @@ const CardContent: React.FC<CardContentProps> = ({ className, children }) => (
 
 /* ---------- Title ---------- */
 const CardTitle: React.FC<CardTitleProps> = ({ className, children }) => (
-  <h3 className={clsx("typo-14-sb text-text-primary", className)}>
+  <h3 className={clsx("typo-14-sb md:text-lg text-text-primary", className)}>
     {children}
   </h3>
 );
@@ -113,13 +113,19 @@ const CardMeta: React.FC<CardMetaProps> = ({ rating, count, className }) => {
         className,
       )}
     >
-      <Image src={starIcon} alt="별점 아이콘" className="w-3 h-3" />
+      <Image
+        src={starIcon}
+        alt="별점 아이콘"
+        className="w-3 h-3 md:w-5 md:h-5"
+      />
       <div className="flex items-baseline gap-1">
-        <span className="typo-12-m text-text-primary">
+        <span className="typo-12-m md:text-sm text-text-primary">
           {rating?.toFixed(1)}
         </span>
         {typeof count === "number" && (
-          <span className="typo-12-m text-text-secondary">({count})</span>
+          <span className="typo-12-m md:text-sm text-text-secondary">
+            ({count})
+          </span>
         )}
       </div>
     </div>
@@ -133,9 +139,11 @@ const CardPrice: React.FC<CardPriceProps> = ({
   right,
   className,
 }) => (
-  <div className={clsx("flex items-end justify-between mt-2", className)}>
+  <div
+    className={clsx("flex items-end justify-between mt-2 md:mt-3", className)}
+  >
     <div className="flex items-baseline gap-[2px]">
-      <span className="typo-16-b text-text-primary">{price}</span>
+      <span className="typo-16-b md:text-lg text-text-primary">{price}</span>
       {unit && <span className="typo-12-sb text-text-secondary">{unit}</span>}
     </div>
     {right}
