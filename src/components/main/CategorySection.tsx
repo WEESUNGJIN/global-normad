@@ -18,6 +18,7 @@ import emojiPalette from "@/assets/img/emoji_palette.png";
 import emojiPlate from "@/assets/img/emoji_plate.png";
 import emojiCity from "@/assets/img/emoji_city.png";
 import emojiCar from "@/assets/img/emoji_car.png";
+import emojiRollerskate from "@/assets/img/emoji_rollerskate.png";
 
 import fjordImg from "@/assets/img/fjord.png";
 import coastalvillageImg from "@/assets/img/coastalvillage.png";
@@ -41,6 +42,7 @@ interface Activity {
   rating: number;
   reviewCount: number;
   price: number;
+  category: string;
 }
 
 const categories: Category[] = [
@@ -82,6 +84,7 @@ const activities: Activity[] = [
     rating: 3.9,
     reviewCount: 108,
     price: 42800,
+    category: "관광",
   },
   {
     id: 2,
@@ -90,6 +93,7 @@ const activities: Activity[] = [
     rating: 2.9,
     reviewCount: 67,
     price: 217000,
+    category: "투어",
   },
   {
     id: 3,
@@ -98,6 +102,7 @@ const activities: Activity[] = [
     rating: 4.0,
     reviewCount: 113,
     price: 6000,
+    category: "관광",
   },
   {
     id: 4,
@@ -106,6 +111,7 @@ const activities: Activity[] = [
     rating: 4.1,
     reviewCount: 85,
     price: 35000,
+    category: "관광",
   },
   {
     id: 5,
@@ -114,6 +120,7 @@ const activities: Activity[] = [
     rating: 3.9,
     reviewCount: 108,
     price: 42800,
+    category: "투어",
   },
   {
     id: 6,
@@ -122,33 +129,39 @@ const activities: Activity[] = [
     rating: 4.3,
     reviewCount: 18,
     price: 12000,
+    category: "문화·예술",
   },
 ];
 
 export default function CategorySection() {
-  const [selectedCategory, setSelectedCategory] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const handleSelectCategory = (id: number) => setSelectedCategory(id);
+  const handleSelectCategory = (id: number) => {
+    setSelectedCategory((prev) => (prev === id ? null : id));
+  };
   const handlePageChange = (page: number) => setCurrentPage(page);
 
   const selected = categories.find((c) => c.id === selectedCategory);
+
+  const filteredActivities =
+    selectedCategory === null
+      ? activities
+      : activities.filter((act) => act.category === selected?.name);
 
   return (
     <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
       <div className="flex items-center justify-between mb-4 md:mb-5">
         <div className="flex items-center gap-1">
-          {selected?.emojiSrc && (
-            <Image
-              src={selected.emojiSrc}
-              alt={selected.name}
-              width={24}
-              height={24}
-              className="-mt-[6px] md:mr-1 object-contain md:w-8 md:h-8"
-            />
-          )}
+          <Image
+            src={selected?.emojiSrc ?? emojiRollerskate}
+            alt={selected?.name ?? "모든 체험"}
+            width={24}
+            height={24}
+            className="-mt-[6px] md:mr-1 object-contain md:w-8 md:h-8"
+          />
           <h2 className="typo-18-b md:text-3xl text-text-primary">
-            {selected?.name}
+            {selectedCategory === null ? "모든 체험" : selected?.name}
           </h2>
         </div>
         <button className="flex items-center gap-[4px] typo-16-m text-text-primary leading-none">
@@ -194,7 +207,7 @@ export default function CategorySection() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5">
-        {activities.map((act) => (
+        {filteredActivities.map((act) => (
           <Card key={act.id} className="!w-full">
             <Card.Image src={act.bannerImageUrl} alt={act.title} />
             <Card.Content>
