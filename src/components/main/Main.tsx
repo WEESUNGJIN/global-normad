@@ -27,12 +27,16 @@ export default function Main() {
         <SearchSection />
       </div>
 
-      <div className="lg:px-100">
-        <PopularSection />
+      <div className="px-6 md:px-8">
+        <div className="max-w-[1120px] mx-auto">
+          <PopularSection />
+        </div>
       </div>
 
-      <div className="lg:px-100">
-        <CategorySection />
+      <div className="px-6 md:px-8">
+        <div className="max-w-[1120px] mx-auto">
+          <CategorySection />
+        </div>
       </div>
 
       <Footer />
