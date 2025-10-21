@@ -1,6 +1,6 @@
 // src/context/ThemeProvider.tsx
 "use client";
-import React, { createContext, useContext, useEffect, useMemo, useLayoutEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { THEME_STORAGE_KEY, getSystemTheme, applyTheme } from "./theme-utils";
 
 type Theme = "light" | "dark" | "system";
@@ -45,8 +45,8 @@ export default function ThemeProvider({ children, defaultTheme = "system" }: The
     return () => mql.removeEventListener?.("change", handler);
   }, []);
 
-  // ✅ 마운트 플래그만 설정 (localStorage 로직 제거)
-  useLayoutEffect(() => {
+  // ✅ 마운트 플래그 설정을 useEffect로 변경
+  useEffect(() => {
     setMounted(true);
   }, []);
 
