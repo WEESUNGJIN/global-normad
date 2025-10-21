@@ -5,12 +5,14 @@ import emptyState from "@/assets/img/empty_state.png";
 import ExperienceCard from "./components/ExperienceCard";
 import Modal from "@/components/Modal";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import warning from "@/assets/img/warning_state.png";
 // testImg 나중에 인증 권한 해결 후 지울 예정
 import streetdanceImg from "@/assets/img/streetdance_main.png";
 
 export default function ExperiencePage() {
+  const router = useRouter();
   // --------------------------
   // 모달 상태 관리
   // --------------------------
@@ -47,16 +49,47 @@ export default function ExperiencePage() {
   // --------------------------
   // React Query (현재는 mock으로 대체)
   // --------------------------
+  const queryClient = useQueryClient();
+
   const {
     data = mockData,
     isLoading,
     isError,
   } = useQuery({
     queryKey: ["myActivities"],
+    // 나중에 백엔드 API 연결되면 아래 한 줄로 교체
+    // queryFn: getMyActivities,
     queryFn: async () => mockData, // getMyActivities 대신 mock으로
   });
 
   const activities = data.activities || [];
+
+  // --------------------------
+  // 삭제 Mutation (mock 기반)
+  // --------------------------
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      // 나중엔 여기가 실제 API 호출로 교체됨
+      // await deleteActivity(id); // <= 서버 요청
+      // mock이라 바로 반환
+      return id;
+    },
+    onSuccess: (id) => {
+      // 1️⃣ 먼저 캐시 즉시 수정 (UI 반영 빠르게)
+      queryClient.setQueryData(["myActivities"], (oldData: typeof mockData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          activities: oldData.activities.filter((a) => a.id !== id),
+        };
+      });
+      // 2️⃣ 그 다음에 서버 데이터 다시 불러오도록 invalidation
+      //queryClient.invalidateQueries({ queryKey: ["myActivities"] });
+
+      setDeleteModalOpen(false);
+      setSelectedActivity(null);
+    },
+  });
 
   // --------------------------
   // 핸들러
@@ -67,9 +100,12 @@ export default function ExperiencePage() {
   };
 
   const handleConfirmDelete = () => {
-    console.log("삭제 확정:", selectedActivity?.id);
-    // TODO: 삭제 API 연결 예정
-    setDeleteModalOpen(false);
+    if (!selectedActivity) return;
+    deleteMutation.mutate(selectedActivity.id);
+  };
+
+  const handleEditClick = (id: number) => {
+    router.push(`/experience-edit/${id}`); // 수정 페이지로 이동
   };
 
   // --------------------------
@@ -121,7 +157,7 @@ export default function ExperiencePage() {
           reviewCount={act.reviewCount}
           price={Number(act.price)}
           imageUrl={act.bannerImageUrl}
-          onEdit={() => console.log("수정 클릭:", act.id)}
+          onEdit={() => handleEditClick(act.id)}
           onDelete={() => handleDeleteClick(act)}
         />
       ))}
