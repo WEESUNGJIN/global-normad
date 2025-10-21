@@ -51,7 +51,7 @@ export default function SignupForm() {
           type="password"
           placeholder="8자 이상 입력해주세요."
           value={password}
-          onChange={(e) => setPassword(e.target.value.trimStart())}
+          onChange={(e) => setPassword(e.target.value.trim())}
           showPasswordToggle
           className="mb-8"
           status={
@@ -98,7 +98,7 @@ export default function SignupForm() {
       </div>
       <Button
         type="button"
-        onClick={redirectToKakaoAuth}
+        onClick={() => redirectToKakaoAuth("signup")}
         label="카카오 회원가입"
         fullWidth
         variant="secondary"
