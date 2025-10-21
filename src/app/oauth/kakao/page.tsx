@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { redirect, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/utils/api";
 import { useAuthStore } from "@/app/store/useAuthStore";
 
@@ -16,8 +16,15 @@ export default function KakaoRedirectPage() {
     const code = searchParams.get("code");
     if (!code) return;
 
-    const fetchKakaoSignup = async () => {
+    const handleKakaoSignup = async () => {
       try {
+        const redirectUri =
+          process.env.NODE_ENV === "production"
+            ? "https://inmyday.vercel.app/oauth/kakao"
+            : "http://localhost:3000/oauth/kakao";
+
+        // console.log("redirectUri:", redirectUri); //디버깅용
+
         const res = await api.post<{
           user: {
             id: number;
@@ -27,9 +34,9 @@ export default function KakaoRedirectPage() {
           };
           accessToken: string;
           refreshToken: string;
-        }>("/oauth/kakao", {
-          token: code, // 카카오에서 받음
-          redirectUri: "http://localhost:3000/oauth/kakao",
+        }>("/oauth/sign-up/kakao", {
+          token: code,
+          redirectUri,
           nickname: "유저",
         });
         localStorage.setItem("accessToken", res.accessToken);
@@ -44,7 +51,7 @@ export default function KakaoRedirectPage() {
       }
     };
 
-    fetchKakaoSignup();
+    handleKakaoSignup();
   }, [router, searchParams, setUser]);
 
   return (
@@ -53,5 +60,3 @@ export default function KakaoRedirectPage() {
     </div>
   );
 }
-
-//CORS 블락당함
