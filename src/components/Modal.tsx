@@ -7,11 +7,15 @@ interface ModalProps {
   open: boolean;
   title?: string;
   children?: React.ReactNode;
-  confirmText?: string;   // 기본: "확인"
-  cancelText?: string;    // 비우면 자동으로 취소 버튼 숨김
+  confirmText?: string;        // 기본: "확인"
+  cancelText?: string;         // 비우면 자동으로 취소 버튼 숨김
   onClose?: () => void;
   onConfirm?: () => void;
-  showCancel?: boolean;   // 기본 true
+  showCancel?: boolean;        // 기본: true
+  /** 외부에서 폭 클래스 오버라이드 (예: "max-w-sm" 또는 "w-[320px] sm:w-[400px]") */
+  widthClass?: string;
+  /** 버튼 영역의 최대 폭 오버라이드 (예: "max-w-[260px] sm:max-w-[340px]") */
+  actionsMaxClass?: string;
 }
 
 export default function Modal({
@@ -23,6 +27,8 @@ export default function Modal({
   onClose,
   onConfirm,
   showCancel = true,
+  widthClass: widthClassProp,
+  actionsMaxClass: actionsMaxClassProp,
 }: ModalProps) {
   if (!open) return null;
 
@@ -30,12 +36,11 @@ export default function Modal({
   const hasCancel = Boolean(showCancel && cancelText?.trim());
   const isSingle = hasConfirm && !hasCancel;
 
-  // 반응형 폭 (모바일 320px / 데스크탑 400px)
-  const widthClass = "w-[320px] sm:w-[400px]";
-  // 버튼 래퍼 최대폭 (모바일 260px / 데스크탑 340px)
-  const actionsMaxClass = "max-w-[260px] sm:max-w-[340px]";
+  // 기본값 + 외부 오버라이드
+  const widthClass = widthClassProp ?? "w-[320px] sm:w-[400px]";
+  const actionsMaxClass = actionsMaxClassProp ?? "max-w-[260px] sm:max-w-[340px]";
 
-  // ✅ Actions 영역을 useMemo로 메모이제이션
+  // 렌더 중 컴포넌트 생성 금지 규칙 대응: 메모된 JSX로 처리
   const Actions = React.useMemo(() => {
     if (isSingle) {
       return (
@@ -76,16 +81,21 @@ export default function Modal({
     }
 
     return null;
-  }, [isSingle, hasConfirm, hasCancel, confirmText, cancelText, onClose, onConfirm, actionsMaxClass]);
+  }, [
+    isSingle,
+    hasConfirm,
+    hasCancel,
+    confirmText,
+    cancelText,
+    onClose,
+    onConfirm,
+    actionsMaxClass,
+  ]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* 반투명 배경 */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-hidden
-      />
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
 
       {/* 모달 본체 */}
       <div
