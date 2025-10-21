@@ -39,6 +39,13 @@ const mockActivities = [
   },
 ];
 
+interface MyActivitiesResponse {
+  activities: {
+    id: number;
+    [key: string]: unknown;
+  }[];
+}
+
 export default function ExperienceEditPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -70,16 +77,18 @@ export default function ExperienceEditPage() {
     },
     onSuccess: (updated) => {
       // 캐시 즉시 수정
-      queryClient.setQueryData(["myActivities"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          activities: oldData.activities.map((a: any) =>
-            a.id === updated.id ? updated : a,
-          ),
-        };
-      });
-
+      queryClient.setQueryData<MyActivitiesResponse | undefined>(
+        ["myActivities"],
+        (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            activities: oldData.activities.map((a) =>
+              a.id === updated.id ? { ...a, ...updated } : a,
+            ),
+          };
+        },
+      );
       // 서버 데이터 다시 불러오기
       queryClient.invalidateQueries({ queryKey: ["myActivities"] });
       queryClient.invalidateQueries({ queryKey: ["activityDetail", id] });
