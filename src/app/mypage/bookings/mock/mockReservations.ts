@@ -7,7 +7,7 @@ export type MockReservation = {
   date: string;
   startTime: string;
   endTime: string;
-  status: "pending" | "confirmed" | "canceled" | "completed";
+  status: "pending" | "canceled" | "confirmed" | "declined" | "completed";
   totalPrice: number;
 };
 
