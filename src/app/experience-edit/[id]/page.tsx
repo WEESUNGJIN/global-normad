@@ -242,7 +242,6 @@ export default function ExperienceEditPage() {
           cancelText=""
           onConfirm={handleModalConfirm}
           onClose={handleModalConfirm}
-          widthClass="max-w-sm"
         >
           <p>수정이 완료되었습니다.</p>
         </Modal>
