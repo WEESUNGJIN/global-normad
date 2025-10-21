@@ -14,6 +14,16 @@ import { MyReservationsResponse, Reservation } from "@/types/reservation";
 
 type ReservationFilter = "all" | "pending" | "canceled" | "confirmed" | "declined" | "completed";
 
+  // ✅ 필터 순서를 명시적으로 정의
+const filterOrder: ReservationFilter[] = [
+  "all",
+  "pending",
+  "canceled",
+  "confirmed",
+  "declined",
+  "completed",
+];
+
 export default function BookingsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,15 +57,7 @@ export default function BookingsPage() {
     [reservations, filter]
   );
 
-    // ✅ 필터 순서를 명시적으로 정의
-  const filterOrder: ReservationFilter[] = [
-    "all",
-    "pending",
-    "canceled",
-    "confirmed",
-    "declined",
-    "completed",
-  ];
+
 
   // ✅ 예약 데이터가 없으면 필터 숨김, 하나라도 있으면 전체 목록 표시
   const availableFilters = useMemo(() => {

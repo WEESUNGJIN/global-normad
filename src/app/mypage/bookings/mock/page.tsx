@@ -48,7 +48,7 @@ export default function MockBookingsPage() {
   const availableFilters = useMemo(() => {
     if (mockReservations.length === 0) return [];
     return filterOrder;
-  }, []);
+  }, [mockReservations, filterOrder]);
 
   // ✅ 필터된 예약 목록
   const filtered = useMemo(
@@ -56,7 +56,7 @@ export default function MockBookingsPage() {
       filter === "all"
         ? mockReservations
         : mockReservations.filter((r) => r.status === filter),
-    [filter]
+    [mockReservations, filter]
   );
 
   const hasReservations = mockReservations.length > 0;
