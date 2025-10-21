@@ -26,9 +26,15 @@ interface ThemeProviderProps {
 }
 
 export default function ThemeProvider({ children, defaultTheme = "system" }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [mounted, setMounted] = useState(false);
   const [systemTheme, setSystemTheme] = useState<Resolved>(() => getSystemTheme());
+  
+  // ✅ 초기 테마를 lazy initialization으로 처리
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return defaultTheme;
+    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    return stored ?? defaultTheme;
+  });
 
   // OS 테마 변경 감지
   useEffect(() => {
@@ -39,11 +45,8 @@ export default function ThemeProvider({ children, defaultTheme = "system" }: The
     return () => mql.removeEventListener?.("change", handler);
   }, []);
 
-  // 초기 로드: 저장값 복구 + 마운트 플래그 (첫 페인트 전 동기 반영)
+  // ✅ 마운트 플래그만 설정 (localStorage 로직 제거)
   useLayoutEffect(() => {
-    const stored = (localStorage.getItem(THEME_STORAGE_KEY) as Theme | null) ?? null;
-    if (stored) setTheme(stored);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

@@ -46,21 +46,23 @@ function buildMock(): NotificationItem[] {
 /* -------------------- 읽음 상태 로컬저장 -------------------- */
 function loadReadSet(): Set<number> {
   try {
+    if (typeof window === "undefined") return new Set();
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return new Set();
     const arr = JSON.parse(raw) as number[];
     return new Set(arr);
   } catch (error) {
-    console.warn('Failed to load read notifications from localStorage:', error);
+    console.warn('Failed to load read notifications from localStorage:', error instanceof Error ? error.message : String(error));
     return new Set();
   }
 }
 
 function saveReadSet(s: Set<number>) {
   try {
+    if (typeof window === "undefined") return;
     localStorage.setItem(LS_KEY, JSON.stringify(Array.from(s)));
   } catch (error) {
-    console.warn('Failed to save read notifications to localStorage:', error);
+    console.warn('Failed to save read notifications to localStorage:', error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -117,7 +119,11 @@ export default function NotificationPopover({
   /* 열릴 때 초기 페이지 */
   useEffect(() => {
     if (open && items.length === 0) {
-      loadMore();
+      // ✅ setTimeout으로 비동기 처리
+      const timer = setTimeout(() => {
+        loadMore();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [open, items.length, loadMore]);
 

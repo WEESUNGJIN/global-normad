@@ -30,15 +30,14 @@ export default function Modal({
   const hasCancel = Boolean(showCancel && cancelText?.trim());
   const isSingle = hasConfirm && !hasCancel;
 
-  // ✅ 반응형 폭 (모바일 320px / 데스크탑 400px)
+  // 반응형 폭 (모바일 320px / 데스크탑 400px)
   const widthClass = "w-[320px] sm:w-[400px]";
-
-  // ✅ 버튼 래퍼 최대폭 (모바일 260px / 데스크탑 340px)
+  // 버튼 래퍼 최대폭 (모바일 260px / 데스크탑 340px)
   const actionsMaxClass = "max-w-[260px] sm:max-w-[340px]";
 
-  const Actions = () => {
+  // ✅ Actions 영역을 useMemo로 메모이제이션
+  const Actions = React.useMemo(() => {
     if (isSingle) {
-      // ✅ 버튼 1개
       return (
         <div className={clsx("mt-6 mx-auto w-full", actionsMaxClass)}>
           <Button
@@ -52,7 +51,6 @@ export default function Modal({
     }
 
     if (hasConfirm && hasCancel) {
-      // ✅ 버튼 2개
       return (
         <div
           className={clsx(
@@ -78,12 +76,16 @@ export default function Modal({
     }
 
     return null;
-  };
+  }, [isSingle, hasConfirm, hasCancel, confirmText, cancelText, onClose, onConfirm, actionsMaxClass]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* 반투명 배경 */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+        aria-hidden
+      />
 
       {/* 모달 본체 */}
       <div
@@ -102,7 +104,7 @@ export default function Modal({
         <div className="mt-3 max-h-[60vh] overflow-y-auto">{children}</div>
 
         {/* 버튼 */}
-        <Actions />
+        {Actions}
       </div>
     </div>
   );
