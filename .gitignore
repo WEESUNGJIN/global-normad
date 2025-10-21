@@ -30,6 +30,3 @@ storybook-static
 /.next/
 /out/
 
-# ignore build-error files
-src/context/ThemeProvider.tsx
-src/features/notifications/NotificationPopover.tsx
