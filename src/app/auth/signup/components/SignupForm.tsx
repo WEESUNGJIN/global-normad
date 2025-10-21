@@ -6,6 +6,7 @@ import Input from "@/components/Input";
 import Button from "@/components/Button";
 import { useSignup } from "../hooks/useSignup";
 import { isValidEmail, isValidSignup } from "../utils/validation";
+import { redirectToKakaoAuth } from "@/utils/kakaoAuth";
 
 export default function SignupForm() {
   const [email, setEmail] = useState("");
@@ -95,18 +96,13 @@ export default function SignupForm() {
         </span>
         <div className="flex-grow border-t border-gray-300" />
       </div>
-      <button
-        className="border rounded-xl p-3 w-full"
+      <Button
         type="button"
-        onClick={() => {
-          const REST_API_KEY = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
-          const REDIRECT_URI = "http://localhost:3000/oauth/kakao";
-          const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
-          window.location.href = kakaoAuthURL;
-        }}
-      >
-        카카오 회원가입
-      </button>
+        onClick={redirectToKakaoAuth}
+        label="카카오 회원가입"
+        fullWidth
+        variant="secondary"
+      />
       <div className="text-center mt-8">
         <p className="text-gray-500 text-sm ">
           회원이신가요?{" "}

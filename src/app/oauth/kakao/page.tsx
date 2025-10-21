@@ -1,4 +1,4 @@
-// src/app/oauth/kakko/page.tsx
+// src/app/oauth/kakao/page.tsx
 
 "use client";
 
@@ -27,9 +27,9 @@ export default function KakaoRedirectPage() {
           };
           accessToken: string;
           refreshToken: string;
-        }>("/auth/kakao", {
+        }>("/oauth/kakao", {
           token: code, // 카카오에서 받음
-          redirectUrl: "http://localhost:3000/oauth/kakao",
+          redirectUri: "http://localhost:3000/oauth/kakao",
           nickname: "유저",
         });
         localStorage.setItem("accessToken", res.accessToken);
@@ -53,3 +53,5 @@ export default function KakaoRedirectPage() {
     </div>
   );
 }
+
+//CORS 블락당함
