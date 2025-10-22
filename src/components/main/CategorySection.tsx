@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import Image, { type StaticImageData } from "next/image";
 import Card from "@/components/Card";
+import Dropdown from "@/components/Dropdown";
 
-import iconArrowDown from "@/assets/icon/icon_alt arrow_down.svg";
 import iconCulture from "@/assets/icon/icon_art.svg";
 import iconCultureWhite from "@/assets/icon/white/icon_art_white.svg";
 import iconFood from "@/assets/icon/icon_food.svg";
@@ -142,22 +142,33 @@ const activities: Activity[] = [
 
 export default function CategorySection() {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [priceSortOrder, setPriceSortOrder] = useState<"asc" | "desc" | null>(
+    null,
+  );
   const [currentPage, setCurrentPage] = useState(1);
 
   const handleSelectCategory = (id: number) => {
     setSelectedCategory((prev) => (prev === id ? null : id));
   };
+
   const handlePageChange = (page: number) => setCurrentPage(page);
+
+  const handlePriceSortSelect = (option: string) => {
+    setPriceSortOrder(option === "높은 순" ? "desc" : "asc");
+  };
 
   const selected = categories.find((c) => c.id === selectedCategory);
 
-  const filteredActivities = (
+  const filteredActivities =
     selectedCategory === null
       ? activities
-      : activities.filter((act) => act.category === selected?.name)
-  ).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+      : activities.filter((act) => act.category === selected?.name);
+
+  const sortedActivities = [...filteredActivities].sort((a, b) => {
+    if (priceSortOrder === "asc") return a.price - b.price;
+    if (priceSortOrder === "desc") return b.price - a.price;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // 기본값은 최신순
+  });
 
   return (
     <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
@@ -174,17 +185,11 @@ export default function CategorySection() {
             {selectedCategory === null ? "모든 체험" : selected?.name}
           </h2>
         </div>
-        <button className="flex items-center gap-[4px] typo-16-m text-text-primary leading-none">
-          가격
-          <span className="relative w-5 h-5 flex-shrink-0">
-            <Image
-              src={iconArrowDown}
-              alt="가격 필터 버튼"
-              fill
-              className="object-contain"
-            />
-          </span>
-        </button>
+        <Dropdown
+          label="가격"
+          options={["높은 순", "낮은 순"]}
+          onSelect={handlePriceSortSelect}
+        />
       </div>
 
       <div className="flex gap-2 md:gap-5 mb-6 md:mb-8 overflow-x-auto scrollbar-hide">
@@ -217,7 +222,7 @@ export default function CategorySection() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5">
-        {filteredActivities.map((act) => (
+        {sortedActivities.map((act) => (
           <Card key={act.id} className="!w-full">
             <Card.Image src={act.bannerImageUrl} alt={act.title} />
             <Card.Content>
