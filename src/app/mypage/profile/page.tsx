@@ -1,58 +1,115 @@
 // src/app/mypage/profile/page.tsx
 "use client";
 
-// components/SideMenu 경로 /mypage/profile
-
 import { useState } from "react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
+import { useAuthStore } from "@/app/store/useAuthStore";
+import api from "@/utils/api";
 
-const wrapper = "m-2";
+export default function ProfilePage() {
+  const { user, setUser } = useAuthStore();
 
-export default function Profile() {
-  const [nickname, setNickname] = useState("");
-  const [email, setEmail] = useState("");
+  const [nickname, setNickname] = useState(user?.nickname || "");
   const [password, setPassword] = useState("");
   const [checkPassword, setCheckPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const email = user?.email || "";
+
+  const isValidPassword = (pw: string): boolean =>
+    /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(pw);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!nickname.trim()) {
+      setError("닉네임을 입력해주세요.");
+      return;
+    }
+
+    if (password) {
+      if (!isValidPassword(password)) {
+        setError("영문과 숫자를 포함해서 8자 이상 입력해주세요.");
+        return;
+      }
+    }
+
+    if (password !== checkPassword) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    try {
+      await api.patch("/users/me", {
+        nickname,
+        ...(password && { password }),
+      });
+      setUser({
+        ...user!,
+        nickname,
+      });
+      setSuccess("프로필이 수정되었습니다!");
+      setPassword("");
+      setCheckPassword("");
+    } catch (error) {
+      console.error(error);
+      setError("수정 중 오류가 발생했습니다.");
+    }
+  };
 
   return (
-    <div className={wrapper}>
-      <div className="mb-6">
-        <h2>내 정보</h2>
-        <p>닉네임과 비밀번호를 수정하실 수 있습니다.</p>
-      </div>
-      <form>
+    <section className="lg:w-[640px]">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <Input
           label="닉네임"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          placeholder="전유성"
-          className="mb-6"
+          placeholder={user?.nickname || "닉네임을 입력하세요"}
+          status={error.includes("닉네임") ? "error" : "default"}
+          helpText={error.includes("닉네임") ? error : ""}
         />
+        <Input label="이메일" value={email} disabled placeholder={email} />
         <Input
-          label="이메일"
-          value={email}
-          className="mb-6"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Input
-          label="비밀번호"
+          label="새 비밀번호"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           showPasswordToggle
-          className="mb-6"
+          placeholder="8자 이상 입력해주세요."
+          status={error.includes("비밀번호") ? "error" : "default"}
+          helpText={
+            error.includes("비밀번호")
+              ? "영문과 숫자를 포함해서 8자 이상 입력해주세요."
+              : ""
+          }
         />
         <Input
           label="비밀번호 확인"
           value={checkPassword}
           onChange={(e) => setCheckPassword(e.target.value)}
           showPasswordToggle
-          className="mb-6"
+          placeholder="비밀번호를 한 번 더 입력해주세요."
+          status={
+            password && checkPassword && password !== checkPassword
+              ? "error"
+              : "default"
+          }
+          helpText={
+            password && checkPassword && password !== checkPassword
+              ? "비밀번호가 일치하지 않습니다."
+              : ""
+          }
         />
+
+        {success && <p className="text-green-600 text-sm">{success}</p>}
+
+        <div className="flex justify-center mt-10">
+          <Button type="submit" label="저장하기" className="py-3 px-10" />
+        </div>
       </form>
-      <div className="flex justify-center">
-        <Button label="저장하기" className="py-3 px-10" />
-      </div>
-    </div>
+    </section>
   );
 }
