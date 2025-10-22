@@ -14,7 +14,7 @@ import { CreateActivityRequest } from "@/types/experience";
 // testImg 나중에 인증 권한 해결 후 지울 예정
 import streetdanceImg from "@/assets/img/streetdance_main.png";
 
-const mockActivities = [
+const mockActivities: (CreateActivityRequest & { id: number })[] = [
   {
     id: 1,
     title: "트로피컬 피싱 투어",
@@ -22,7 +22,7 @@ const mockActivities = [
     description: "시원한 바다에서 낚시 체험!",
     address: "제주도 바다",
     price: 89000,
-    bannerImageUrl: streetdanceImg.src,
+    bannerImageUrl: streetdanceImg.src as string,
     subImageUrls: [],
     schedules: [{ date: "2025-10-25", startTime: "09:00", endTime: "12:00" }],
   },
@@ -33,7 +33,7 @@ const mockActivities = [
     description: "현직 댄서에게 배우는 스트릿 댄스!",
     address: "홍대",
     price: 65000,
-    bannerImageUrl: streetdanceImg.src,
+    bannerImageUrl: streetdanceImg.src as string,
     subImageUrls: [],
     schedules: [{ date: "2025-10-30", startTime: "15:00", endTime: "17:00" }],
   },
@@ -49,7 +49,8 @@ interface MyActivitiesResponse {
 export default function ExperienceEditPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { id } = useParams();
+  const params = useParams<{ id: string }>();
+  const id = Number(params.id);
   const [form, setForm] = useState<CreateActivityRequest | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
