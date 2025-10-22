@@ -44,7 +44,6 @@ export default function MypageLayout({
             <div className="block md:hidden">
               {!showContent ? (
                 <MobileSideMenu
-                  showContent={showContent}
                   onMenuClick={(menu) => {
                     if (menu === "내 정보") setShowContent(true);
                   }}
