@@ -43,6 +43,7 @@ interface Activity {
   reviewCount: number;
   price: number;
   category: string;
+  createdAt: string;
 }
 
 const categories: Category[] = [
@@ -85,6 +86,7 @@ const activities: Activity[] = [
     reviewCount: 108,
     price: 42800,
     category: "관광",
+    createdAt: "2025-10-01T09:00:00Z",
   },
   {
     id: 2,
@@ -94,6 +96,7 @@ const activities: Activity[] = [
     reviewCount: 67,
     price: 217000,
     category: "투어",
+    createdAt: "2025-09-15T08:00:00Z",
   },
   {
     id: 3,
@@ -103,6 +106,7 @@ const activities: Activity[] = [
     reviewCount: 113,
     price: 6000,
     category: "관광",
+    createdAt: "2025-08-10T10:00:00Z",
   },
   {
     id: 4,
@@ -112,6 +116,7 @@ const activities: Activity[] = [
     reviewCount: 85,
     price: 35000,
     category: "관광",
+    createdAt: "2025-08-20T10:00:00Z",
   },
   {
     id: 5,
@@ -121,6 +126,7 @@ const activities: Activity[] = [
     reviewCount: 108,
     price: 42800,
     category: "투어",
+    createdAt: "2025-05-01T10:00:00Z",
   },
   {
     id: 6,
@@ -130,6 +136,7 @@ const activities: Activity[] = [
     reviewCount: 18,
     price: 12000,
     category: "문화·예술",
+    createdAt: "2025-03-10T10:00:00Z",
   },
 ];
 
@@ -144,10 +151,13 @@ export default function CategorySection() {
 
   const selected = categories.find((c) => c.id === selectedCategory);
 
-  const filteredActivities =
+  const filteredActivities = (
     selectedCategory === null
       ? activities
-      : activities.filter((act) => act.category === selected?.name);
+      : activities.filter((act) => act.category === selected?.name)
+  ).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   return (
     <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
