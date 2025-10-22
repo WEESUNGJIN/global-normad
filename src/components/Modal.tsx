@@ -30,8 +30,6 @@ export default function Modal({
   widthClass: widthClassProp,
   actionsMaxClass: actionsMaxClassProp,
 }: ModalProps) {
-  if (!open) return null;
-
   const hasConfirm = Boolean(confirmText?.trim());
   const hasCancel = Boolean(showCancel && cancelText?.trim());
   const isSingle = hasConfirm && !hasCancel;
@@ -40,7 +38,7 @@ export default function Modal({
   const widthClass = widthClassProp ?? "w-[320px] sm:w-[400px]";
   const actionsMaxClass = actionsMaxClassProp ?? "max-w-[260px] sm:max-w-[340px]";
 
-  // 렌더 중 컴포넌트 생성 금지 규칙 대응: 메모된 JSX로 처리
+  // ✅ Hook을 조건부 return 이전에 호출
   const Actions = React.useMemo(() => {
     if (isSingle) {
       return (
@@ -91,6 +89,9 @@ export default function Modal({
     onConfirm,
     actionsMaxClass,
   ]);
+
+  // ✅ Hook 호출 후 조건부 return
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
