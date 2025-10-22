@@ -14,7 +14,7 @@ export function isValidSignup(
   return (
     isValidEmail(email) &&
     nickname.trim() !== "" &&
-    password.trim().length >= 8 &&
+    password.length >= 8 &&
     password === checkPassword
   );
 }

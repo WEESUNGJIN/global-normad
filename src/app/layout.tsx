@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
+import AuthRestore from "@/components/auth-detail/AuthRestore";
 
 export const metadata: Metadata = {
   title: "Global-Nomad",
@@ -16,7 +17,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ReactQueryProvider>
+          <AuthRestore />
+          {children}
+        </ReactQueryProvider>
       </body>
     </html>
   );
