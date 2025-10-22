@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Image from "next/image";
 import IconCalendar from "@/assets/icon/icon_calendar.svg";
+import { useState } from "react";
 
 interface DateInputProps {
   value: Date | null;
@@ -12,10 +12,15 @@ interface DateInputProps {
 }
 
 export default function DateInput({ value, onChange }: DateInputProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleIconClick = () => {
-    inputRef.current?.focus();
+    setIsOpen((prev) => !prev);
+  };
+
+  const handleChange = (date: Date | null) => {
+    onChange(date);
+    setIsOpen(false); //  날짜 선택하면 닫힘
   };
 
   return (
@@ -26,7 +31,9 @@ export default function DateInput({ value, onChange }: DateInputProps) {
     >
       <DatePicker
         selected={value}
-        onChange={(date) => onChange(date)}
+        onChange={handleChange}
+        open={isOpen} // 직접 open 상태 제어
+        onClickOutside={() => setIsOpen(false)} // 외부 클릭 시 닫기
         dateFormat="yy/MM/dd"
         placeholderText="yy/mm/dd"
         className={`typo-16-m focus:outline-none
