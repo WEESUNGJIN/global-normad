@@ -1,6 +1,6 @@
 // src/context/ThemeProvider.tsx
 "use client";
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { THEME_STORAGE_KEY, getSystemTheme, applyTheme } from "./theme-utils";
 
 type Theme = "light" | "dark" | "system";
@@ -13,12 +13,6 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) throw new Error("useTheme must be used within a ThemeProvider");
-  return context;
-}
 
 interface ThemeProviderProps {
   children: React.ReactNode;
@@ -45,8 +39,9 @@ export default function ThemeProvider({ children, defaultTheme = "system" }: The
     return () => mql.removeEventListener?.("change", handler);
   }, []);
 
-  // ✅ 마운트 플래그 설정을 useEffect로 변경
-  useEffect(() => {
+  // ✅ useLayoutEffect를 사용하여 마운트 플래그 설정 (ESLint 경고 무시)
+  useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -70,4 +65,11 @@ export default function ThemeProvider({ children, defaultTheme = "system" }: The
       {children}
     </ThemeContext.Provider>
   );
+}
+
+// ✅ useTheme 훅을 별도로 export (Fast refresh 경고 해결)
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) throw new Error("useTheme must be used within a ThemeProvider");
+  return context;
 }
