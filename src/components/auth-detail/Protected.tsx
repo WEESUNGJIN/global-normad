@@ -4,7 +4,7 @@
 
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 interface Props {
   children: React.ReactNode;
