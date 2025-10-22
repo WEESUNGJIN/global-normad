@@ -1,15 +1,20 @@
 // src/app/mypage/profile/layout.tsx
 
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import SideMenu from "@/components/SideMenu";
 import GNB from "@/components/GNB";
 import Footer from "@/components/Footer";
+import MobileSideMenu from "./components/MobileSideMenu";
 
 export default function MypageLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [showContent, setShowContent] = useState(false);
+
   return (
     <div>
       <GNB isLoggedIn unread={3} />
@@ -22,8 +27,8 @@ export default function MypageLayout({
               <SideMenu />
             </aside>
 
-            {/* RIGHT */}
-            <div className="space-y-8">
+            {/* RIGHT (PC/Tablet)*/}
+            <div className="space-y-8 hidden md:block">
               <header className="flex flex-wrap items-center justify-between lg:w-[640px] gap-3">
                 <div>
                   <h1 className="typo-18-b">내 정보</h1>
@@ -32,9 +37,35 @@ export default function MypageLayout({
                   </p>
                 </div>
               </header>
-
-              {/* 본문 내용 */}
               {children}
+            </div>
+
+            {/* Mobile */}
+            <div className="block md:hidden">
+              {!showContent ? (
+                <MobileSideMenu
+                  showContent={showContent}
+                  onMenuClick={(menu) => {
+                    if (menu === "내 정보") setShowContent(true);
+                  }}
+                />
+              ) : (
+                <div>
+                  <button
+                    onClick={() => setShowContent(false)}
+                    className="text-sm text-gray-500 mb-4"
+                  >
+                    ← 뒤로가기
+                  </button>
+                  <header className="mb-6">
+                    <h1 className="typo-18-b">내 정보</h1>
+                    <p className="mt-1 text-sm text-gray-500">
+                      닉네임과 비밀번호를 수정하실 수 있습니다.
+                    </p>
+                  </header>
+                  {children}
+                </div>
+              )}
             </div>
           </div>
         </div>
