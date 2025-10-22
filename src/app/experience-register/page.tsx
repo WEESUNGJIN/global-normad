@@ -188,7 +188,6 @@ export default function ExperienceRegisterPage() {
           cancelText=""
           onConfirm={handleModalConfirm}
           onClose={handleModalConfirm}
-          widthClass="max-w-sm"
         >
           <p> 체험 등록이 완료되었습니다.</p>
         </Modal>

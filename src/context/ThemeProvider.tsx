@@ -16,9 +16,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function useTheme() {
   const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
+  if (!context) throw new Error("useTheme must be used within a ThemeProvider");
   return context;
 }
 
@@ -27,15 +25,18 @@ interface ThemeProviderProps {
   defaultTheme?: Theme;
 }
 
-export default function ThemeProvider({
-  children,
-  defaultTheme = "system",
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
+export default function ThemeProvider({ children, defaultTheme = "system" }: ThemeProviderProps) {
   const [mounted, setMounted] = useState(false);
   const [systemTheme, setSystemTheme] = useState<Resolved>(() => getSystemTheme());
+  
+  // ✅ 초기 테마를 lazy initialization으로 처리
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return defaultTheme;
+    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    return stored ?? defaultTheme;
+  });
 
-  // OS 테마 변경 감지 (system 선택 시 자동 반영)
+  // OS 테마 변경 감지
   useEffect(() => {
     const mql = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = () => setSystemTheme(mql.matches ? "dark" : "light");
@@ -44,23 +45,19 @@ export default function ThemeProvider({
     return () => mql.removeEventListener?.("change", handler);
   }, []);
 
-  // 초기 로드: 저장된 값 복구
+  // ✅ 마운트 플래그 설정을 useEffect로 변경
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-    if (stored) setTheme(stored);
   }, []);
 
   // 실제 적용될 테마 계산
-  const resolvedTheme = useMemo<Resolved>(() => {
-    return theme === "system" ? systemTheme : theme;
-  }, [theme, systemTheme]);
+  const resolvedTheme = useMemo<Resolved>(() => (theme === "system" ? systemTheme : theme), [theme, systemTheme]);
 
-  // 테마 적용 + 사용자 설정 저장
+  // DOM 적용 + 사용자 설정 저장
   useEffect(() => {
     if (!mounted) return;
-    applyTheme(resolvedTheme);            // 실제 DOM에는 resolvedTheme 적용
-    localStorage.setItem(THEME_STORAGE_KEY, theme); // 사용자는 'system' 같은 선호값 저장
+    applyTheme(resolvedTheme);                       // 실제 DOM에는 resolvedTheme 적용
+    localStorage.setItem(THEME_STORAGE_KEY, theme);  // 사용자는 'system' 같은 선호값 저장
   }, [resolvedTheme, theme, mounted]);
 
   // Hydration 깜빡임 방지
