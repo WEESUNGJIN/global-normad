@@ -98,10 +98,10 @@ export default function ExperienceRegisterPage() {
     if (!isDirty) return;
 
     // 브라우저 뒤로가기 감지
-    const handlePopState = () => {
-      setPendingUrl(document.referrer || "/");
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      setPendingUrl("/mypage/experience"); // 명시적으로 뒤로가기 시 이동할 경로 지정
       setIsLeaveModalOpen(true);
-      history.pushState(null, "", window.location.href); // 이동 취소
     };
 
     // 링크 클릭 감지 (로고, 프로필 등)
@@ -137,11 +137,8 @@ export default function ExperienceRegisterPage() {
   // “예” → 이동하려던 페이지로
   const handleLeaveConfirm = () => {
     setIsLeaveModalOpen(false);
-    if (pendingUrl) {
-      router.push(pendingUrl);
-    } else {
-      router.push("/mypage/experience");
-    }
+    const targetUrl = pendingUrl || "/mypage/experience";
+    router.push(targetUrl);
   };
 
   // “아니오” → 현재 페이지 유지
