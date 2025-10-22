@@ -33,9 +33,32 @@ export default function DateSection({
     return top.date && top.startTime && top.endTime;
   };
 
+  // 겹치는 시간대가 없도록 확인
+  const isOverlapping = (
+    slots: Slot[],
+    newSlot: Slot,
+    ignoreIndex?: number,
+  ) => {
+    return slots.some((slot, i) => {
+      if (i === ignoreIndex) return false;
+      if (slot.date !== newSlot.date) return false;
+      if (
+        !slot.startTime ||
+        !slot.endTime ||
+        !newSlot.startTime ||
+        !newSlot.endTime
+      )
+        return false;
+      return (
+        slot.startTime < newSlot.endTime && newSlot.startTime < slot.endTime
+      );
+    });
+  };
+
   const handleAdd = () => {
     if (!isTopSlotFilled()) return;
     const newSlot: Slot = { date: "", startTime: "", endTime: "" };
+    // 기존 isOverlapping 체크는 불필요했음 → 제거
     onChange?.([newSlot, ...value]);
   };
 
@@ -48,6 +71,11 @@ export default function DateSection({
     const updated = value.map((slot, i) =>
       i === index ? { ...slot, [key]: val } : slot,
     );
+    const changedSlot = updated[index];
+    if (isOverlapping(updated, changedSlot, index)) {
+      alert("같은 날짜 내에 겹치는 시간대가 있습니다.");
+      return;
+    }
     onChange?.(updated);
   };
 
@@ -60,9 +88,17 @@ export default function DateSection({
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex-1">
               <DateInput
-                value={slot.date ? new Date(slot.date) : null}
+                value={
+                  slot.date
+                    ? new Date(`${slot.date}T00:00:00`) // 로컬 자정 기준으로 고정
+                    : null
+                }
                 onChange={(d) =>
-                  handleChange(i, "date", d?.toISOString().split("T")[0] ?? "")
+                  handleChange(
+                    i,
+                    "date",
+                    d ? d.toLocaleDateString("en-CA") : "", // 로컬 기준 yyyy-mm-dd
+                  )
                 }
               />
             </div>
