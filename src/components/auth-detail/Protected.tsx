@@ -26,3 +26,5 @@ export default function Protected({ children }: Props) {
   if (!checked) return null;
   return <>{children}</>;
 }
+
+// 페이지 상단에 작성해서 사용

@@ -17,11 +17,11 @@ export default function AuthRestore() {
       try {
         const user = await api.get<User>("/user/me");
         setUser(user);
-      } catch (error) {
+      } catch {
         logout();
       }
     };
-    restoreAuth;
+    restoreAuth();
   }, [setUser, logout]);
 
   return null;
