@@ -67,9 +67,14 @@ export default function ExperienceEditPage() {
 
   useEffect(() => {
     if (!data) return;
-    // form이 이미 존재하면(유저가 수정 중이면) 덮어쓰지 않도록 함
-    setForm((prev) => prev ?? (data as CreateActivityRequest));
-  }, [data]);
+    if (form) return; // 이미 유저가 편집 중이면 덮어쓰지 말자
+
+    const t = setTimeout(() => {
+      setForm(data as CreateActivityRequest);
+    }, 0);
+
+    return () => clearTimeout(t);
+  }, [data, form]);
 
   const mutation = useMutation({
     mutationFn: async (payload: CreateActivityRequest) => {
