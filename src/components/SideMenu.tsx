@@ -43,10 +43,30 @@ interface SideMenuProps {
 export default function SideMenu({
   className,
   items = [
-    { href: "/#", label: "내 정보", icon: iconUser, activeIcon: iconUserActive },
-    { href: "/#", label: "예약내역", icon: iconList, activeIcon: iconListActive },
-    { href: "/mypage/experience", label: "내 체험 관리", icon: iconSetting, activeIcon: iconSettingActive },
-    { href: "/mypage/calendar", label: "예약 현황", icon: iconCalendar, activeIcon: iconCalendarActive },
+    {
+      href: "/mypage/profile",
+      label: "내 정보",
+      icon: iconUser,
+      activeIcon: iconUserActive,
+    },
+    {
+      href: "/#",
+      label: "예약내역",
+      icon: iconList,
+      activeIcon: iconListActive,
+    },
+    {
+      href: "/mypage/experience",
+      label: "내 체험 관리",
+      icon: iconSetting,
+      activeIcon: iconSettingActive,
+    },
+    {
+      href: "/mypage/calendar",
+      label: "예약 현황",
+      icon: iconCalendar,
+      activeIcon: iconCalendarActive,
+    },
   ],
   avatarSrc = avatarPng,
   onEditClick,
@@ -79,7 +99,9 @@ export default function SideMenu({
       )}
     >
       {/* 프로필 영역 */}
-      <div className={clsx("relative mx-auto", isLg ? "mb-6" : "mb-4", avatarBox)}>
+      <div
+        className={clsx("relative mx-auto", isLg ? "mb-6" : "mb-4", avatarBox)}
+      >
         <div className="w-full h-full rounded-full bg-[#E9F4FF] overflow-hidden">
           <div className="w-full h-full flex items-center justify-center">
             <Image
@@ -104,10 +126,18 @@ export default function SideMenu({
             "rounded-full bg-[#B7BAC2] text-white",
             "flex items-center justify-center",
             "ring-2 ring-white shadow-sm",
-            onEditClick ? "hover:brightness-105 active:brightness-95" : "cursor-default",
+            onEditClick
+              ? "hover:brightness-105 active:brightness-95"
+              : "cursor-default",
           )}
         >
-          <Image src={editPng} alt="" width={isLg ? 14 : 12} height={isLg ? 14 : 12} className="object-contain" />
+          <Image
+            src={editPng}
+            alt=""
+            width={isLg ? 14 : 12}
+            height={isLg ? 14 : 12}
+            className="object-contain"
+          />
         </button>
       </div>
 
@@ -135,7 +165,12 @@ export default function SideMenu({
                 height={20}
                 className="mr-3 object-contain"
               />
-              <span className={clsx("typo-14-m", active ? "text-primary-600" : "text-gray-700")}>
+              <span
+                className={clsx(
+                  "typo-14-m",
+                  active ? "text-primary-600" : "text-gray-700",
+                )}
+              >
                 {it.label}
               </span>
             </Link>
