@@ -13,8 +13,10 @@ import PhotoSection from "@/app/mypage/experience/components/PhotoSection";
 import { CreateActivityRequest } from "@/types/experience";
 // testImg 나중에 인증 권한 해결 후 지울 예정
 import streetdanceImg from "@/assets/img/streetdance_main.png";
+import Image from "next/image";
+import warning from "@/assets/img/warning_state.png";
 
-const mockActivities = [
+const mockActivities: (CreateActivityRequest & { id: number })[] = [
   {
     id: 1,
     title: "트로피컬 피싱 투어",
@@ -22,7 +24,7 @@ const mockActivities = [
     description: "시원한 바다에서 낚시 체험!",
     address: "제주도 바다",
     price: 89000,
-    bannerImageUrl: streetdanceImg.src,
+    bannerImageUrl: streetdanceImg.src as string,
     subImageUrls: [],
     schedules: [{ date: "2025-10-25", startTime: "09:00", endTime: "12:00" }],
   },
@@ -33,7 +35,7 @@ const mockActivities = [
     description: "현직 댄서에게 배우는 스트릿 댄스!",
     address: "홍대",
     price: 65000,
-    bannerImageUrl: streetdanceImg.src,
+    bannerImageUrl: streetdanceImg.src as string,
     subImageUrls: [],
     schedules: [{ date: "2025-10-30", startTime: "15:00", endTime: "17:00" }],
   },
@@ -49,9 +51,13 @@ interface MyActivitiesResponse {
 export default function ExperienceEditPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { id } = useParams();
+  const params = useParams<{ id: string }>();
+  const id = Number(params.id);
   const [form, setForm] = useState<CreateActivityRequest | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false); // 이탈 모달
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null); // 이동하려던 URL
+  const [isDirty, setIsDirty] = useState(false); // 폼 변경 여부
 
   // 기존 체험 데이터 불러오기 (지금은 mock, 나중엔 getActivityDetail로 교체)
   const { data, isLoading } = useQuery({
@@ -65,8 +71,15 @@ export default function ExperienceEditPage() {
   });
 
   useEffect(() => {
-    if (data) setForm(data);
-  }, [data]);
+    if (!data) return;
+    if (form) return; // 이미 유저가 편집 중이면 덮어쓰지 말자
+
+    const t = setTimeout(() => {
+      setForm(data as CreateActivityRequest);
+    }, 0);
+
+    return () => clearTimeout(t);
+  }, [data, form]);
 
   const mutation = useMutation({
     mutationFn: async (payload: CreateActivityRequest) => {
@@ -94,6 +107,7 @@ export default function ExperienceEditPage() {
       queryClient.invalidateQueries({ queryKey: ["activityDetail", id] });
 
       setIsModalOpen(true);
+      setIsDirty(false);
     },
   });
 
@@ -102,6 +116,7 @@ export default function ExperienceEditPage() {
     value: string | number | string[] | CreateActivityRequest["schedules"],
   ) => {
     if (!form) return;
+    setIsDirty(true); // 수정 중 플래그 추가
     setForm((prev) => ({ ...prev!, [key]: value }));
   };
 
@@ -119,12 +134,74 @@ export default function ExperienceEditPage() {
       alert("필수 항목을 입력해 주세요.");
       return;
     }
+    setIsDirty(false); // 수정 버튼 클릭 시 이탈로 인식하지 않도록
     mutation.mutate(form);
   };
 
   const handleModalConfirm = () => {
     setIsModalOpen(false);
-    router.push("/mypage/experience");
+    safePush("/mypage/experience");
+  };
+
+  // 커스텀 push
+  const safePush = (url: string) => {
+    if (isDirty) {
+      setPendingUrl(url);
+      setIsLeaveModalOpen(true);
+    } else {
+      router.push(url);
+    }
+  };
+
+  // 페이지 이탈 감지
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      setPendingUrl("/mypage/experience"); // 명시적으로 뒤로가기 시 이동할 경로 지정
+      setIsLeaveModalOpen(true);
+    };
+
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest("a") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (
+        !href ||
+        href.startsWith("#") ||
+        href.startsWith("mailto:") ||
+        href.startsWith("tel:")
+      )
+        return;
+
+      e.preventDefault();
+      setPendingUrl(href);
+      setIsLeaveModalOpen(true);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    document.addEventListener("click", handleLinkClick, true);
+    history.pushState(null, "", window.location.href);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      document.removeEventListener("click", handleLinkClick);
+    };
+  }, [isDirty]);
+
+  //  “예” → 이동하려던 페이지로
+  const handleLeaveConfirm = () => {
+    setIsLeaveModalOpen(false);
+    const targetUrl = pendingUrl || "/mypage/experience";
+    router.push(targetUrl);
+  };
+
+  // “아니오” → 현재 페이지 유지
+  const handleLeaveCancel = () => {
+    setPendingUrl(null);
+    setIsLeaveModalOpen(false);
   };
 
   const SAMPLE_OPTIONS = [
@@ -244,6 +321,30 @@ export default function ExperienceEditPage() {
           onClose={handleModalConfirm}
         >
           <p>수정이 완료되었습니다.</p>
+        </Modal>
+
+        {/* 이탈 확인 모달 추가 */}
+        <Modal
+          open={isLeaveModalOpen}
+          title=""
+          confirmText="예"
+          cancelText="아니오"
+          onConfirm={handleLeaveConfirm}
+          onClose={handleLeaveCancel}
+        >
+          <div className="text-center">
+            <Image
+              src={warning}
+              alt="경고"
+              width={80}
+              height={80}
+              className="mx-auto mb-4"
+            />
+            <p className="text-gray-950">
+              저장되지 않았습니다. <br />
+              정말 페이지를 벗어나시겠습니까?
+            </p>
+          </div>
         </Modal>
       </div>
     </main>

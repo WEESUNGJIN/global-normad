@@ -46,23 +46,23 @@ function buildMock(): NotificationItem[] {
 /* -------------------- 읽음 상태 로컬저장 -------------------- */
 function loadReadSet(): Set<number> {
   try {
+    if (typeof window === "undefined") return new Set();
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return new Set();
     const arr = JSON.parse(raw) as number[];
     return new Set(arr);
   } catch (error) {
-    // localStorage 접근 실패 또는 JSON 파싱 실패시 빈 Set 반환
-    console.warn('Failed to load read notifications from localStorage:', error);
+    console.warn('Failed to load read notifications from localStorage:', error instanceof Error ? error.message : String(error));
     return new Set();
   }
 }
 
 function saveReadSet(s: Set<number>) {
   try {
+    if (typeof window === "undefined") return;
     localStorage.setItem(LS_KEY, JSON.stringify(Array.from(s)));
   } catch (error) {
-    // localStorage 저장 실패시 무시 (쿠키 비활성화 등)
-    console.warn('Failed to save read notifications to localStorage:', error);
+    console.warn('Failed to save read notifications to localStorage:', error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -73,7 +73,8 @@ export default function NotificationPopover({
   maxHeightClassName = "max-h-[480px]",
 }: Props) {
   const [open, setOpen] = useState(false);
-  const masterRef = useRef<NotificationItem[]>(buildMock());
+  // ✅ ref 대신 state로 관리하여 렌더링 중 접근 문제 해결
+  const [masterList, setMasterList] = useState<NotificationItem[]>(() => buildMock());
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [nextIndex, setNextIndex] = useState(0);
   const [readSet, setReadSet] = useState<Set<number>>(new Set());
@@ -81,7 +82,7 @@ export default function NotificationPopover({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  const hasMore = nextIndex < masterRef.current.length;
+  const hasMore = nextIndex < masterList.length;
 
   /* 읽음 처리 */
   const markShownAsRead = useCallback(() => {
@@ -98,22 +99,31 @@ export default function NotificationPopover({
 
   /* 초기 읽음 상태 로드 */
   useEffect(() => {
-    setReadSet(loadReadSet());
+    // ✅ effect 내에서 비동기적으로 처리
+    const loadInitialReadSet = () => {
+      const initialReadSet = loadReadSet();
+      setReadSet(initialReadSet);
+    };
+    loadInitialReadSet();
   }, []);
 
   /* 페이지네이션 로드 */
   const loadMore = useCallback(() => {
     const start = nextIndex;
-    const end = Math.min(nextIndex + PAGE_SIZE, masterRef.current.length);
-    const slice = masterRef.current.slice(start, end);
+    const end = Math.min(nextIndex + PAGE_SIZE, masterList.length);
+    const slice = masterList.slice(start, end);
     setItems((prev) => [...prev, ...slice]);
     setNextIndex(end);
-  }, [nextIndex]);
+  }, [nextIndex, masterList]);
 
   /* 열릴 때 초기 페이지 */
   useEffect(() => {
     if (open && items.length === 0) {
-      loadMore();
+      // ✅ setTimeout으로 비동기 처리
+      const timer = setTimeout(() => {
+        loadMore();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [open, items.length, loadMore]);
 
@@ -164,7 +174,7 @@ export default function NotificationPopover({
 
   /* 삭제 */
   const removeItem = (id: number) => {
-    masterRef.current = masterRef.current.filter((n) => n.id !== id);
+    setMasterList((prev) => prev.filter((n) => n.id !== id));
     setItems((prev) => prev.filter((n) => n.id !== id));
     const next = new Set(readSet);
     next.delete(id);
@@ -172,13 +182,13 @@ export default function NotificationPopover({
     saveReadSet(next);
   };
 
-  /* 뱃지 계산 */
+  /* ✅ 뱃지 계산 - state 기반으로 수정 */
   const unreadCount = useMemo(() => {
-    const totalIds = masterRef.current.map((n) => n.id);
+    const totalIds = masterList.map((n) => n.id);
     let cnt = 0;
     for (const id of totalIds) if (!readSet.has(id)) cnt++;
     return cnt;
-  }, [readSet]);
+  }, [readSet, masterList]);
 
   /* 트리거 핸들러 */
   const onTriggerClick = () => {
