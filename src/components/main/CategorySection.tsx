@@ -28,6 +28,13 @@ import hotairballoonImg from "@/assets/img/hotairballoon.png";
 import bicycleImg from "@/assets/img/bicycle.png";
 import tropicalfishImg from "@/assets/img/tropicalfish.png";
 
+interface CategorySectionProps {
+  selectedCategory: number | null;
+  onSelectCategory: (id: number | null) => void;
+  priceSortOrder: "asc" | "desc" | null;
+  onSelectPriceSort: (order: "asc" | "desc" | null) => void;
+}
+
 interface Category {
   id: number;
   name: string;
@@ -141,22 +148,24 @@ const activities: Activity[] = [
   },
 ];
 
-export default function CategorySection() {
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [priceSortOrder, setPriceSortOrder] = useState<"asc" | "desc" | null>(
-    null,
-  );
+export default function CategorySection({
+  selectedCategory,
+  onSelectCategory,
+  priceSortOrder,
+  onSelectPriceSort,
+}: CategorySectionProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 8;
 
   const handleSelectCategory = (id: number) => {
-    setSelectedCategory((prev) => (prev === id ? null : id));
+    onSelectCategory(selectedCategory === id ? null : id);
     setCurrentPage(1);
   };
 
   const handlePriceSortSelect = (option: string) => {
-    setPriceSortOrder(option === "높은 순" ? "desc" : "asc");
+    const order = option === "높은 순" ? "desc" : "asc";
+    onSelectPriceSort(order);
     setCurrentPage(1);
   };
 

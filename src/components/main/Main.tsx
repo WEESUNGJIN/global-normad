@@ -96,6 +96,10 @@ export default function Main() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Activity[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [priceSortOrder, setPriceSortOrder] = useState<"asc" | "desc" | null>(
+    null,
+  );
 
   const [currentPage, setCurrentPage] = useState(1); // 현재 페이지
   const itemsPerPage = 8;
@@ -106,6 +110,8 @@ export default function Main() {
     if (keyword.trim() === "") {
       setIsSearching(false);
       setSearchResults([]);
+      setSelectedCategory(null);
+      setPriceSortOrder(null);
       return;
     }
 
@@ -206,7 +212,12 @@ export default function Main() {
 
           <div className="px-6 md:px-8">
             <div className="max-w-[1120px] mx-auto">
-              <CategorySection />
+              <CategorySection
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                priceSortOrder={priceSortOrder}
+                onSelectPriceSort={setPriceSortOrder}
+              />
             </div>
           </div>
         </>
