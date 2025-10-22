@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createActivity } from "@/app/mypage/experience/api/activities";
@@ -84,17 +84,14 @@ export default function ExperienceRegisterPage() {
   };
 
   // 커스텀 push 함수로 라우터 이동 감지
-  const safePush = useCallback(
-    (url: string) => {
-      if (isDirty) {
-        setPendingUrl(url);
-        setIsLeaveModalOpen(true);
-      } else {
-        router.push(url);
-      }
-    },
-    [isDirty, router],
-  );
+  const safePush = (url: string) => {
+    if (isDirty) {
+      setPendingUrl(url);
+      setIsLeaveModalOpen(true);
+    } else {
+      router.push(url);
+    }
+  };
 
   // 페이지 이탈 감지
   useEffect(() => {
