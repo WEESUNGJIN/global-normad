@@ -1,14 +1,28 @@
 // src/app/auth/login/page.tsx
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import LoginForm from "./components/LoginForm";
 import { redirectToKakaoAuth } from "@/utils/kakaoAuth";
+import logoGnb from "@/assets/img/logo_gnb.svg";
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex justify-center items-center">
       <div className="w-[640px]">
-        <p className="mb-8">로고</p>
+        <div className="flex justify-center mb-8">
+          <Link href="/">
+            <Image
+              src={logoGnb}
+              alt="inmyday 로고"
+              width={320}
+              height={48}
+              priority
+            />
+          </Link>
+        </div>
+
         <LoginForm />
 
         <div className="flex items-center my-8">
