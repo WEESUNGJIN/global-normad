@@ -65,8 +65,15 @@ export default function ExperienceEditPage() {
   });
 
   useEffect(() => {
-    if (data) setForm(data);
-  }, [data]);
+    if (!data) return;
+    if (form) return; // 이미 유저가 편집 중이면 덮어쓰지 말자
+
+    const t = setTimeout(() => {
+      setForm(data as CreateActivityRequest);
+    }, 0);
+
+    return () => clearTimeout(t);
+  }, [data, form]);
 
   const mutation = useMutation({
     mutationFn: async (payload: CreateActivityRequest) => {
@@ -242,7 +249,6 @@ export default function ExperienceEditPage() {
           cancelText=""
           onConfirm={handleModalConfirm}
           onClose={handleModalConfirm}
-          widthClass="max-w-sm"
         >
           <p>수정이 완료되었습니다.</p>
         </Modal>
