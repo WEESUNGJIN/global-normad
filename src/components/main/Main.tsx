@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import backgroundSky from "@/assets/img/background_sky.png";
 import GNB from "@/components/GNB";
 import HeroSection from "@/components/main/HeroSection";
@@ -13,6 +15,8 @@ import Pagination from "@/components/Pagination";
 import { activities as mockActivities } from "@/components/experience-detail/mock/activities";
 
 export default function Main() {
+  const router = useRouter();
+
   const [searchKeyword, setSearchKeyword] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState(mockActivities);
@@ -94,22 +98,30 @@ export default function Main() {
               <>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5 pb-20">
                   {paginatedResults.map((act) => (
-                    <Card key={act.id} className="!w-full">
-                      <Card.Image src={act.bannerImageUrl} alt={act.title} />
-                      <Card.Content>
-                        <Card.Title className="line-clamp-1">
-                          {act.title}
-                        </Card.Title>
-                        <Card.Meta
-                          rating={act.rating}
-                          count={act.reviewCount}
-                        />
-                        <Card.Price
-                          price={`₩ ${act.price.toLocaleString()}`}
-                          unit="/ 인"
-                        />
-                      </Card.Content>
-                    </Card>
+                    <div
+                      key={act.id}
+                      onClick={() =>
+                        router.push(`/experience-detail/${act.id}`)
+                      }
+                      className="cursor-pointer"
+                    >
+                      <Card className="!w-full">
+                        <Card.Image src={act.bannerImageUrl} alt={act.title} />
+                        <Card.Content>
+                          <Card.Title className="line-clamp-1">
+                            {act.title}
+                          </Card.Title>
+                          <Card.Meta
+                            rating={act.rating}
+                            count={act.reviewCount}
+                          />
+                          <Card.Price
+                            price={`₩ ${act.price.toLocaleString()}`}
+                            unit="/ 인"
+                          />
+                        </Card.Content>
+                      </Card>
+                    </div>
                   ))}
                 </div>
 

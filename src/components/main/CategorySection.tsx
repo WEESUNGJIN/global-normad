@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image, { type StaticImageData } from "next/image";
 import Card from "@/components/Card";
 import Dropdown from "@/components/Dropdown";
@@ -74,8 +75,9 @@ export default function CategorySection({
   priceSortOrder,
   onSelectPriceSort,
 }: CategorySectionProps) {
-  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
 
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
   const handleSelectCategory = (id: number) => {
@@ -167,17 +169,23 @@ export default function CategorySection({
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5">
         {paginatedActivities.map((act) => (
-          <Card key={act.id} className="!w-full">
-            <Card.Image src={act.bannerImageUrl} alt={act.title} />
-            <Card.Content>
-              <Card.Title className="line-clamp-1">{act.title}</Card.Title>
-              <Card.Meta rating={act.rating} count={act.reviewCount} />
-              <Card.Price
-                price={`₩ ${act.price.toLocaleString()}`}
-                unit="/ 인"
-              />
-            </Card.Content>
-          </Card>
+          <div
+            key={act.id}
+            onClick={() => router.push(`/experience-detail/${act.id}`)}
+            className="cursor-pointer"
+          >
+            <Card className="!w-full">
+              <Card.Image src={act.bannerImageUrl} alt={act.title} />
+              <Card.Content>
+                <Card.Title className="line-clamp-1">{act.title}</Card.Title>
+                <Card.Meta rating={act.rating} count={act.reviewCount} />
+                <Card.Price
+                  price={`₩ ${act.price.toLocaleString()}`}
+                  unit="/ 인"
+                />
+              </Card.Content>
+            </Card>
+          </div>
         ))}
       </div>
 
