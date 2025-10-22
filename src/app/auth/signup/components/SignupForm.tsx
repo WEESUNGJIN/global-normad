@@ -7,6 +7,7 @@ import Button from "@/components/Button";
 import { useSignup } from "../hooks/useSignup";
 import { isValidEmail, isValidSignup } from "../utils/validation";
 import { redirectToKakaoAuth } from "@/utils/kakaoAuth";
+import Link from "next/link";
 
 export default function SignupForm() {
   const [email, setEmail] = useState("");
@@ -25,13 +26,15 @@ export default function SignupForm() {
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        className="w-full flex flex-col gap-4 sm:gap-6"
+      >
         <Input
           label="이메일"
           placeholder="이메일을 입력해주세요."
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mb-8"
           status={!isValidEmail(email) && email ? "error" : "default"}
           helpText={
             !isValidEmail(email) && email
@@ -44,7 +47,6 @@ export default function SignupForm() {
           placeholder="닉네임을 입력해 주세요."
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          className="mb-8"
         />
         <Input
           label="비밀번호"
@@ -53,7 +55,6 @@ export default function SignupForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value.trim())}
           showPasswordToggle
-          className="mb-8"
           status={
             password.length > 0 && password.length < 8 ? "error" : "default"
           }
@@ -70,7 +71,6 @@ export default function SignupForm() {
           value={checkPassword}
           onChange={(e) => setCheckPassword(e.target.value)}
           showPasswordToggle
-          className="mb-8"
           status={
             checkPassword && checkPassword !== password ? "error" : "default"
           }
@@ -89,7 +89,7 @@ export default function SignupForm() {
           variant={!isValid ? "secondary" : "primary"}
         />
       </form>
-      <div className="flex items-center my-8">
+      <div className="flex items-center my-6 sm:my-8">
         <div className="flex-grow border-t border-gray-300" />
         <span className="mx-4 text-gray-500 text-sm">
           SNS 계정으로 회원가입하기
@@ -102,11 +102,15 @@ export default function SignupForm() {
         label="카카오 회원가입"
         fullWidth
         variant="secondary"
+        className="text-sm sm:text-base"
       />
-      <div className="text-center mt-8">
-        <p className="text-gray-500 text-sm ">
+      <div className="text-center mt-6 sm:mt-8">
+        <p className="text-gray-500 text-sm sm:text-base">
           회원이신가요?{" "}
-          <a href="/auth/login" className="underline">
+          <a
+            href="/auth/login"
+            className="border-b hover:text-blue-500 transition-colors"
+          >
             로그인하기
           </a>
         </p>

@@ -8,15 +8,14 @@ import logoGnb from "@/assets/img/logo_gnb.svg";
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen flex justify-center items-center">
-      <div className="w-[640px]">
+    <div className="min-h-screen flex justify-center items-center px-4">
+      <div className="w-full max-w-[640px]">
         <div className="flex justify-center mb-8">
           <Link href="/">
             <Image
               src={logoGnb}
               alt="inmyday 로고"
-              width={320}
-              height={48}
+              className="w-60 sm:w-80 md:w-90 h-auto mb-3"
               priority
             />
           </Link>
