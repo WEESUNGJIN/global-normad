@@ -146,13 +146,22 @@ export default function CategorySection() {
   const [priceSortOrder, setPriceSortOrder] = useState<"asc" | "desc" | null>(
     null,
   );
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 8;
 
   const handleSelectCategory = (id: number) => {
     setSelectedCategory((prev) => (prev === id ? null : id));
+    setCurrentPage(1);
   };
 
   const handlePriceSortSelect = (option: string) => {
     setPriceSortOrder(option === "높은 순" ? "desc" : "asc");
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const selected = categories.find((c) => c.id === selectedCategory);
@@ -167,6 +176,14 @@ export default function CategorySection() {
     if (priceSortOrder === "desc") return b.price - a.price;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // 기본값은 최신순
   });
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedActivities = sortedActivities.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
+
+  const totalPages = Math.ceil(sortedActivities.length / itemsPerPage);
 
   return (
     <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
@@ -220,7 +237,7 @@ export default function CategorySection() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5">
-        {sortedActivities.map((act) => (
+        {paginatedActivities.map((act) => (
           <Card key={act.id} className="!w-full">
             <Card.Image src={act.bannerImageUrl} alt={act.title} />
             <Card.Content>
@@ -236,10 +253,10 @@ export default function CategorySection() {
       </div>
 
       <Pagination
-        page={1}
-        totalPages={5}
-        onChange={(p) => console.log("페이지 이동:", p)}
-        className="border-none mt-10 bg-transparent"
+        page={currentPage}
+        totalPages={Math.max(totalPages, 1)}
+        onChange={handlePageChange}
+        className="mt-10"
       />
     </section>
   );

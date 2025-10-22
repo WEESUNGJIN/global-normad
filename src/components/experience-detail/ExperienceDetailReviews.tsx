@@ -103,7 +103,7 @@ export default function ExperienceDetailReviews() {
           page={1}
           totalPages={5}
           onChange={(p) => console.log("페이지 이동:", p)}
-          className="border-none bg-transparent"
+          className="mt-10"
         />
       </div>
     </section>
