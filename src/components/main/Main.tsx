@@ -19,7 +19,7 @@ export default function Main() {
 
   const [searchKeyword, setSearchKeyword] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState(mockActivities);
+  const [searchResults, setSearchResults] = useState(mockActivities ?? []);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [priceSortOrder, setPriceSortOrder] = useState<"asc" | "desc" | null>(
     null,
@@ -136,21 +136,17 @@ export default function Main() {
         </div>
       ) : (
         <>
-          <div className="px-6 md:px-8">
-            <div className="max-w-[1120px] mx-auto">
-              <PopularSection />
-            </div>
+          <div className="max-w-[1120px] mx-auto">
+            <PopularSection />
           </div>
 
-          <div className="px-6 md:px-8">
-            <div className="max-w-[1120px] mx-auto">
-              <CategorySection
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-                priceSortOrder={priceSortOrder}
-                onSelectPriceSort={setPriceSortOrder}
-              />
-            </div>
+          <div className="max-w-[1120px] mx-auto">
+            <CategorySection
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              priceSortOrder={priceSortOrder}
+              onSelectPriceSort={setPriceSortOrder}
+            />
           </div>
         </>
       )}

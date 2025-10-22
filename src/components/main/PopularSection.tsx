@@ -24,13 +24,13 @@ export default function PopularSection() {
       </h2>
 
       <div className="flex gap-3 md:gap-5 lg:gap-6 overflow-x-auto scrollbar-hide">
-        {activities.map((act) => (
+        {(activities ?? []).map((act) => (
           <div
             key={act.id}
             onClick={() => router.push(`/experience-detail/${act.id}`)}
-            className="cursor-pointer flex-shrink-0"
+            className="cursor-pointer flex-shrink-0 w-[44.5%] md:w-[46.5%] lg:w-[23.4%]"
           >
-            <Card className="!w-[260px] md:!w-[320px] lg:!w-[360px]">
+            <Card className="!w-full">
               <Card.Image src={act.bannerImageUrl} alt={act.title} />
               <Card.Content>
                 <Card.Title className="line-clamp-1">{act.title}</Card.Title>

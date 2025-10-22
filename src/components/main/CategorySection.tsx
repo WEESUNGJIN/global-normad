@@ -99,10 +99,10 @@ export default function CategorySection({
 
   const filteredActivities =
     selectedCategory === null
-      ? activities
-      : activities.filter((act) => act.category === selected?.name);
+      ? (activities ?? [])
+      : (activities ?? []).filter((act) => act.category === selected?.name);
 
-  const sortedActivities = [...filteredActivities].sort((a, b) => {
+  const sortedActivities = [...(filteredActivities ?? [])].sort((a, b) => {
     if (priceSortOrder === "asc") return a.price - b.price;
     if (priceSortOrder === "desc") return b.price - a.price;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // 기본값은 최신순
