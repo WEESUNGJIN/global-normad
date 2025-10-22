@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import Image, { type StaticImageData } from "next/image";
 import Card from "@/components/Card";
+import Dropdown from "@/components/Dropdown";
+import Pagination from "@/components/Pagination";
 
-import iconArrowDown from "@/assets/icon/icon_alt arrow_down.svg";
 import iconCulture from "@/assets/icon/icon_art.svg";
 import iconCultureWhite from "@/assets/icon/white/icon_art_white.svg";
 import iconFood from "@/assets/icon/icon_food.svg";
@@ -27,6 +28,13 @@ import hotairballoonImg from "@/assets/img/hotairballoon.png";
 import bicycleImg from "@/assets/img/bicycle.png";
 import tropicalfishImg from "@/assets/img/tropicalfish.png";
 
+interface CategorySectionProps {
+  selectedCategory: number | null;
+  onSelectCategory: (id: number | null) => void;
+  priceSortOrder: "asc" | "desc" | null;
+  onSelectPriceSort: (order: "asc" | "desc" | null) => void;
+}
+
 interface Category {
   id: number;
   name: string;
@@ -43,6 +51,7 @@ interface Activity {
   reviewCount: number;
   price: number;
   category: string;
+  createdAt: string;
 }
 
 const categories: Category[] = [
@@ -85,6 +94,7 @@ const activities: Activity[] = [
     reviewCount: 108,
     price: 42800,
     category: "관광",
+    createdAt: "2025-10-01T09:00:00Z",
   },
   {
     id: 2,
@@ -94,6 +104,7 @@ const activities: Activity[] = [
     reviewCount: 67,
     price: 217000,
     category: "투어",
+    createdAt: "2025-09-15T08:00:00Z",
   },
   {
     id: 3,
@@ -103,6 +114,7 @@ const activities: Activity[] = [
     reviewCount: 113,
     price: 6000,
     category: "관광",
+    createdAt: "2025-08-10T10:00:00Z",
   },
   {
     id: 4,
@@ -112,6 +124,7 @@ const activities: Activity[] = [
     reviewCount: 85,
     price: 35000,
     category: "관광",
+    createdAt: "2025-08-20T10:00:00Z",
   },
   {
     id: 5,
@@ -121,6 +134,7 @@ const activities: Activity[] = [
     reviewCount: 108,
     price: 42800,
     category: "투어",
+    createdAt: "2025-05-01T10:00:00Z",
   },
   {
     id: 6,
@@ -130,17 +144,34 @@ const activities: Activity[] = [
     reviewCount: 18,
     price: 12000,
     category: "문화·예술",
+    createdAt: "2025-03-10T10:00:00Z",
   },
 ];
 
-export default function CategorySection() {
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+export default function CategorySection({
+  selectedCategory,
+  onSelectCategory,
+  priceSortOrder,
+  onSelectPriceSort,
+}: CategorySectionProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
+  const itemsPerPage = 8;
+
   const handleSelectCategory = (id: number) => {
-    setSelectedCategory((prev) => (prev === id ? null : id));
+    onSelectCategory(selectedCategory === id ? null : id);
+    setCurrentPage(1);
   };
-  const handlePageChange = (page: number) => setCurrentPage(page);
+
+  const handlePriceSortSelect = (option: string) => {
+    const order = option === "높은 순" ? "desc" : "asc";
+    onSelectPriceSort(order);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const selected = categories.find((c) => c.id === selectedCategory);
 
@@ -148,6 +179,20 @@ export default function CategorySection() {
     selectedCategory === null
       ? activities
       : activities.filter((act) => act.category === selected?.name);
+
+  const sortedActivities = [...filteredActivities].sort((a, b) => {
+    if (priceSortOrder === "asc") return a.price - b.price;
+    if (priceSortOrder === "desc") return b.price - a.price;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // 기본값은 최신순
+  });
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedActivities = sortedActivities.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
+
+  const totalPages = Math.ceil(sortedActivities.length / itemsPerPage);
 
   return (
     <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
@@ -164,17 +209,11 @@ export default function CategorySection() {
             {selectedCategory === null ? "모든 체험" : selected?.name}
           </h2>
         </div>
-        <button className="flex items-center gap-[4px] typo-16-m text-text-primary leading-none">
-          가격
-          <span className="relative w-5 h-5 flex-shrink-0">
-            <Image
-              src={iconArrowDown}
-              alt="가격 필터 버튼"
-              fill
-              className="object-contain"
-            />
-          </span>
-        </button>
+        <Dropdown
+          label="가격"
+          options={["높은 순", "낮은 순"]}
+          onSelect={handlePriceSortSelect}
+        />
       </div>
 
       <div className="flex gap-2 md:gap-5 mb-6 md:mb-8 overflow-x-auto scrollbar-hide">
@@ -207,7 +246,7 @@ export default function CategorySection() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5">
-        {filteredActivities.map((act) => (
+        {paginatedActivities.map((act) => (
           <Card key={act.id} className="!w-full">
             <Card.Image src={act.bannerImageUrl} alt={act.title} />
             <Card.Content>
@@ -222,25 +261,12 @@ export default function CategorySection() {
         ))}
       </div>
 
-      <div className="flex justify-center items-center gap-3 mt-7 md:mt-10">
-        <button className="text-gray-400 hover:text-gray-700">&lt;</button>
-        <div className="flex items-center gap-3">
-          {[1, 2, 3, 4, 5].map((p) => (
-            <button
-              key={p}
-              onClick={() => handlePageChange(p)}
-              className={`w-6 h-6 rounded-md text-center ${
-                currentPage === p
-                  ? "text-blue-500 font-semibold border-b-2 border-blue-500"
-                  : "text-gray-400"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-        <button className="text-gray-400 hover:text-gray-700">&gt;</button>
-      </div>
+      <Pagination
+        page={currentPage}
+        totalPages={Math.max(totalPages, 1)}
+        onChange={handlePageChange}
+        className="mt-10"
+      />
     </section>
   );
 }

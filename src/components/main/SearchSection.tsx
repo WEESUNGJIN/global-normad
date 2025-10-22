@@ -1,12 +1,29 @@
 "use client";
-
-import React from "react";
+import React, { useState } from "react";
 import clsx from "clsx";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import iconSearch from "@/assets/icon/icon_search.svg";
 
-export default function SearchSection() {
+interface SearchSectionProps {
+  onSearch: (keyword: string) => void;
+}
+
+export default function SearchSection({ onSearch }: SearchSectionProps) {
+  const [keyword, setKeyword] = useState("");
+
+  // 엔터 입력 시 검색 실행
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSearch(keyword);
+    }
+  };
+
+  const handleClick = () => {
+    onSearch(keyword);
+  };
+
   return (
     <section className="pt-8 md:pt-16 lg:pt-20">
       <h2 className="text-base md:text-3xl font-bold text-center mb-4 md:mb-9 lg:mb-10">
@@ -16,12 +33,14 @@ export default function SearchSection() {
       <div className="relative w-full mx-auto">
         <Input
           placeholder="내가 원하는 체험은"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={handleKeyDown}
           leadingIconSrc={iconSearch}
           leadingIconAlt="검색"
           className={clsx(
             "w-full [&>div>input]:!h-[53px] [&>div>input]:!py-[13px]",
             "[&>div>input]:border-none [&>div>input]:shadow-searchbar",
-
             "md:[&>div>span:first-child]:!pl-8",
             "md:[&>div>input]:!pl-16 md:[&>div>input]:!h-[70px]",
             "md:[&>div>input]:placeholder:text-lg",
@@ -32,6 +51,7 @@ export default function SearchSection() {
           variant="primary"
           size="md"
           label="검색하기"
+          onClick={handleClick}
           className={clsx(
             "absolute top-1/2 right-2 md:right-3 -translate-y-1/2",
             "!h-10 !px-5 rounded-xl",
