@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image, { type StaticImageData } from "next/image";
 import Card from "@/components/Card";
 import Dropdown from "@/components/Dropdown";
 import Pagination from "@/components/Pagination";
+import { activities } from "@/components/experience-detail/mock/activities";
 
 import iconCulture from "@/assets/icon/icon_art.svg";
 import iconCultureWhite from "@/assets/icon/white/icon_art_white.svg";
@@ -21,13 +23,6 @@ import emojiCity from "@/assets/img/emoji_city.png";
 import emojiCar from "@/assets/img/emoji_car.png";
 import emojiRollerskate from "@/assets/img/emoji_rollerskate.png";
 
-import fjordImg from "@/assets/img/fjord.png";
-import coastalvillageImg from "@/assets/img/coastalvillage.png";
-import reedforestImg from "@/assets/img/reedforest.png";
-import hotairballoonImg from "@/assets/img/hotairballoon.png";
-import bicycleImg from "@/assets/img/bicycle.png";
-import tropicalfishImg from "@/assets/img/tropicalfish.png";
-
 interface CategorySectionProps {
   selectedCategory: number | null;
   onSelectCategory: (id: number | null) => void;
@@ -41,17 +36,6 @@ interface Category {
   icon: string;
   emojiSrc?: string | StaticImageData;
   iconWhite?: string;
-}
-
-interface Activity {
-  id: number;
-  title: string;
-  bannerImageUrl: string;
-  rating: number;
-  reviewCount: number;
-  price: number;
-  category: string;
-  createdAt: string;
 }
 
 const categories: Category[] = [
@@ -85,77 +69,15 @@ const categories: Category[] = [
   },
 ];
 
-const activities: Activity[] = [
-  {
-    id: 1,
-    title: "피오르 체험",
-    bannerImageUrl: fjordImg.src,
-    rating: 3.9,
-    reviewCount: 108,
-    price: 42800,
-    category: "관광",
-    createdAt: "2025-10-01T09:00:00Z",
-  },
-  {
-    id: 2,
-    title: "해안가 마을에서 1주일 살아보기",
-    bannerImageUrl: coastalvillageImg.src,
-    rating: 2.9,
-    reviewCount: 67,
-    price: 217000,
-    category: "투어",
-    createdAt: "2025-09-15T08:00:00Z",
-  },
-  {
-    id: 3,
-    title: "부모님과 함께 갈대숲 체험",
-    bannerImageUrl: reedforestImg.src,
-    rating: 4.0,
-    reviewCount: 113,
-    price: 6000,
-    category: "관광",
-    createdAt: "2025-08-10T10:00:00Z",
-  },
-  {
-    id: 4,
-    title: "열기구 페스티벌",
-    bannerImageUrl: hotairballoonImg.src,
-    rating: 4.1,
-    reviewCount: 85,
-    price: 35000,
-    category: "관광",
-    createdAt: "2025-08-20T10:00:00Z",
-  },
-  {
-    id: 5,
-    title: "베트남 자전거 여행",
-    bannerImageUrl: bicycleImg.src,
-    rating: 3.9,
-    reviewCount: 108,
-    price: 42800,
-    category: "투어",
-    createdAt: "2025-05-01T10:00:00Z",
-  },
-  {
-    id: 6,
-    title: "다양한 열대어 구경하기",
-    bannerImageUrl: tropicalfishImg.src,
-    rating: 4.3,
-    reviewCount: 18,
-    price: 12000,
-    category: "문화·예술",
-    createdAt: "2025-03-10T10:00:00Z",
-  },
-];
-
 export default function CategorySection({
   selectedCategory,
   onSelectCategory,
   priceSortOrder,
   onSelectPriceSort,
 }: CategorySectionProps) {
-  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
 
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
   const handleSelectCategory = (id: number) => {
@@ -177,10 +99,10 @@ export default function CategorySection({
 
   const filteredActivities =
     selectedCategory === null
-      ? activities
-      : activities.filter((act) => act.category === selected?.name);
+      ? (activities ?? [])
+      : (activities ?? []).filter((act) => act.category === selected?.name);
 
-  const sortedActivities = [...filteredActivities].sort((a, b) => {
+  const sortedActivities = [...(filteredActivities ?? [])].sort((a, b) => {
     if (priceSortOrder === "asc") return a.price - b.price;
     if (priceSortOrder === "desc") return b.price - a.price;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // 기본값은 최신순
@@ -247,17 +169,23 @@ export default function CategorySection({
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-6 md:gap-y-7 gap-y-5">
         {paginatedActivities.map((act) => (
-          <Card key={act.id} className="!w-full">
-            <Card.Image src={act.bannerImageUrl} alt={act.title} />
-            <Card.Content>
-              <Card.Title className="line-clamp-1">{act.title}</Card.Title>
-              <Card.Meta rating={act.rating} count={act.reviewCount} />
-              <Card.Price
-                price={`₩ ${act.price.toLocaleString()}`}
-                unit="/ 인"
-              />
-            </Card.Content>
-          </Card>
+          <div
+            key={act.id}
+            onClick={() => router.push(`/experience-detail/${act.id}`)}
+            className="cursor-pointer"
+          >
+            <Card className="!w-full">
+              <Card.Image src={act.bannerImageUrl} alt={act.title} />
+              <Card.Content>
+                <Card.Title className="line-clamp-1">{act.title}</Card.Title>
+                <Card.Meta rating={act.rating} count={act.reviewCount} />
+                <Card.Price
+                  price={`₩ ${act.price.toLocaleString()}`}
+                  unit="/ 인"
+                />
+              </Card.Content>
+            </Card>
+          </div>
         ))}
       </div>
 

@@ -15,10 +15,10 @@ export default function Footer() {
         {/* ✅ 데스크탑 기본: 한 줄 3분할 */}
         <div className="hidden md:flex items-center justify-between">
           {/* 왼쪽 */}
-          <p className="typo-12-m">©codeit - 2023</p>
+          <p className="typo-13-m">©codeit - 2023</p>
 
           {/* 가운데 */}
-          <div className="flex items-center gap-3 typo-12-m">
+          <div className="flex items-center gap-3 typo-13-m">
             <a href="#">Privacy Policy</a>
             <span>·</span>
             <a href="#">FAQ</a>
