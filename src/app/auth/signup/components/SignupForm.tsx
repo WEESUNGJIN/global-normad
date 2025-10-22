@@ -7,7 +7,6 @@ import Button from "@/components/Button";
 import { useSignup } from "../hooks/useSignup";
 import { isValidEmail, isValidSignup } from "../utils/validation";
 import { redirectToKakaoAuth } from "@/utils/kakaoAuth";
-import Link from "next/link";
 
 export default function SignupForm() {
   const [email, setEmail] = useState("");

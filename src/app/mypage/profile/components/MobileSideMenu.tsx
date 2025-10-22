@@ -4,14 +4,10 @@ import React from "react";
 import SideMenu from "@/components/SideMenu";
 
 interface MobileSideMenuProps {
-  showContent: boolean;
   onMenuClick: (menu: string) => void;
 }
 
-export default function MobileSideMenu({
-  showContent,
-  onMenuClick,
-}: MobileSideMenuProps) {
+export default function MobileSideMenu({ onMenuClick }: MobileSideMenuProps) {
   return (
     <div
       onClick={(e) => {
