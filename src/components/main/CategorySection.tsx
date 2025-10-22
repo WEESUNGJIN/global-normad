@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image, { type StaticImageData } from "next/image";
 import Card from "@/components/Card";
 import Dropdown from "@/components/Dropdown";
+import Pagination from "@/components/Pagination";
 
 import iconCulture from "@/assets/icon/icon_art.svg";
 import iconCultureWhite from "@/assets/icon/white/icon_art_white.svg";
@@ -145,13 +146,10 @@ export default function CategorySection() {
   const [priceSortOrder, setPriceSortOrder] = useState<"asc" | "desc" | null>(
     null,
   );
-  const [currentPage, setCurrentPage] = useState(1);
 
   const handleSelectCategory = (id: number) => {
     setSelectedCategory((prev) => (prev === id ? null : id));
   };
-
-  const handlePageChange = (page: number) => setCurrentPage(page);
 
   const handlePriceSortSelect = (option: string) => {
     setPriceSortOrder(option === "높은 순" ? "desc" : "asc");
@@ -237,25 +235,12 @@ export default function CategorySection() {
         ))}
       </div>
 
-      <div className="flex justify-center items-center gap-3 mt-7 md:mt-10">
-        <button className="text-gray-400 hover:text-gray-700">&lt;</button>
-        <div className="flex items-center gap-3">
-          {[1, 2, 3, 4, 5].map((p) => (
-            <button
-              key={p}
-              onClick={() => handlePageChange(p)}
-              className={`w-6 h-6 rounded-md text-center ${
-                currentPage === p
-                  ? "text-blue-500 font-semibold border-b-2 border-blue-500"
-                  : "text-gray-400"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-        <button className="text-gray-400 hover:text-gray-700">&gt;</button>
-      </div>
+      <Pagination
+        page={1}
+        totalPages={5}
+        onChange={(p) => console.log("페이지 이동:", p)}
+        className="border-none mt-10 bg-transparent"
+      />
     </section>
   );
 }
