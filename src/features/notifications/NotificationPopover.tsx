@@ -256,10 +256,11 @@ export default function NotificationPopover({
         className="inline-flex relative"
       >
         {children}
+        {/* ✅ 원래 색상으로 복구 (빨간색 -> 기본 primary 색상) */}
         {initialLoaded && unreadCount > 0 && (
           <span
             aria-hidden
-            className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center"
+            className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-primary text-white text-[10px] flex items-center justify-center"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
