@@ -95,6 +95,7 @@ export default function NotificationPopover({
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [readSet, setReadSet] = useState<Set<number>>(new Set());
+  const [initialLoaded, setInitialLoaded] = useState(false);
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -132,6 +133,7 @@ export default function NotificationPopover({
       
       if (resetData) {
         setItems(response.notifications);
+        setInitialLoaded(true);
       } else {
         setItems(prev => [...prev, ...response.notifications]);
       }
@@ -140,10 +142,10 @@ export default function NotificationPopover({
       setHasMore(response.notifications.length === PAGE_SIZE);
     } catch (error) {
       console.error('Failed to load notifications:', error);
-      // 에러 시 빈 배열로 설정
       if (resetData) {
         setItems([]);
         setHasMore(false);
+        setInitialLoaded(true);
       }
     } finally {
       setLoading(false);
@@ -152,13 +154,13 @@ export default function NotificationPopover({
 
   /* 열릴 때 초기 데이터 로드 */
   useEffect(() => {
-    if (open && items.length === 0 && !loading) {
+    if (open && !initialLoaded && !loading) {
       const timer = setTimeout(() => {
         loadNotifications(true);
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [open, items.length, loading, loadNotifications]);
+  }, [open, initialLoaded, loading, loadNotifications]);
 
   /* 무한 스크롤 */
   useEffect(() => {
@@ -209,7 +211,6 @@ export default function NotificationPopover({
   const removeItem = async (id: number) => {
     try {
       await deleteNotification(id);
-      // 성공 시 UI에서 제거
       setItems(prev => prev.filter(n => n.id !== id));
       const next = new Set(readSet);
       next.delete(id);
@@ -217,18 +218,17 @@ export default function NotificationPopover({
       saveReadSet(next);
     } catch (error) {
       console.error('Failed to delete notification:', error);
-      // 에러 시 사용자에게 알림 (선택적)
       alert('알림 삭제에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
-  /* 뱃지 계산 */
+  /* ✅ 뱃지 계산 - 실제 안 읽은 알림만 표시 */
   const unreadCount = useMemo(() => {
-    const totalIds = items.map((n) => n.id);
-    let cnt = 0;
-    for (const id of totalIds) if (!readSet.has(id)) cnt++;
-    return cnt;
-  }, [readSet, items]);
+    if (!initialLoaded) return 0;
+    
+    const unreadItems = items.filter(n => !readSet.has(n.id));
+    return unreadItems.length;
+  }, [readSet, items, initialLoaded]);
 
   /* 트리거 핸들러 */
   const onTriggerClick = () => {
@@ -256,7 +256,7 @@ export default function NotificationPopover({
         className="inline-flex relative"
       >
         {children}
-        {unreadCount > 0 && (
+        {initialLoaded && unreadCount > 0 && (
           <span
             aria-hidden
             className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center"
@@ -287,13 +287,13 @@ export default function NotificationPopover({
 
           {/* 리스트 */}
           <div className="overflow-y-auto max-h-[420px]">
-            {loading && items.length === 0 && (
+            {loading && !initialLoaded && (
               <p className="px-4 py-8 text-sm text-gray-500">
                 알림을 불러오는 중...
               </p>
             )}
 
-            {!loading && items.length === 0 && (
+            {initialLoaded && items.length === 0 && (
               <p className="px-4 py-8 text-sm text-gray-500">
                 알림이 없습니다.
               </p>
@@ -306,7 +306,6 @@ export default function NotificationPopover({
                   n.content.includes("거절") || n.content.includes("거부");
                 const isRead = readSet.has(n.id);
 
-                // 승인/거절 색 강조
                 const contentHighlighted = n.content
                   .replace(
                     /승인/g,
@@ -362,7 +361,7 @@ export default function NotificationPopover({
             </ul>
 
             <div ref={sentinelRef} className="h-10" />
-            {loading && items.length > 0 && (
+            {loading && initialLoaded && items.length > 0 && (
               <div className="py-3 text-center text-xs text-gray-400">
                 로딩 중...
               </div>

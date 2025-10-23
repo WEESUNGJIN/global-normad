@@ -22,9 +22,9 @@ type GNBProps = {
 };
 
 export default function GNB({ 
-  unread = 0,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  unread = 0, // ✅ 이제 사용하지 않지만 레거시 호환성 유지
   onLogout,
-  // ✅ ESLint 경고 무시 주석 추가
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isLoggedIn: _,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -34,20 +34,11 @@ export default function GNB({
   // ✅ zustand 스토어에서 로그인 상태 직접 가져오기 (props 무시)
   const { user, logout } = useAuthStore();
   const isLoggedIn = !!user;
-  
-  // ✅ User 타입의 실제 속성명 사용 (name 대신 nickname 또는 다른 속성)
   const userName = user?.nickname || user?.email || "사용자";
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  const hasUnread = Number.isFinite(unread) && (unread as number) > 0;
-  const unreadLabel = hasUnread
-    ? unread! > 99
-      ? "99+"
-      : String(unread)
-    : null;
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -92,11 +83,11 @@ export default function GNB({
         {/* Right */}
         {isLoggedIn ? (
           <nav className="flex items-center gap-3">
-            {/* 알림 팝오버 */}
+            {/* ✅ 알림 팝오버 - 뱃지 로직 제거, NotificationPopover가 내부에서 관리 */}
             <NotificationPopover>
               <button
                 type="button"
-                aria-label={hasUnread ? `알림 ${unreadLabel}개 있음` : "알림"}
+                aria-label="알림"
                 className="relative h-8 w-8 flex items-center justify-center rounded-xl hover:bg-gray-50 transition"
               >
                 <Image
@@ -107,15 +98,7 @@ export default function GNB({
                   className="object-contain"
                   aria-hidden
                 />
-                {/* 뱃지 */}
-                {hasUnread && (
-                  <span
-                    className="absolute -right-1 -top-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-white typo-10-b flex items-center justify-center"
-                    aria-hidden
-                  >
-                    {unreadLabel}
-                  </span>
-                )}
+                {/* ✅ GNB에서 뱃지 제거 - NotificationPopover 내부에서 관리됨 */}
               </button>
             </NotificationPopover>
 
