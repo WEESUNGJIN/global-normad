@@ -18,29 +18,46 @@ type NotificationItem = {
   deletedAt: string | null;
 };
 
+type ApiResponse = {
+  cursorId: number;
+  notifications: NotificationItem[];
+  totalCount: number;
+};
+
 const PAGE_SIZE = 10;
 const LS_KEY = "gn:read-notifs:v1";
+const API_BASE_URL = "https://sp-globalnomad-api.vercel.app/17-2";
 
-/* -------------------- Mock 데이터 -------------------- */
-function buildMock(): NotificationItem[] {
-  const list: NotificationItem[] = [];
-  for (let i = 0; i < 25; i++) {
-    const approved = i % 2 === 0;
-    const dt = new Date();
-    dt.setMinutes(dt.getMinutes() - i * 7);
-    list.push({
-      id: 1000 - i,
-      teamId: "17-4",
-      userId: 1,
-      content: approved
-        ? `함께하면 즐거운 스트릿 댄스 (2023-01-14 15:00~18:00)\n예약이 승인되었어요.`
-        : `함께하면 즐거운 스트릿 댄스 (2023-01-14 15:00~18:00)\n예약이 거절되었어요.`,
-      createdAt: dt.toISOString(),
-      updatedAt: dt.toISOString(),
-      deletedAt: null,
-    });
+/* -------------------- API 함수들 -------------------- */
+async function fetchNotifications(cursorId?: number): Promise<ApiResponse> {
+  const url = new URL(`${API_BASE_URL}/my-notifications`);
+  if (cursorId) url.searchParams.append('cursorId', cursorId.toString());
+  url.searchParams.append('size', PAGE_SIZE.toString());
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('authToken')}`, // 인증 토큰
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status}`);
   }
-  return list.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+
+  return response.json();
+}
+
+async function deleteNotification(notificationId: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/my-notifications/${notificationId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('authToken')}`, // 인증 토큰
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Delete API Error: ${response.status}`);
+  }
 }
 
 /* -------------------- 읽음 상태 로컬저장 -------------------- */
@@ -73,16 +90,14 @@ export default function NotificationPopover({
   maxHeightClassName = "max-h-[480px]",
 }: Props) {
   const [open, setOpen] = useState(false);
-  // ✅ ref 대신 state로 관리하여 렌더링 중 접근 문제 해결
-  const [masterList, setMasterList] = useState<NotificationItem[]>(() => buildMock());
   const [items, setItems] = useState<NotificationItem[]>([]);
-  const [nextIndex, setNextIndex] = useState(0);
+  const [cursorId, setCursorId] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [readSet, setReadSet] = useState<Set<number>>(new Set());
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  const hasMore = nextIndex < masterList.length;
 
   /* 읽음 처리 */
   const markShownAsRead = useCallback(() => {
@@ -99,7 +114,6 @@ export default function NotificationPopover({
 
   /* 초기 읽음 상태 로드 */
   useEffect(() => {
-    // ✅ effect 내에서 비동기적으로 처리
     const loadInitialReadSet = () => {
       const initialReadSet = loadReadSet();
       setReadSet(initialReadSet);
@@ -107,25 +121,44 @@ export default function NotificationPopover({
     loadInitialReadSet();
   }, []);
 
-  /* 페이지네이션 로드 */
-  const loadMore = useCallback(() => {
-    const start = nextIndex;
-    const end = Math.min(nextIndex + PAGE_SIZE, masterList.length);
-    const slice = masterList.slice(start, end);
-    setItems((prev) => [...prev, ...slice]);
-    setNextIndex(end);
-  }, [nextIndex, masterList]);
+  /* 알림 데이터 로드 */
+  const loadNotifications = useCallback(async (resetData = false) => {
+    if (loading) return;
+    
+    try {
+      setLoading(true);
+      const targetCursorId = resetData ? undefined : cursorId;
+      const response = await fetchNotifications(targetCursorId || undefined);
+      
+      if (resetData) {
+        setItems(response.notifications);
+      } else {
+        setItems(prev => [...prev, ...response.notifications]);
+      }
+      
+      setCursorId(response.cursorId);
+      setHasMore(response.notifications.length === PAGE_SIZE);
+    } catch (error) {
+      console.error('Failed to load notifications:', error);
+      // 에러 시 빈 배열로 설정
+      if (resetData) {
+        setItems([]);
+        setHasMore(false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, cursorId]);
 
-  /* 열릴 때 초기 페이지 */
+  /* 열릴 때 초기 데이터 로드 */
   useEffect(() => {
-    if (open && items.length === 0) {
-      // ✅ setTimeout으로 비동기 처리
+    if (open && items.length === 0 && !loading) {
       const timer = setTimeout(() => {
-        loadMore();
+        loadNotifications(true);
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [open, items.length, loadMore]);
+  }, [open, items.length, loading, loadNotifications]);
 
   /* 무한 스크롤 */
   useEffect(() => {
@@ -136,8 +169,8 @@ export default function NotificationPopover({
     const io = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting && hasMore) {
-          loadMore();
+        if (entry.isIntersecting && hasMore && !loading) {
+          loadNotifications(false);
         }
       },
       { root: panelRef.current, threshold: 1.0 }
@@ -145,7 +178,7 @@ export default function NotificationPopover({
 
     io.observe(el);
     return () => io.disconnect();
-  }, [open, hasMore, loadMore]);
+  }, [open, hasMore, loading, loadNotifications]);
 
   /* ESC */
   useEffect(() => {
@@ -172,23 +205,30 @@ export default function NotificationPopover({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open, handleClose]);
 
-  /* 삭제 */
-  const removeItem = (id: number) => {
-    setMasterList((prev) => prev.filter((n) => n.id !== id));
-    setItems((prev) => prev.filter((n) => n.id !== id));
-    const next = new Set(readSet);
-    next.delete(id);
-    setReadSet(next);
-    saveReadSet(next);
+  /* ✅ 알림 삭제 (API 연동) */
+  const removeItem = async (id: number) => {
+    try {
+      await deleteNotification(id);
+      // 성공 시 UI에서 제거
+      setItems(prev => prev.filter(n => n.id !== id));
+      const next = new Set(readSet);
+      next.delete(id);
+      setReadSet(next);
+      saveReadSet(next);
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+      // 에러 시 사용자에게 알림 (선택적)
+      alert('알림 삭제에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
-  /* ✅ 뱃지 계산 - state 기반으로 수정 */
+  /* 뱃지 계산 */
   const unreadCount = useMemo(() => {
-    const totalIds = masterList.map((n) => n.id);
+    const totalIds = items.map((n) => n.id);
     let cnt = 0;
     for (const id of totalIds) if (!readSet.has(id)) cnt++;
     return cnt;
-  }, [readSet, masterList]);
+  }, [readSet, items]);
 
   /* 트리거 핸들러 */
   const onTriggerClick = () => {
@@ -247,7 +287,13 @@ export default function NotificationPopover({
 
           {/* 리스트 */}
           <div className="overflow-y-auto max-h-[420px]">
-            {items.length === 0 && (
+            {loading && items.length === 0 && (
+              <p className="px-4 py-8 text-sm text-gray-500">
+                알림을 불러오는 중...
+              </p>
+            )}
+
+            {!loading && items.length === 0 && (
               <p className="px-4 py-8 text-sm text-gray-500">
                 알림이 없습니다.
               </p>
@@ -316,6 +362,11 @@ export default function NotificationPopover({
             </ul>
 
             <div ref={sentinelRef} className="h-10" />
+            {loading && items.length > 0 && (
+              <div className="py-3 text-center text-xs text-gray-400">
+                로딩 중...
+              </div>
+            )}
             {!hasMore && items.length > 0 && (
               <div className="py-3 text-center text-xs text-gray-400">
                 모든 알림을 다 불러왔습니다.
