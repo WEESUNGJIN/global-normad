@@ -34,6 +34,7 @@ export default function ExperiencePage() {
         reviewCount: 25,
         price: 89000,
         bannerImageUrl: streetdanceImg.src,
+        createdAt: "2025-10-22T13:45:00Z",
       },
       {
         id: 2,
@@ -42,6 +43,7 @@ export default function ExperiencePage() {
         reviewCount: 13,
         price: 65000,
         bannerImageUrl: streetdanceImg.src,
+        createdAt: "2025-10-23T10:00:00Z",
       },
     ],
   };
@@ -62,7 +64,10 @@ export default function ExperiencePage() {
     queryFn: async () => mockData, // getMyActivities 대신 mock으로
   });
 
-  const activities = data.activities || [];
+  // 최신순 정렬
+  const activities = (data.activities || []).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   // --------------------------
   // 삭제 Mutation (mock 기반)
