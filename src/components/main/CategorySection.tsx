@@ -24,8 +24,10 @@ import iconWellbeingWhite from "@/assets/icon/white/icon_wellbeing_white.svg";
 
 import emojiPalette from "@/assets/img/emoji_palette.png";
 import emojiPlate from "@/assets/img/emoji_plate.png";
+import emojiSport from "@/assets/img/emoji_sport.png";
 import emojiCity from "@/assets/img/emoji_city.png";
 import emojiCar from "@/assets/img/emoji_car.png";
+import emojiWellbeing from "@/assets/img/emoji_wellbeing.png";
 import emojiRollerskate from "@/assets/img/emoji_rollerskate.png";
 
 interface CategorySectionProps {
@@ -63,7 +65,7 @@ const categories: Category[] = [
     name: "스포츠",
     icon: iconSport,
     iconWhite: iconSportWhite,
-    emojiSrc: emojiCity,
+    emojiSrc: emojiSport,
   },
   {
     id: 4,
@@ -84,7 +86,7 @@ const categories: Category[] = [
     name: "웰빙",
     icon: iconWellbeing,
     iconWhite: iconWellbeingWhite,
-    emojiSrc: emojiCar,
+    emojiSrc: emojiWellbeing,
   },
 ];
 
