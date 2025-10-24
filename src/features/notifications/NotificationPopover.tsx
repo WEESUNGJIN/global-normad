@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { formatRelativeKorean } from "@/lib/date/relative";
+import { useAuthStore } from "@/app/store/useAuthStore"; // zustand 스토어 import
 
 interface Props {
   children?: React.ReactNode;
@@ -29,31 +30,63 @@ const LS_KEY = "gn:read-notifs:v1";
 const API_BASE_URL = "https://sp-globalnomad-api.vercel.app/17-2";
 
 /* -------------------- API 함수들 -------------------- */
-async function fetchNotifications(cursorId?: number): Promise<ApiResponse> {
+async function fetchNotifications(cursorId?: number, token?: string): Promise<ApiResponse> {
+  // ✅ 토큰이 없으면 빈 응답 반환
+  if (!token) {
+    console.warn('No auth token provided');
+    return {
+      cursorId: 0,
+      notifications: [],
+      totalCount: 0
+    };
+  }
+
   const url = new URL(`${API_BASE_URL}/my-notifications`);
   if (cursorId) url.searchParams.append('cursorId', cursorId.toString());
   url.searchParams.append('size', PAGE_SIZE.toString());
 
   const response = await fetch(url.toString(), {
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('authToken')}`, // 인증 토큰
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
   });
 
+  // ✅ 401 오류 시 특별 처리
+  if (response.status === 401) {
+    console.warn('Authentication failed - token expired or invalid');
+    return {
+      cursorId: 0,
+      notifications: [],
+      totalCount: 0
+    };
+  }
+
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`API Error ${response.status}:`, errorText);
     throw new Error(`API Error: ${response.status}`);
   }
 
   return response.json();
 }
 
-async function deleteNotification(notificationId: number): Promise<void> {
+async function deleteNotification(notificationId: number, token?: string): Promise<void> {
+  if (!token) {
+    throw new Error('No authentication token provided');
+  }
+
   const response = await fetch(`${API_BASE_URL}/my-notifications/${notificationId}`, {
     method: 'DELETE',
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('authToken')}`, // 인증 토큰
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
   });
+
+  if (response.status === 401) {
+    throw new Error('Authentication failed - please login again');
+  }
 
   if (!response.ok) {
     throw new Error(`Delete API Error: ${response.status}`);
@@ -89,6 +122,9 @@ export default function NotificationPopover({
   widthClassName = "w-[360px]",
   maxHeightClassName = "max-h-[480px]",
 }: Props) {
+  // ✅ user 변수 제거 - 현재 사용하지 않음
+  const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [cursorId, setCursorId] = useState<number | null>(null);
@@ -126,10 +162,21 @@ export default function NotificationPopover({
   const loadNotifications = useCallback(async (resetData = false) => {
     if (loading) return;
     
+    // ✅ accessToken 확인
+    if (!accessToken) {
+      console.log('User not logged in - no access token available');
+      if (resetData) {
+        setItems([]);
+        setInitialLoaded(true);
+        setHasMore(false);
+      }
+      return;
+    }
+    
     try {
       setLoading(true);
       const targetCursorId = resetData ? undefined : cursorId;
-      const response = await fetchNotifications(targetCursorId || undefined);
+      const response = await fetchNotifications(targetCursorId || undefined, accessToken);
       
       if (resetData) {
         setItems(response.notifications);
@@ -150,7 +197,7 @@ export default function NotificationPopover({
     } finally {
       setLoading(false);
     }
-  }, [loading, cursorId]);
+  }, [loading, cursorId, accessToken]); // ✅ accessToken으로 변경
 
   /* 열릴 때 초기 데이터 로드 */
   useEffect(() => {
@@ -207,10 +254,15 @@ export default function NotificationPopover({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open, handleClose]);
 
-  /* ✅ 알림 삭제 (API 연동) */
+  /* ✅ 알림 삭제 (accessToken 전달) */
   const removeItem = async (id: number) => {
+    if (!accessToken) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     try {
-      await deleteNotification(id);
+      await deleteNotification(id, accessToken);
       setItems(prev => prev.filter(n => n.id !== id));
       const next = new Set(readSet);
       next.delete(id);
