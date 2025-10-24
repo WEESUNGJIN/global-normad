@@ -27,12 +27,17 @@ export interface Activity {
   price: number;
   address: string;
   bannerImageUrl: string;
-  subImages: SubImage[];
-  schedules: Schedule[];
-  reviewCount: number;
   rating: number;
+  reviewCount: number;
   createdAt: string;
-  updateAt: string;
+  updatedAt: string;
+}
+
+// 내 체험 리스트 무한스크롤 응답 (GET: /my-activities, cursor 기반)
+export interface ActivitiesResponse {
+  activities: Activity[];
+  nextCursorId: number | null;
+  hasNext: boolean;
 }
 
 // 내 체험 등록 (POST: /activities)
