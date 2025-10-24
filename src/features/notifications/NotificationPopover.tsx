@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { formatRelativeKorean } from "@/lib/date/relative";
-import { useAuthStore } from "@/app/store/useAuthStore"; // zustand 스토어 import
 
 interface Props {
   children?: React.ReactNode;
