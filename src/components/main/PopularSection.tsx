@@ -9,13 +9,19 @@ import Card from "@/components/Card";
 import emojiFire from "@/assets/img/emoji_fire.png";
 import iconArrowRight from "@/assets/icon/icon_arrow_right.svg";
 import iconArrowLeft from "@/assets/icon/icon_arrow_left.svg";
-import { activities } from "@/components/experience-detail/mock/activities";
+import { useActivityStore } from "@/features/activities/useActivityStore";
 
 export default function PopularSection() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(4);
   const [isClient, setIsClient] = useState(false);
+
+  const { activities, fetchActivities } = useActivityStore();
+
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
 
   const sortedActivities = [...activities].sort(
     (a, b) => b.reviewCount - a.reviewCount,

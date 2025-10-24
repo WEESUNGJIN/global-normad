@@ -1,5 +1,5 @@
-// src/api/experience.ts
 import api from "@/utils/api";
+import type { AxiosError } from "axios";
 
 export interface Experience {
   id: number;
@@ -14,18 +14,26 @@ export interface Experience {
 
 export const fetchPopularExperiences = async (): Promise<Experience[]> => {
   try {
-    const teamId = process.env.NEXT_PUBLIC_TEAM_ID; // 예: "17-2"
+    const teamId = process.env.NEXT_PUBLIC_TEAM_ID;
     if (!teamId)
       throw new Error("NEXT_PUBLIC_TEAM_ID가 설정되어 있지 않습니다.");
 
-    // 리뷰 많은 순 정렬
     const response = await api.get<{ activities: Experience[] }>(
-      `/${teamId}/activities?sort=reviewCount&order=desc`,
+      `${teamId}/activities?method=offset`,
     );
 
-    return response.activities;
+    const sorted = [...response.activities].sort(
+      (a, b) => b.reviewCount - a.reviewCount,
+    );
+
+    return sorted;
   } catch (error) {
-    console.error("인기 체험 데이터 불러오기 실패:", error);
+    const err = error as AxiosError;
+    console.error(
+      "인기 체험 데이터 불러오기 실패:",
+      err.response?.status,
+      err.response?.data,
+    );
     throw error;
   }
 };
