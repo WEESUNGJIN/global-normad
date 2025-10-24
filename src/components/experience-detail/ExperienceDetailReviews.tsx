@@ -17,39 +17,35 @@ interface Review {
 
 interface ExperienceDetailReviewsProps {
   activityId: number;
+  reviewCount: number;
+  rating: number;
 }
 
 export default function ExperienceDetailReviews({
   activityId,
+  reviewCount,
+  rating,
 }: ExperienceDetailReviewsProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [averageRating, setAverageRating] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 3;
 
   useEffect(() => {
     async function fetchReviews() {
       try {
-        console.log("리뷰 요청 시작");
+        setIsLoading(true);
 
+        const offset = (page - 1) * limit;
         const res = await api.get<{ reviews: Review[] }>(
-          `activities/${activityId}/reviews?method=offset`,
+          `activities/${activityId}/reviews?method=offset&offset=${offset}&limit=${limit}`,
         );
 
-        console.log("리뷰 응답 데이터:", res);
-
         const data: Review[] = res.reviews ?? [];
-
         setReviews(data);
 
-        const avg =
-          data.length > 0
-            ? data.reduce((acc: number, cur: Review) => acc + cur.rating, 0) /
-              data.length
-            : 0;
-
-        setAverageRating(avg);
-        setTotalCount(data.length);
+        setTotalPages(Math.ceil(reviewCount / limit));
       } catch (err) {
         console.error("리뷰 조회 실패:", err);
       } finally {
@@ -58,7 +54,7 @@ export default function ExperienceDetailReviews({
     }
 
     fetchReviews();
-  }, [activityId]);
+  }, [activityId, page, reviewCount]);
 
   if (isLoading) return <p>리뷰를 불러오는 중...</p>;
 
@@ -68,32 +64,32 @@ export default function ExperienceDetailReviews({
       <div className="pt-5 flex gap-2 items-center">
         <h2 className="typo-16-b md:text-lg text-gray-950">체험 후기</h2>
         <p className="typo-14-sb md:text-base text-gray-700">
-          {totalCount.toLocaleString()}개
+          {(reviewCount ?? 0).toLocaleString()}개
         </p>
       </div>
 
       {/* 평점 표시 */}
       <div className="pt-2 md:pt-3 md:pb-8 pb-7 text-center">
         <p className="typo-24-sb md:text-3xl mb-2 text-gray-950">
-          {averageRating.toFixed(1)}
+          {rating.toFixed(1)}
         </p>
         <p className="typo-14-b md:text-base text-gray-950 mb-2">
-          {averageRating > 4
+          {rating > 4
             ? "매우 만족"
-            : averageRating > 3
+            : rating > 3
               ? "만족"
-              : averageRating > 0
+              : rating > 0
                 ? "보통"
                 : "평가 없음"}
         </p>
         <div className="flex justify-center items-center gap-1 typo-14-m text-gray-700">
           <Image src={starIconOn} alt="별 아이콘" width={16} height={16} />
-          {totalCount.toLocaleString()}개의 후기
+          {reviewCount.toLocaleString()}개의 후기
         </div>
       </div>
 
       {/* 후기 리스트 */}
-      {reviews.length > 0 && (
+      {reviews.length > 0 ? (
         <div className="flex flex-col gap-10 lg:gap-5">
           {reviews.map((review) => (
             <div
@@ -131,12 +127,16 @@ export default function ExperienceDetailReviews({
             </div>
           ))}
         </div>
+      ) : (
+        <p className="text-center text-gray-500 py-10">
+          아직 작성된 후기가 없습니다.
+        </p>
       )}
 
       <Pagination
-        page={1}
-        totalPages={1}
-        onChange={(p) => console.log("페이지 이동:", p)}
+        page={page}
+        totalPages={Math.max(totalPages, 1)}
+        onChange={(p) => setPage(p)}
         className="mt-8"
       />
     </section>

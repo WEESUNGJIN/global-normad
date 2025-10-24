@@ -96,7 +96,13 @@ export default function ExperienceDetail({
           />
           <ExperienceDetailDescription description={activity.description} />
           <ExperienceDetailMap address={activity.address} />
-          <ExperienceDetailReviews activityId={activity.id} />
+          {activity && (
+            <ExperienceDetailReviews
+              activityId={activity.id}
+              reviewCount={activity.reviewCount}
+              rating={activity.rating}
+            />
+          )}
         </div>
 
         {/* 데스크탑 */}
@@ -105,7 +111,13 @@ export default function ExperienceDetail({
             <ExperienceDetailImages images={activity.subImages} />
             <ExperienceDetailDescription description={activity.description} />
             <ExperienceDetailMap address={activity.address} />
-            <ExperienceDetailReviews activityId={activity.id} />
+            {activity && (
+              <ExperienceDetailReviews
+                activityId={activity.id}
+                reviewCount={activity.reviewCount}
+                rating={activity.rating}
+              />
+            )}
           </div>
 
           <div className="flex flex-col top-32 gap-16 h-fit">
