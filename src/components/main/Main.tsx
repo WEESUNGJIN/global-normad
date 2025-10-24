@@ -12,14 +12,15 @@ import PopularSection from "@/components/main/PopularSection";
 import CategorySection from "@/components/main/CategorySection";
 import Card from "@/components/Card";
 import Pagination from "@/components/Pagination";
-import { activities as mockActivities } from "@/components/experience-detail/mock/activities";
+import { searchExperiences } from "@/api/experience";
+import type { Experience } from "@/api/experience";
 
 export default function Main() {
   const router = useRouter();
 
   const [searchKeyword, setSearchKeyword] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState(mockActivities ?? []);
+  const [searchResults, setSearchResults] = useState<Experience[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [priceSortOrder, setPriceSortOrder] = useState<"asc" | "desc" | null>(
     null,
@@ -28,7 +29,7 @@ export default function Main() {
   const [currentPage, setCurrentPage] = useState(1); // 현재 페이지
   const itemsPerPage = 8;
 
-  const handleSearch = (keyword: string) => {
+  const handleSearch = async (keyword: string) => {
     setSearchKeyword(keyword);
 
     if (keyword.trim() === "") {
@@ -39,16 +40,15 @@ export default function Main() {
       return;
     }
 
-    const results = mockActivities
-      .filter((act) => act.title.toLowerCase().includes(keyword.toLowerCase()))
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
-
-    setSearchResults(results);
-    setIsSearching(true);
-    setCurrentPage(1);
+    try {
+      setIsSearching(true);
+      const results = await searchExperiences(keyword);
+      setSearchResults(results);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error("검색 오류:", error);
+      setSearchResults([]);
+    }
   };
 
   const handlePageChange = (page: number) => {
