@@ -10,7 +10,7 @@ export type ReservationStatus =
   | "canceled"
   | "completed";
 
-type MobileState = "done" | "ing"; // done=후기작성 / ing=예약변경·취소
+// type MobileState = "done" | "ing"; // done=후기작성 / ing=예약변경·취소 // 모바일 코드 변경으로 사용 안함
 
 export interface ListCardProps {
   // 공통 필수
@@ -39,7 +39,7 @@ export interface ListCardProps {
   showActions?: boolean;
 
   // 모바일 테스트용
-  forceMobileState?: MobileState;
+  // forceMobileState?: MobileState; // 모바일 코드 변경으로 사용 안함
   actionsDisabled?: boolean;
 }
 
@@ -71,12 +71,12 @@ export default function ListCard({
   onClickChange,
   onClickCancel,
   variant = "pc",
-  forceMobileState,
+  // forceMobileState, // 모바일 코드 변경으로 사용 안함
   actionsDisabled,
 }: ListCardProps) {
   const { v: tagVariant, t: tagText } = badge(status);
-  const mobileState: MobileState =
-    forceMobileState ?? (status === "completed" ? "done" : "ing");
+  // const mobileState: MobileState =
+  //   forceMobileState ?? (status === "completed" ? "done" : "ing"); 모바일 코드 변경으로 사용 안함
   const hasSubtitle = !!subtitle?.trim();
 
   const ProgressActions = (

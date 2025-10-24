@@ -29,10 +29,10 @@ const meta = {
       control: "inline-radio",
       options: ["pc", "mobile"],
     },
-    forceMobileState: {
-      control: "inline-radio",
-      options: ["done", "ing"],
-    },
+    // forceMobileState: {
+    //   control: "inline-radio",
+    //   options: ["done", "ing"],
+    // },
     actionsDisabled: { control: "boolean" },
   },
 } satisfies Meta<typeof ListCard>;
@@ -104,6 +104,6 @@ export const MobileProgress: Story = {
     title: "열기구 체험 (진행중)",
     price: "₩ 35,000",
     subtitle: "성인 2명 · 11:00–12:30",
-    forceMobileState: "ing", // ✅ 진행중 상태 강제
+    // forceMobileState: "ing", // ✅ 진행중 상태 강제
   },
 };
