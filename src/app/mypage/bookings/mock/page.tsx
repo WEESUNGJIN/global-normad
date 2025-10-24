@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import ListCard from "@/components/ListCard";
 import Button from "@/components/Button";
 import Modal from "@/components/Modal";
 import StarRatingInput from "@/components/StarRatingInput";
 import logoAuth from "@/assets/img/empty_state.png";
-import warningImg from "@/assets/img/warning_state.png"; // ✅ 경고 이미지 추가
+import warningImg from "@/assets/img/warning_state.png";
 import { mockReservations } from "./mockReservations";
 
 type ReservationFilter =
@@ -22,17 +22,66 @@ export default function MockBookingsPage() {
   const [filter, setFilter] = useState<ReservationFilter>("all");
   const [openCardId, setOpenCardId] = useState<number | null>(null);
 
-  // ✅ 후기 모달 상태
+  // 후기 모달
   const [openReviewModal, setOpenReviewModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [content, setContent] = useState("");
   const [selectedReservation, setSelectedReservation] =
     useState<(typeof mockReservations)[number] | null>(null);
 
-  // ✅ 예약 취소 모달 상태
+  // 취소 모달
   const [openCancelModal, setOpenCancelModal] = useState(false);
   const [targetReservation, setTargetReservation] =
     useState<(typeof mockReservations)[number] | null>(null);
+
+  // ✅ 무한스크롤 상태
+  const [page, setPage] = useState(1);
+  const [displayed, setDisplayed] = useState<(typeof mockReservations)[number][]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
+  const observerRef = useRef<HTMLDivElement | null>(null);
+
+  const PAGE_SIZE = 5; // 페이지당 5개씩 표시
+
+  // ✅ 초기 및 페이지 변경 시 데이터 불러오기 (mock 기반)
+  useEffect(() => {
+  if (!hasMore) return;
+
+  const load = () => {
+    setIsFetching(true);
+    const start = (page - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const nextSlice = mockReservations.slice(start, end);
+
+    if (nextSlice.length === 0) {
+      setHasMore(false);
+    } else {
+      setDisplayed((prev) => [...prev, ...nextSlice]);
+    }
+
+    setIsFetching(false);
+  };
+
+  // ✅ setState 호출을 effect 본문이 아닌 별도 함수 안으로 분리
+  load();
+}, [page, hasMore]);
+
+  // ✅ IntersectionObserver: 스크롤 하단 감지
+  useEffect(() => {
+    if (!hasMore || isFetching) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    if (observerRef.current) observer.observe(observerRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isFetching]);
 
   // ✅ 필터 순서
   const filterOrder: ReservationFilter[] = [
@@ -44,37 +93,36 @@ export default function MockBookingsPage() {
     "completed",
   ];
 
-  // ✅ 예약 데이터가 없으면 필터 숨김, 하나라도 있으면 전체 표시
+  // ✅ 필터 표시 조건
   const availableFilters = useMemo(() => {
     if (mockReservations.length === 0) return [];
     return filterOrder;
-  }, [mockReservations, filterOrder]);
+  }, [mockReservations]);
 
   // ✅ 필터된 예약 목록
   const filtered = useMemo(
     () =>
       filter === "all"
-        ? mockReservations
-        : mockReservations.filter((r) => r.status === filter),
-    [mockReservations, filter]
+        ? displayed
+        : displayed.filter((r) => r.status === filter),
+    [displayed, filter]
   );
 
   const hasReservations = mockReservations.length > 0;
 
+  // ✅ 카드 토글
   const onCardClick = (id: number) => {
     setOpenCardId((prev) => (prev === id ? null : id));
   };
 
-  // ✅ 후기 작성 (mock)
+  // ✅ 후기 등록 (mock)
   const handleSubmitReview = () => {
     if (!selectedReservation) return;
-
     console.log("📢 후기 등록 (mock):", {
       reservationId: selectedReservation.id,
       rating,
       content,
     });
-
     setOpenReviewModal(false);
     setRating(0);
     setContent("");
@@ -83,17 +131,11 @@ export default function MockBookingsPage() {
   // ✅ 예약 취소 (mock)
   const handleCancelReservation = () => {
     if (!targetReservation) return;
-
     console.log("⚠️ 예약 취소 요청 (mock):", targetReservation.id);
-
-    // 예약 상태를 취소로 변경 (mock 업데이트)
     const index = mockReservations.findIndex(
       (r) => r.id === targetReservation.id
     );
-    if (index !== -1) {
-      mockReservations[index].status = "canceled";
-    }
-
+    if (index !== -1) mockReservations[index].status = "canceled";
     setOpenCancelModal(false);
     setTargetReservation(null);
   };
@@ -123,7 +165,7 @@ export default function MockBookingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* ✅ 필터 */}
+      {/* 필터 */}
       {availableFilters.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {availableFilters.map((f) => (
@@ -145,7 +187,7 @@ export default function MockBookingsPage() {
         </div>
       )}
 
-      {/* ✅ 예약 카드 목록 */}
+      {/* 예약 카드 목록 */}
       <div className="space-y-4">
         {filtered.map((r) => (
           <div key={r.id}>
@@ -161,11 +203,10 @@ export default function MockBookingsPage() {
                 subtitle={`${r.date} · ${r.startTime} - ${r.endTime}`}
                 status={r.status}
                 price={`₩${r.totalPrice.toLocaleString()}`}
-                ctaLabel="자세히"
+                ctaLabel="후기 작성"
               />
             </div>
 
-            {/* ✅ 카드 하단 버튼 */}
             {openCardId === r.id && (
               <div className="mt-3 mb-4 flex justify-center gap-3">
                 {r.status === "pending" && (
@@ -203,9 +244,19 @@ export default function MockBookingsPage() {
             )}
           </div>
         ))}
+
+        {/* ✅ 무한스크롤 감시용 엘리먼트 */}
+        {hasMore && (
+          <div
+            ref={observerRef}
+            className="h-10 flex justify-center items-center text-gray-400"
+          >
+            {isFetching ? "불러오는 중..." : "아래로 스크롤"}
+          </div>
+        )}
       </div>
 
-      {/* ✅ 예약 취소 확인 모달 */}
+      {/* 예약 취소 모달 */}
       <Modal
         open={openCancelModal}
         onClose={() => setOpenCancelModal(false)}
@@ -228,7 +279,7 @@ export default function MockBookingsPage() {
         </div>
       </Modal>
 
-      {/* ✅ 후기 작성 모달 */}
+      {/* 후기 작성 모달 */}
       <Modal
         open={openReviewModal}
         onClose={() => {
@@ -243,7 +294,6 @@ export default function MockBookingsPage() {
       >
         {selectedReservation && (
           <>
-            {/* 제목 + 일정 */}
             <div className="text-center mb-4">
               <p className="typo-16-b text-gray-900">
                 {selectedReservation.activity.title}
@@ -253,11 +303,7 @@ export default function MockBookingsPage() {
                 {selectedReservation.endTime}
               </p>
             </div>
-
-            {/* 별점 입력 */}
             <StarRatingInput initialRating={rating} onChange={setRating} />
-
-            {/* 후기 입력 */}
             <div className="mt-5">
               <p className="typo-14-b mb-2 text-gray-800">
                 소중한 경험을 들려주세요

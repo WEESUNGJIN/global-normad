@@ -166,7 +166,11 @@ export default function ListCard({
 
         {/* 버튼: 카드+이미지 전체 폭(410px)에 맞춤 */}
         <div className="mt-3 w-[410px]">
-          {mobileState === "done" ? DoneCTA : ProgressActions}
+          {status === "completed"
+            ? DoneCTA
+            : status === "pending"
+            ? ProgressActions
+            : null}
         </div>
       </div>
     );
@@ -212,7 +216,11 @@ export default function ListCard({
             {priceSub && <span className="typo-12-m text-text-secondary ml-1">{priceSub}</span>}
             <span className="typo-12-m text-text-secondary ml-1">/ {peopleText}</span>
           </div>
-          {status === "completed" ? DoneCTA : ProgressActions}
+          {status === "completed"
+            ? DoneCTA
+            : status === "pending"
+            ? ProgressActions
+            : null}
         </div>
       </div>
 
