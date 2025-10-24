@@ -15,7 +15,7 @@ export default function AuthRestore() {
       if (!token) return;
 
       try {
-        const user = await api.get<User>("/user/me");
+        const user = await api.get<User>("/users/me");
         setUser(user);
       } catch {
         logout();

@@ -15,6 +15,34 @@ export default function PasswordInput({
   setCheckPassword,
   error,
 }: Props) {
+  const MIN_LENGTH = 8;
+
+  const hasLetter = /[A-Za-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const meetsLength = password.trim().length >= MIN_LENGTH;
+
+  const isInvalidPassword =
+    password.trim().length > 0 && (!meetsLength || !hasLetter || !hasNumber);
+
+  const isMismatch = password && checkPassword && password !== checkPassword;
+
+  const passwordStatus =
+    error.includes("비밀번호") || isInvalidPassword ? "error" : "default";
+  const checkStatus = isMismatch ? "error" : "default";
+
+  const passwordHelpText = isInvalidPassword
+    ? !meetsLength
+      ? "비밀번호는 8자 이상 입력해주세요."
+      : !hasLetter
+        ? "영문자를 포함해주세요."
+        : !hasNumber
+          ? "숫자를 포함해주세요."
+          : "영문과 숫자를 포함해서 8자 이상 입력해주세요."
+    : error.includes("비밀번호")
+      ? "영문과 숫자를 포함해서 8자 이상 입력해주세요"
+      : "";
+  const checkHelpText = isMismatch ? "비밀번호가 일치하지 않습니다" : "";
+
   return (
     <>
       <Input
@@ -23,12 +51,9 @@ export default function PasswordInput({
         onChange={(e) => setPassword(e.target.value)}
         showPasswordToggle
         placeholder="8자 이상 입력해주세요."
-        status={error.includes("비밀번호") ? "error" : "default"}
-        helpText={
-          error.includes("비밀번호")
-            ? "영문과 숫자를 포함해서 8자 이상 입력해주세요."
-            : ""
-        }
+        status={passwordStatus}
+        helpText={passwordHelpText}
+        type="password"
       />
       <Input
         label="비밀번호 확인"
@@ -36,16 +61,9 @@ export default function PasswordInput({
         onChange={(e) => setCheckPassword(e.target.value)}
         showPasswordToggle
         placeholder="비밀번호를 한 번 더 입력해주세요."
-        status={
-          password && checkPassword && password !== checkPassword
-            ? "error"
-            : "default"
-        }
-        helpText={
-          password && checkPassword && password !== checkPassword
-            ? "비밀번호가 일치하지 않습니다"
-            : ""
-        }
+        status={checkStatus}
+        helpText={checkHelpText}
+        type="password"
       />
     </>
   );
