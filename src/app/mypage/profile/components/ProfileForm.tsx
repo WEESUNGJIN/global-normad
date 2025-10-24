@@ -34,7 +34,8 @@ export default function ProfileForm() {
     try {
       await api.patch("/users/me", {
         nickname,
-        ...(password && { password }),
+        // profileImageUrl: uploadedImageUrl,
+        ...(password && { newPassword: password }),
       });
 
       setUser({ ...user!, nickname });
