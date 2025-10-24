@@ -13,10 +13,14 @@ import iconCulture from "@/assets/icon/icon_art.svg";
 import iconCultureWhite from "@/assets/icon/white/icon_art_white.svg";
 import iconFood from "@/assets/icon/icon_food.svg";
 import iconFoodWhite from "@/assets/icon/white/icon_food_white.svg";
+import iconSport from "@/assets/icon/icon_sport.svg";
+import iconSportWhite from "@/assets/icon/white/icon_sport_white.svg";
 import iconTour from "@/assets/icon/icon_tour.svg";
 import iconTourWhite from "@/assets/icon/white/icon_tour_white.svg";
 import iconTravel from "@/assets/icon/icon_bus.svg";
 import iconTravelWhite from "@/assets/icon/white/icon_bus_white.svg";
+import iconWellbeing from "@/assets/icon/icon_wellbeing.svg";
+import iconWellbeingWhite from "@/assets/icon/white/icon_wellbeing_white.svg";
 
 import emojiPalette from "@/assets/img/emoji_palette.png";
 import emojiPlate from "@/assets/img/emoji_plate.png";
@@ -42,7 +46,7 @@ interface Category {
 const categories: Category[] = [
   {
     id: 1,
-    name: "문화·예술",
+    name: "문화 · 예술",
     icon: iconCulture,
     iconWhite: iconCultureWhite,
     emojiSrc: emojiPalette,
@@ -56,16 +60,30 @@ const categories: Category[] = [
   },
   {
     id: 3,
+    name: "스포츠",
+    icon: iconSport,
+    iconWhite: iconSportWhite,
+    emojiSrc: emojiCity,
+  },
+  {
+    id: 4,
     name: "투어",
     icon: iconTour,
     iconWhite: iconTourWhite,
     emojiSrc: emojiCity,
   },
   {
-    id: 4,
+    id: 5,
     name: "관광",
     icon: iconTravel,
     iconWhite: iconTravelWhite,
+    emojiSrc: emojiCar,
+  },
+  {
+    id: 6,
+    name: "웰빙",
+    icon: iconWellbeing,
+    iconWhite: iconWellbeingWhite,
     emojiSrc: emojiCar,
   },
 ];
@@ -128,8 +146,11 @@ export default function CategorySection({
             ? undefined
             : categories.find((c) => c.id === selectedCategory)?.name;
 
-        const data = await fetchCategoryActivities(categoryName, sortKey);
-        setActivities(data);
+        const { activities } = await fetchCategoryActivities(
+          categoryName,
+          sortKey,
+        );
+        setActivities(activities);
       } catch (error) {
         console.error("체험 데이터 로드 실패:", error);
         setActivities([]);
