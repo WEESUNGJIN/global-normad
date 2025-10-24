@@ -16,30 +16,26 @@ import streetdanceImg from "@/assets/img/streetdance_main.png";
 import Image from "next/image";
 import warning from "@/assets/img/warning_state.png";
 
-const mockActivities: (CreateActivityRequest & { id: number })[] = [
-  {
-    id: 1,
-    title: "트로피컬 피싱 투어",
-    category: "투어",
-    description: "시원한 바다에서 낚시 체험!",
-    address: "제주도 바다",
-    price: 89000,
+const mockActivities: (CreateActivityRequest & { id: number })[] = Array.from(
+  { length: 40 },
+  (_, i) => ({
+    id: i + 1,
+    title: `체험 ${i + 1}번 타이틀`,
+    category: "액티비티",
+    description: `이건 ${i + 1}번 체험의 설명이에요.`,
+    address: `서울시 어딘가 ${i + 1}번지`,
+    price: 50000 + (i + 1) * 1000,
     bannerImageUrl: streetdanceImg.src as string,
     subImageUrls: [],
-    schedules: [{ date: "2025-10-25", startTime: "09:00", endTime: "12:00" }],
-  },
-  {
-    id: 2,
-    title: "스트릿 댄스 클래스",
-    category: "문화 예술",
-    description: "현직 댄서에게 배우는 스트릿 댄스!",
-    address: "홍대",
-    price: 65000,
-    bannerImageUrl: streetdanceImg.src as string,
-    subImageUrls: [],
-    schedules: [{ date: "2025-10-30", startTime: "15:00", endTime: "17:00" }],
-  },
-];
+    schedules: [
+      {
+        date: "2025-10-25",
+        startTime: "09:00",
+        endTime: "12:00",
+      },
+    ],
+  }),
+);
 
 interface MyActivitiesResponse {
   activities: {
@@ -85,6 +81,7 @@ export default function ExperienceEditPage() {
     mutationFn: async (payload: CreateActivityRequest) => {
       // 나중엔 아래로 교체
       // return updateActivity(Number(id), payload);
+      await new Promise((resolve) => setTimeout(resolve, 300));
       console.log("mock update", payload);
       return { ...payload, id: Number(id) };
     },
