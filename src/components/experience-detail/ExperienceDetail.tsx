@@ -84,7 +84,7 @@ export default function ExperienceDetail({
 
       <div className="relative px-6 md:px-8 lg:px-80 pb-[120px] lg:pb-44">
         {/* 모바일 및 태블릿 */}
-        <div className="lg:hidden flex flex-col gap-10">
+        <div className="lg:hidden flex flex-col">
           <ExperienceDetailImages images={activity.subImages} />
           <ExperienceDetailInfo
             title={activity.title}
@@ -100,7 +100,7 @@ export default function ExperienceDetail({
         </div>
 
         {/* 데스크탑 */}
-        <div className="hidden lg:grid lg:grid-cols-[1fr_400px] lg:gap-10">
+        <div className="hidden lg:grid lg:grid-cols-[1fr_400px] lg:gap-10 pt-16">
           <div className="flex flex-col">
             <ExperienceDetailImages images={activity.subImages} />
             <ExperienceDetailDescription description={activity.description} />
@@ -108,7 +108,7 @@ export default function ExperienceDetail({
             <ExperienceDetailReviews activityId={activity.id} />
           </div>
 
-          <div className="flex flex-col h-fit">
+          <div className="flex flex-col top-32 gap-16 h-fit">
             <ExperienceDetailInfo
               title={activity.title}
               category={activity.category}
