@@ -45,7 +45,15 @@ export default function PopularSection() {
         const data = await fetchPopularExperiencesInfinite(offset);
 
         if (data.activities.length > 0) {
-          setActivities((prev) => [...prev, ...data.activities]);
+          setActivities((prev) => {
+            const combined = [...prev, ...data.activities];
+            const unique = combined.filter(
+              (item, index, self) =>
+                index === self.findIndex((t) => t.id === item.id),
+            );
+            return unique;
+          });
+
           setOffset(data.nextOffset ?? offset + 8);
           setHasMore(!!data.nextOffset);
         } else {
