@@ -3,7 +3,7 @@
 export default function ExperienceDetailDescription() {
   return (
     <section>
-      <div className="py-5 md:py-8 border-b border-gray-100">
+      <div className="py-5 md:py-8 lg:py-10 border-b border-gray-100">
         <h2 className="typo-16-b md:text-lg text-gray-950 mb-2 md:mb-3">
           체험 설명
         </h2>

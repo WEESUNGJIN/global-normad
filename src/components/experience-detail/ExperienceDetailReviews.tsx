@@ -47,7 +47,7 @@ export default function ExperienceDetailReviews() {
 
   return (
     <section>
-      <div className="pt-5 flex gap-2 items-center">
+      <div className="pt-5 md:pt-8 lg:pt-10 flex gap-2 items-center">
         <h2 className="typo-16-b md:text-lg text-gray-950">체험 후기</h2>
         <p className="typo-14-sb md:text-base text-gray-700">1,300개</p>
       </div>

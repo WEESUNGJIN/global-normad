@@ -3,7 +3,7 @@
 export default function ExperienceDetailMap() {
   return (
     <section>
-      <div className="py-5 md:py-8 border-b border-gray-100">
+      <div className="py-5 md:py-8 lg:py-10 border-b border-gray-100">
         <h2 className="typo-16-b md:text-lg text-gray-950 mb-2">오시는 길</h2>
         <p className="typo-14-sb md:text-base text-gray-700 mb-2 md:mb-3">
           서울 중구 청계천로 100 10F (스트릿댄스 스튜디오)

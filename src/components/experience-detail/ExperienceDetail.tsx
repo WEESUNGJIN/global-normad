@@ -2,11 +2,12 @@
 
 import GNB from "@/components/GNB";
 import Footer from "@/components/Footer";
-import ExperienceDetailHeader from "./ExperienceDetailHeader";
-import ExperienceDetailDescription from "./ExperienceDetailDescription";
-import ExperienceDetailMap from "./ExperienceDetailMap";
-import ExperienceDetailReviews from "./ExperienceDetailReviews";
-import ReservationCard from "./ReservationCard";
+import ExperienceDetailImages from "@/components/experience-detail/ExperienceDetailImages";
+import ExperienceDetailInfo from "@/components/experience-detail/ExperienceDetailInfo";
+import ExperienceDetailDescription from "@/components/experience-detail/ExperienceDetailDescription";
+import ExperienceDetailMap from "@/components/experience-detail/ExperienceDetailMap";
+import ExperienceDetailReviews from "@/components/experience-detail/ExperienceDetailReviews";
+import ReservationCard from "@/components/experience-detail/ReservationCard";
 
 export default function ExperienceDetail() {
   return (
@@ -14,33 +15,34 @@ export default function ExperienceDetail() {
       <GNB />
 
       <div className="relative px-6 md:px-8 lg:px-80 pb-[120px] lg:pb-44">
-        <div className="lg:grid lg:grid-cols-[1fr_400px] lg:gap-12">
+        {/* 모바일 및 태블릿 레이아웃 */}
+        <div className="lg:hidden flex flex-col gap-10">
+          <ExperienceDetailImages />
+          <ExperienceDetailInfo />
+          <ExperienceDetailDescription />
+          <ExperienceDetailMap />
+          <ExperienceDetailReviews />
+        </div>
+
+        {/* 데스크탑 레이아웃 */}
+        <div className="hidden lg:grid lg:grid-cols-[1fr_400px] lg:gap-10">
           {/* 왼쪽 컬럼 */}
-          <div>
-            {/* 헤더 (이미지 + 기본 정보) */}
-            <ExperienceDetailHeader />
-
-            {/* 체험 설명 */}
+          <div className="flex flex-col">
+            <ExperienceDetailImages />
             <ExperienceDetailDescription />
-
-            {/* 오시는 길 (지도) */}
             <ExperienceDetailMap />
-
-            {/* 후기 리스트 */}
             <ExperienceDetailReviews />
           </div>
 
-          {/* 오른쪽 공간은 비워둠 (absolute 카드용) */}
-          <div className="hidden lg:block" />
-        </div>
-
-        {/* 오른쪽 예약 카드 */}
-        <div className="hidden lg:block absolute top-16 right-80">
-          <ReservationCard />
+          {/* 오른쪽 컬럼 */}
+          <div className="flex flex-col lg:sticky lg:top-32 h-fit">
+            <ExperienceDetailInfo />
+            <ReservationCard />
+          </div>
         </div>
       </div>
 
-      {/* 하단 고정 예약 바 */}
+      {/* 하단 고정 예약바 (모바일 및 태블릿 전용) */}
       <div className="lg:hidden fixed bottom-0 left-0 w-full z-[9999] bg-white border-t border-gray-100 px-6 pt-[22px] pb-[max(env(safe-area-inset-bottom),16px)]">
         <div className="flex items-center justify-between mb-3">
           <p className="typo-18-b text-gray-950">
