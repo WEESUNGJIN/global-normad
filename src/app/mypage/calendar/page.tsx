@@ -88,7 +88,7 @@ export default function CalendarPage() {
         <p className="typo-16-m text-gray-600 mb-[30px]">
           아직 등록한 체험이 없어요
         </p>
-        <Link href="/mypage/experience/register">
+        <Link href="/experience-register">
           <Button
             label="체험 등록하기"
             variant="primary"
