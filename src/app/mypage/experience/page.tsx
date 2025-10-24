@@ -4,10 +4,15 @@ import Image from "next/image";
 import emptyState from "@/assets/img/empty_state.png";
 import ExperienceCard from "./components/ExperienceCard";
 import Modal from "@/components/Modal";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import warning from "@/assets/img/warning_state.png";
+import { ActivitiesResponse } from "@/types/experience";
 // testImg 나중에 인증 권한 해결 후 지울 예정
 import streetdanceImg from "@/assets/img/streetdance_main.png";
 
@@ -23,68 +28,123 @@ export default function ExperiencePage() {
   }>(null);
 
   // --------------------------
-  // mock 데이터 (API 막혀있으니까)
+  // mock 데이터 (10페이지 x 4개)
   // --------------------------
-  const mockData = {
-    activities: [
-      {
-        id: 1,
-        title: "트로피컬 피싱 투어",
-        rating: 4.8,
-        reviewCount: 25,
-        price: 89000,
-        bannerImageUrl: streetdanceImg.src,
-      },
-      {
-        id: 2,
-        title: "스트릿 댄스 클래스",
-        rating: 4.5,
-        reviewCount: 13,
-        price: 65000,
-        bannerImageUrl: streetdanceImg.src,
-      },
-    ],
-  };
-
+  const mockPages: ActivitiesResponse[] = Array.from(
+    { length: 10 },
+    (_, pageIdx) => ({
+      activities: Array.from({ length: 4 }, (_, i) => {
+        const id = pageIdx * 4 + i + 1;
+        return {
+          id,
+          userId: 0,
+          title: `체험 ${id}번 타이틀`,
+          description: `이건 ${id}번 체험의 설명이에요.`,
+          category: "액티비티",
+          price: 50000 + id * 1000,
+          address: `서울시 어딘가 ${id}번지`,
+          bannerImageUrl: streetdanceImg.src,
+          reviewCount: Math.floor(Math.random() * 50),
+          rating: Number((Math.random() * 1.5 + 3.5).toFixed(1)), // number로 변환
+          createdAt: new Date(Date.now() - id * 1000 * 60 * 60).toISOString(),
+          updatedAt: new Date(Date.now() - id * 1000 * 60 * 60).toISOString(),
+        };
+      }),
+      nextCursorId: pageIdx < 9 ? pageIdx + 1 : null,
+      hasNext: pageIdx < 9,
+    }),
+  );
   // --------------------------
-  // React Query (현재는 mock으로 대체)
+  // useInfiniteQuery (현재는 mock으로 대체)
   // --------------------------
   const queryClient = useQueryClient();
 
   const {
-    data = mockData,
+    data,
     isLoading,
     isError,
-  } = useQuery({
+    fetchNextPage, // 다음 페이지 불러오기
+    hasNextPage, // 다음 페이지 존재 여부
+    isFetchingNextPage, // 다음 페이지 로딩 중 상태
+  } = useInfiniteQuery<ActivitiesResponse>({
     queryKey: ["myActivities"],
-    // 나중에 백엔드 API 연결되면 아래 한 줄로 교체
-    // queryFn: getMyActivities,
-    queryFn: async () => mockData, // getMyActivities 대신 mock으로
+    // 나중에 백엔드 API 붙이면 여기에 getMyActivities 호출
+    queryFn: async ({ pageParam = 0 }) => {
+      const index = Number(pageParam);
+      await new Promise((r) => setTimeout(r, 500)); // 로딩 시뮬레이션
+      return (
+        mockPages[index] ?? {
+          activities: [],
+          nextCursorId: null,
+          hasNext: false,
+        }
+      );
+    },
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.hasNext ? pages.length : undefined,
+    initialPageParam: 0,
   });
 
-  const activities = data.activities || [];
+  // 모든 페이지 병합 후 최신순 정렬
+  const activities = (data?.pages ?? [])
+    .flatMap((page) => page.activities)
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+  // --------------------------
+  // IntersectionObserver로 무한스크롤 감지
+  // --------------------------
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const container = document.getElementById("scroll-container");
+    if (!container || !loadMoreRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (
+          entry.isIntersecting &&
+          hasNextPage && // 다음 페이지 존재할 때만
+          !isFetchingNextPage && // 이미 불러오는 중이 아닐 때만
+          activities.length > 0 // 빈 페이지일 땐 무시
+        ) {
+          fetchNextPage(); // 다음 페이지 요청
+        }
+      },
+      {
+        root: container,
+        threshold: 0, // 더 일찍 감지하도록 0으로 설정
+        rootMargin: "100px",
+      },
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, activities.length]);
 
   // --------------------------
   // 삭제 Mutation (mock 기반)
   // --------------------------
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      // 나중엔 여기가 실제 API 호출로 교체됨
-      // await deleteActivity(id); // <= 서버 요청
-      // mock이라 바로 반환
-      return id;
-    },
+    mutationFn: async (id: number) => id,
     onSuccess: (id) => {
-      // 1️⃣ 먼저 캐시 즉시 수정 (UI 반영 빠르게)
-      queryClient.setQueryData(["myActivities"], (oldData: typeof mockData) => {
+      queryClient.setQueryData<{
+        pages: ActivitiesResponse[];
+        pageParams: unknown[];
+      }>(["myActivities"], (oldData) => {
         if (!oldData) return oldData;
+
         return {
           ...oldData,
-          activities: oldData.activities.filter((a) => a.id !== id),
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            activities: page.activities.filter((a) => a.id !== id),
+          })),
         };
       });
-      // 2️⃣ 그 다음에 서버 데이터 다시 불러오도록 invalidation
-      //queryClient.invalidateQueries({ queryKey: ["myActivities"] });
 
       setDeleteModalOpen(false);
       setSelectedActivity(null);
@@ -149,18 +209,32 @@ export default function ExperiencePage() {
   // --------------------------
   return (
     <section className="lg:w-[640px]">
-      {activities.map((act) => (
-        <ExperienceCard
-          key={act.id}
-          title={act.title}
-          rating={act.rating}
-          reviewCount={act.reviewCount}
-          price={Number(act.price)}
-          imageUrl={act.bannerImageUrl}
-          onEdit={() => handleEditClick(act.id)}
-          onDelete={() => handleDeleteClick(act)}
-        />
-      ))}
+      <div
+        className="overflow-y-auto border-none rounded-xl custom-scrollbar p-3 sm:p-4"
+        style={{
+          height: "80vh", // 리스트 영역 고정 높이
+        }}
+        id="scroll-container"
+      >
+        {activities.map((act) => (
+          <ExperienceCard
+            key={act.id}
+            title={act.title}
+            rating={act.rating}
+            reviewCount={act.reviewCount}
+            price={Number(act.price)}
+            imageUrl={act.bannerImageUrl}
+            onEdit={() => handleEditClick(act.id)}
+            onDelete={() => handleDeleteClick(act)}
+          />
+        ))}
+
+        {/* 무한스크롤 트리거 */}
+        {isFetchingNextPage && (
+          <p className="text-center py-4 text-gray-500">로딩 중...</p>
+        )}
+        <div ref={loadMoreRef} className="h-32" />
+      </div>
 
       {/* 삭제 모달 */}
       <Modal
