@@ -16,3 +16,5 @@ export default function ProfilePage() {
     </section>
   );
 }
+
+//TODO: 새로고침 로그인 유지
