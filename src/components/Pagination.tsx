@@ -26,7 +26,7 @@ export default function Pagination({
   return (
     <div
       className={clsx(
-        "w-full flex items-center justify-center gap-2 bg-white",
+        "w-full flex items-center justify-center gap-2",
         className,
       )}
     >
