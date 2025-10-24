@@ -59,3 +59,31 @@ export const fetchPopularExperiences = async (): Promise<Experience[]> => {
     throw error;
   }
 };
+
+export const fetchCategoryActivities = async (
+  category?: string,
+  sort?: "price_asc" | "price_desc" | "latest",
+): Promise<Experience[]> => {
+  try {
+    const teamId = process.env.NEXT_PUBLIC_TEAM_ID;
+    if (!teamId)
+      throw new Error("NEXT_PUBLIC_TEAM_ID가 설정되어 있지 않습니다.");
+
+    // 쿼리스트링
+    const query = new URLSearchParams({
+      method: "offset",
+      ...(category ? { category } : {}),
+      ...(sort ? { sort } : {}),
+    });
+
+    const response = await api.get<{ activities: Experience[] }>(
+      `${teamId}/activities?${query.toString()}`,
+    );
+
+    console.log("카테고리별 체험 불러오기 성공:", response.activities);
+    return response.activities;
+  } catch (error) {
+    console.error("카테고리별 체험 불러오기 실패:", error);
+    throw error;
+  }
+};

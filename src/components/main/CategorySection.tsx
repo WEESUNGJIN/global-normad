@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image, { type StaticImageData } from "next/image";
 import Card from "@/components/Card";
 import Dropdown from "@/components/Dropdown";
 import Pagination from "@/components/Pagination";
-import { activities } from "@/components/experience-detail/mock/activities";
+import { fetchCategoryActivities } from "@/api/experience";
+import type { Experience } from "@/api/experience";
 
 import iconCulture from "@/assets/icon/icon_art.svg";
 import iconCultureWhite from "@/assets/icon/white/icon_art_white.svg";
@@ -76,6 +77,7 @@ export default function CategorySection({
   onSelectPriceSort,
 }: CategorySectionProps) {
   const router = useRouter();
+  const [activities, setActivities] = useState<Experience[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -102,19 +104,40 @@ export default function CategorySection({
       ? (activities ?? [])
       : (activities ?? []).filter((act) => act.category === selected?.name);
 
-  const sortedActivities = [...(filteredActivities ?? [])].sort((a, b) => {
-    if (priceSortOrder === "asc") return a.price - b.price;
-    if (priceSortOrder === "desc") return b.price - a.price;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // 기본값은 최신순
-  });
+  const sortedActivities = filteredActivities ?? [];
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedActivities = sortedActivities.slice(
     startIndex,
     startIndex + itemsPerPage,
   );
-
   const totalPages = Math.ceil(sortedActivities.length / itemsPerPage);
+
+  useEffect(() => {
+    const loadActivities = async () => {
+      try {
+        const sortKey =
+          priceSortOrder === "asc"
+            ? "price_asc"
+            : priceSortOrder === "desc"
+              ? "price_desc"
+              : "latest";
+
+        const categoryName =
+          selectedCategory === null
+            ? undefined
+            : categories.find((c) => c.id === selectedCategory)?.name;
+
+        const data = await fetchCategoryActivities(categoryName, sortKey);
+        setActivities(data);
+      } catch (error) {
+        console.error("체험 데이터 로드 실패:", error);
+        setActivities([]);
+      }
+    };
+
+    loadActivities();
+  }, [selectedCategory, priceSortOrder]);
 
   return (
     <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
