@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
@@ -23,10 +24,17 @@ dist-ssr
 *.sln
 *.sw?
 
+# Storybook
 *storybook.log
 storybook-static
 
-# next.js
+# Next.js build
 /.next/
 /out/
 
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test

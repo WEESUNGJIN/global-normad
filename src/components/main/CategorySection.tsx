@@ -1,21 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image, { type StaticImageData } from "next/image";
 import Card from "@/components/Card";
 import Dropdown from "@/components/Dropdown";
 import Pagination from "@/components/Pagination";
-import { activities } from "@/components/experience-detail/mock/activities";
+import { fetchCategoryActivities } from "@/api/experience";
+import type { Experience } from "@/api/experience";
 
 import iconCulture from "@/assets/icon/icon_art.svg";
 import iconCultureWhite from "@/assets/icon/white/icon_art_white.svg";
 import iconFood from "@/assets/icon/icon_food.svg";
 import iconFoodWhite from "@/assets/icon/white/icon_food_white.svg";
+import iconSport from "@/assets/icon/icon_sport.svg";
+import iconSportWhite from "@/assets/icon/white/icon_sport_white.svg";
 import iconTour from "@/assets/icon/icon_tour.svg";
 import iconTourWhite from "@/assets/icon/white/icon_tour_white.svg";
 import iconTravel from "@/assets/icon/icon_bus.svg";
 import iconTravelWhite from "@/assets/icon/white/icon_bus_white.svg";
+import iconWellbeing from "@/assets/icon/icon_wellbeing.svg";
+import iconWellbeingWhite from "@/assets/icon/white/icon_wellbeing_white.svg";
 
 import emojiPalette from "@/assets/img/emoji_palette.png";
 import emojiPlate from "@/assets/img/emoji_plate.png";
@@ -41,7 +46,7 @@ interface Category {
 const categories: Category[] = [
   {
     id: 1,
-    name: "문화·예술",
+    name: "문화 · 예술",
     icon: iconCulture,
     iconWhite: iconCultureWhite,
     emojiSrc: emojiPalette,
@@ -55,16 +60,30 @@ const categories: Category[] = [
   },
   {
     id: 3,
+    name: "스포츠",
+    icon: iconSport,
+    iconWhite: iconSportWhite,
+    emojiSrc: emojiCity,
+  },
+  {
+    id: 4,
     name: "투어",
     icon: iconTour,
     iconWhite: iconTourWhite,
     emojiSrc: emojiCity,
   },
   {
-    id: 4,
+    id: 5,
     name: "관광",
     icon: iconTravel,
     iconWhite: iconTravelWhite,
+    emojiSrc: emojiCar,
+  },
+  {
+    id: 6,
+    name: "웰빙",
+    icon: iconWellbeing,
+    iconWhite: iconWellbeingWhite,
     emojiSrc: emojiCar,
   },
 ];
@@ -76,6 +95,7 @@ export default function CategorySection({
   onSelectPriceSort,
 }: CategorySectionProps) {
   const router = useRouter();
+  const [activities, setActivities] = useState<Experience[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -102,19 +122,43 @@ export default function CategorySection({
       ? (activities ?? [])
       : (activities ?? []).filter((act) => act.category === selected?.name);
 
-  const sortedActivities = [...(filteredActivities ?? [])].sort((a, b) => {
-    if (priceSortOrder === "asc") return a.price - b.price;
-    if (priceSortOrder === "desc") return b.price - a.price;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // 기본값은 최신순
-  });
+  const sortedActivities = filteredActivities ?? [];
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedActivities = sortedActivities.slice(
     startIndex,
     startIndex + itemsPerPage,
   );
-
   const totalPages = Math.ceil(sortedActivities.length / itemsPerPage);
+
+  useEffect(() => {
+    const loadActivities = async () => {
+      try {
+        const sortKey =
+          priceSortOrder === "asc"
+            ? "price_asc"
+            : priceSortOrder === "desc"
+              ? "price_desc"
+              : "latest";
+
+        const categoryName =
+          selectedCategory === null
+            ? undefined
+            : categories.find((c) => c.id === selectedCategory)?.name;
+
+        const { activities } = await fetchCategoryActivities(
+          categoryName,
+          sortKey,
+        );
+        setActivities(activities);
+      } catch (error) {
+        console.error("체험 데이터 로드 실패:", error);
+        setActivities([]);
+      }
+    };
+
+    loadActivities();
+  }, [selectedCategory, priceSortOrder]);
 
   return (
     <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
@@ -123,11 +167,11 @@ export default function CategorySection({
           <Image
             src={selected?.emojiSrc ?? emojiRollerskate}
             alt={selected?.name ?? "모든 체험"}
-            width={24}
-            height={24}
-            className="-mt-[6px] md:mr-1 object-contain md:w-8 md:h-8"
+            width={20}
+            height={20}
+            className="-mt-[3px] md:mr-[1px] object-contain md:w-7 md:h-7"
           />
-          <h2 className="typo-18-b md:text-3xl text-text-primary">
+          <h2 className="typo-18-b md:text-2xl text-text-primary">
             {selectedCategory === null ? "모든 체험" : selected?.name}
           </h2>
         </div>
