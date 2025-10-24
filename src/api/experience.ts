@@ -24,18 +24,13 @@ export interface ExperienceResponse {
   activities: Experience[];
 }
 
-const teamId = process.env.NEXT_PUBLIC_TEAM_ID;
-if (!teamId) {
-  throw new Error("NEXT_PUBLIC_TEAM_ID가 설정되어 있지 않습니다.");
-}
-
 /* 체험 검색 */
 export const searchExperiences = async (
   keyword: string,
 ): Promise<Experience[]> => {
   try {
     const response = await api.get<ExperienceResponse>(
-      `${teamId}/activities?method=offset&keyword=${encodeURIComponent(keyword)}`,
+      `/activities?method=offset&keyword=${encodeURIComponent(keyword)}`,
     );
 
     console.log("검색 결과:", response.activities.length);
@@ -46,11 +41,11 @@ export const searchExperiences = async (
   }
 };
 
-/* 인기 체험 */
+/* 인기 체험 (최신순 정렬 후 리뷰 수 기준) */
 export const fetchPopularExperiences = async (): Promise<Experience[]> => {
   try {
     const response = await api.get<ExperienceResponse>(
-      `${teamId}/activities?method=offset`,
+      `/activities?method=offset`,
     );
 
     const sorted = [...response.activities].sort(
@@ -76,7 +71,7 @@ export const fetchPopularExperiencesInfinite = async (
   limit: number = 8,
 ): Promise<{ activities: Experience[]; nextOffset?: number }> => {
   try {
-    const url = `${teamId}/activities?method=offset&offset=${offset}&limit=${limit}`;
+    const url = `/activities?method=offset&offset=${offset}&limit=${limit}`;
     const response = await api.get<ExperienceResponse>(url);
 
     const activities = [...response.activities].sort(
@@ -109,7 +104,7 @@ export const fetchCategoryActivities = async (
       limit: String(limit),
     });
 
-    const url = `${teamId}/activities?${query.toString()}`;
+    const url = `/activities?${query.toString()}`;
     console.log("요청 URL:", url);
 
     const response = await api.get<ExperienceResponse>(url);
