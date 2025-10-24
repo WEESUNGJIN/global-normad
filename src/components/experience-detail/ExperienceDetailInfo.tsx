@@ -7,7 +7,7 @@ import MoreIcon from "@/assets/icon/icon_more.svg";
 
 export default function ExperienceDetailInfo() {
   return (
-    <section className="pt-8 md:pt-10 lg:pt-0 border-b border-gray-100 lg:border-none pb-4 md:pb-6 lg:pb-10">
+    <section className="pt-8 md:pt-10 lg:pt-16 border-b border-gray-100 lg:border-none pb-4 md:pb-6 lg:pb-10">
       <div className="relative">
         <p className="typo-13-m md:text-sm text-gray-700 mb-1 md:mb-2">
           문화 · 예술

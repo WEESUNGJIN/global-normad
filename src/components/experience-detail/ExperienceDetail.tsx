@@ -35,7 +35,7 @@ export default function ExperienceDetail() {
           </div>
 
           {/* 오른쪽 컬럼 */}
-          <div className="flex flex-col lg:sticky lg:top-32 h-fit">
+          <div className="flex flex-col h-fit">
             <ExperienceDetailInfo />
             <ReservationCard />
           </div>
