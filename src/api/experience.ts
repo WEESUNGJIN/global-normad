@@ -60,6 +60,31 @@ export const fetchPopularExperiences = async (): Promise<Experience[]> => {
   }
 };
 
+export const fetchPopularExperiencesInfinite = async (
+  offset: number = 0,
+  limit: number = 8,
+): Promise<{ activities: Experience[]; nextOffset?: number }> => {
+  try {
+    const teamId = process.env.NEXT_PUBLIC_TEAM_ID;
+    if (!teamId)
+      throw new Error("NEXT_PUBLIC_TEAM_ID가 설정되어 있지 않습니다.");
+
+    const url = `${teamId}/activities?method=offset&offset=${offset}&limit=${limit}`;
+
+    const response = await api.get<{ activities: Experience[] }>(url);
+    const activities = [...response.activities].sort(
+      (a, b) => b.reviewCount - a.reviewCount,
+    );
+
+    const nextOffset = activities.length < limit ? undefined : offset + limit;
+
+    return { activities, nextOffset };
+  } catch (error) {
+    console.error("무한 스크롤 인기 체험 불러오기 실패:", error);
+    throw error;
+  }
+};
+
 export const fetchCategoryActivities = async (
   category?: string,
   sort?: "price_asc" | "price_desc" | "latest",

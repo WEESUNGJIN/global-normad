@@ -146,11 +146,11 @@ export default function CategorySection({
           <Image
             src={selected?.emojiSrc ?? emojiRollerskate}
             alt={selected?.name ?? "모든 체험"}
-            width={24}
-            height={24}
-            className="-mt-[6px] md:mr-1 object-contain md:w-8 md:h-8"
+            width={20}
+            height={20}
+            className="-mt-[3px] md:mr-[1px] object-contain md:w-7 md:h-7"
           />
-          <h2 className="typo-18-b md:text-3xl text-text-primary">
+          <h2 className="typo-18-b md:text-2xl text-text-primary">
             {selectedCategory === null ? "모든 체험" : selected?.name}
           </h2>
         </div>
