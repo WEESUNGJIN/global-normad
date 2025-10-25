@@ -99,7 +99,7 @@ export default function ExperienceDetail({
             address={activity.address}
             rating={activity.rating}
             reviewCount={activity.reviewCount}
-            isOwner={true}
+            isOwner={isOwner}
             id={String(activity.id)}
           />
           <ExperienceDetailDescription description={activity.description} />
@@ -141,7 +141,7 @@ export default function ExperienceDetail({
               address={activity.address}
               rating={activity.rating}
               reviewCount={activity.reviewCount}
-              isOwner={true}
+              isOwner={isOwner}
               id={String(activity.id)}
             />
             {!isOwner && <ReservationCard price={activity.price} />}
