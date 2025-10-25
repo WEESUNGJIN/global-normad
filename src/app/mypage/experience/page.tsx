@@ -13,8 +13,8 @@ import {
 } from "@tanstack/react-query";
 import warning from "@/assets/img/warning_state.png";
 import { ActivitiesResponse } from "@/types/experience";
-// testImg 나중에 인증 권한 해결 후 지울 예정
-import streetdanceImg from "@/assets/img/streetdance_main.png";
+import api from "@/utils/api";
+import { deleteActivity } from "@/app/mypage/experience/api/activities";
 
 export default function ExperiencePage() {
   const router = useRouter();
@@ -28,34 +28,7 @@ export default function ExperiencePage() {
   }>(null);
 
   // --------------------------
-  // mock 데이터 (10페이지 x 4개)
-  // --------------------------
-  const mockPages: ActivitiesResponse[] = Array.from(
-    { length: 10 },
-    (_, pageIdx) => ({
-      activities: Array.from({ length: 4 }, (_, i) => {
-        const id = pageIdx * 4 + i + 1;
-        return {
-          id,
-          userId: 0,
-          title: `체험 ${id}번 타이틀`,
-          description: `이건 ${id}번 체험의 설명이에요.`,
-          category: "액티비티",
-          price: 50000 + id * 1000,
-          address: `서울시 어딘가 ${id}번지`,
-          bannerImageUrl: streetdanceImg.src,
-          reviewCount: Math.floor(Math.random() * 50),
-          rating: Number((Math.random() * 1.5 + 3.5).toFixed(1)), // number로 변환
-          createdAt: new Date(Date.now() - id * 1000 * 60 * 60).toISOString(),
-          updatedAt: new Date(Date.now() - id * 1000 * 60 * 60).toISOString(),
-        };
-      }),
-      nextCursorId: pageIdx < 9 ? pageIdx + 1 : null,
-      hasNext: pageIdx < 9,
-    }),
-  );
-  // --------------------------
-  // useInfiniteQuery (현재는 mock으로 대체)
+  // useInfiniteQuery
   // --------------------------
   const queryClient = useQueryClient();
 
@@ -69,20 +42,15 @@ export default function ExperiencePage() {
   } = useInfiniteQuery<ActivitiesResponse>({
     queryKey: ["myActivities"],
     // 나중에 백엔드 API 붙이면 여기에 getMyActivities 호출
-    queryFn: async ({ pageParam = 0 }) => {
-      const index = Number(pageParam);
-      await new Promise((r) => setTimeout(r, 500)); // 로딩 시뮬레이션
-      return (
-        mockPages[index] ?? {
-          activities: [],
-          nextCursorId: null,
-          hasNext: false,
-        }
+    queryFn: async ({ pageParam }) => {
+      const cursorQuery = pageParam ? `?cursorId=${pageParam}` : "";
+      const res = await api.get<ActivitiesResponse>(
+        `/my-activities${cursorQuery}`,
       );
+      return res;
     },
-    getNextPageParam: (lastPage, pages) =>
-      lastPage.hasNext ? pages.length : undefined,
-    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextCursorId ?? undefined,
+    initialPageParam: undefined,
   });
 
   // 모든 페이지 병합 후 최신순 정렬
@@ -117,35 +85,57 @@ export default function ExperiencePage() {
       {
         root: container,
         threshold: 0, // 더 일찍 감지하도록 0으로 설정
-        rootMargin: "100px",
+        rootMargin: "300px",
       },
     );
 
-    observer.observe(loadMoreRef.current);
+    if (hasNextPage) observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, activities.length]);
 
+  type MyActivitiesCache = {
+    pages: ActivitiesResponse[];
+    pageParams: unknown[];
+  };
+  type DeleteContext = { previous?: MyActivitiesCache };
+
   // --------------------------
-  // 삭제 Mutation (mock 기반)
+  // 삭제 Mutation
   // --------------------------
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => id,
-    onSuccess: (id) => {
+    mutationFn: async (id: number) => {
+      return deleteActivity(id); // api 호출
+    },
+    onMutate: async (id: number): Promise<DeleteContext> => {
+      await queryClient.cancelQueries({ queryKey: ["myActivities"] });
+      const previous = queryClient.getQueryData<{
+        pages: ActivitiesResponse[];
+        pageParams: unknown[];
+      }>(["myActivities"]);
       queryClient.setQueryData<{
         pages: ActivitiesResponse[];
         pageParams: unknown[];
       }>(["myActivities"], (oldData) => {
         if (!oldData) return oldData;
-
         return {
           ...oldData,
-          pages: oldData.pages.map((page) => ({
+          pages: oldData.pages.map((page: ActivitiesResponse) => ({
             ...page,
             activities: page.activities.filter((a) => a.id !== id),
           })),
         };
       });
-
+      return { previous };
+    },
+    onError: (_err, _id, context?: DeleteContext) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["myActivities"], context.previous);
+      }
+      alert("삭제 중 오류가 발생했습니다.");
+    },
+    onSuccess: () => {
+      // 서버 기준으로 재동기화
+      queryClient.invalidateQueries({ queryKey: ["myActivities"] });
       setDeleteModalOpen(false);
       setSelectedActivity(null);
     },

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ImageUpload from "./ImageUpload";
 import Image from "next/image";
 import IconDelete from "@/assets/icon/icon_delete_button.svg";
+import { uploadActivityImage } from "@/app/mypage/experience/api/activities";
 
 interface PhotoSectionProps {
   limit?: number; // 업로드 가능한 이미지 개수 제한
@@ -17,20 +18,45 @@ export default function PhotoSection({
   onChange,
 }: PhotoSectionProps) {
   const [images, setImages] = useState<string[]>(value ?? []);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    setImages(value);
+    setImages((prev) => {
+      // 배열 길이나 원소가 완전히 동일하면 업데이트 안 함
+      const isSame =
+        prev.length === value.length && prev.every((v, i) => v === value[i]);
+      return isSame ? prev : value;
+    });
   }, [value]);
 
-  const handleUpload = (newFiles: File[]) => {
+  // 이미지 업로드 함수 추가
+  const uploadImage = async (file: File): Promise<string> => {
+    try {
+      return await uploadActivityImage(file);
+    } catch (error) {
+      console.error("이미지 업로드 실패:", error);
+      throw error;
+    }
+  };
+
+  const handleUpload = async (newFiles: File[]) => {
     if (images.length >= limit) return;
 
-    // 🔹 Blob URL로 변환 (메모리에만 존재)
-    const urls = newFiles.map((f) => URL.createObjectURL(f));
-    const updated = [...images, ...urls].slice(0, limit);
+    setIsUploading(true);
+    try {
+      // 모든 파일을 순차적으로 업로드
+      const uploadPromises = newFiles.map((file) => uploadImage(file));
+      const uploadedUrls = await Promise.all(uploadPromises);
 
-    setImages(updated);
-    onChange?.(updated);
+      const updated = [...images, ...uploadedUrls].slice(0, limit);
+      setImages(updated);
+      onChange?.(updated);
+    } catch (error) {
+      console.error("이미지 업로드 중 오류 발생:", error);
+      alert("이미지 업로드에 실패했습니다.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleRemove = (index: number) => {
@@ -45,7 +71,7 @@ export default function PhotoSection({
         onChange={handleUpload}
         limit={limit}
         count={images.length}
-        disabled={images.length >= limit}
+        disabled={images.length >= limit || isUploading}
       />
 
       {images.map((src, idx) => (
