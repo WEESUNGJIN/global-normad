@@ -11,31 +11,25 @@ interface Props {
 }
 
 export default function Protected({ children }: Props) {
-  const { user } = useAuthStore();
+  const { user, isResoring } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (!isResoring && !user) {
       router.replace("/auth/login");
     }
-  }, [user, router]);
+  }, [user, router, isResoring]);
 
-  if (!user) {
+  if (isResoring) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-          로그인이 필요합니다!
-        </h2>
-        <p className="text-gray-500 mb-8">로그인 후 이용해주세요!</p>
-        <button
-          onClick={() => router.push("/auth/login")}
-          className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition"
-        >
-          로그인 하러가기
-        </button>
+      <div className="flex items-center justify-center min-h-screen text-gray-500">
+        새로고침 중...
       </div>
     );
   }
+
+  if (!user) return null;
+
   return <>{children}</>;
 }
 
