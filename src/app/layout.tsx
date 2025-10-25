@@ -5,7 +5,7 @@ import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import AuthRestore from "@/components/auth-detail/AuthRestore";
 
 export const metadata: Metadata = {
-  title: "Global-Nomad",
+  title: "In My Day",
   description: "Next.js App Router setup",
 };
 
