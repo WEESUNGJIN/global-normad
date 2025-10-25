@@ -181,6 +181,7 @@ export default function CategorySection({
           label="가격"
           options={["높은 순", "낮은 순"]}
           onSelect={handlePriceSortSelect}
+          highlightSelected={true}
         />
       </div>
 

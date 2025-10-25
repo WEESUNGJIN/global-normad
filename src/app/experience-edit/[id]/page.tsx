@@ -8,7 +8,9 @@ import Input from "@/components/Input";
 import Button from "@/components/Button";
 import CategorySelect from "@/app/mypage/experience/components/CategorySelect";
 import AddressInput from "@/app/mypage/experience/components/AddressInput";
-import DateSection from "@/app/mypage/experience/components/DateSection";
+import DateSection, {
+  Slot,
+} from "@/app/mypage/experience/components/DateSection";
 import PhotoSection from "@/app/mypage/experience/components/PhotoSection";
 import {
   CreateActivityRequest,
@@ -25,42 +27,55 @@ export default function ExperienceEditPage() {
   const queryClient = useQueryClient();
   const params = useParams<{ id: string }>();
   const id = Number(params.id);
-  const [form, setForm] = useState<CreateActivityRequest | null>(null);
+  const [form, setForm] = useState<
+    | (CreateActivityRequest & {
+        subImages?: { id: number; imageUrl: string }[];
+      })
+    | null
+  >(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false); // 이탈 모달
-  const [pendingUrl, setPendingUrl] = useState<string | null>(null); // 이동하려던 URL
-  const [isDirty, setIsDirty] = useState(false); // 폼 변경 여부
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
-  // 기존 체험 데이터 불러오기 (지금은 mock, 나중엔 getActivityDetail로 교체)
-  const { data, isLoading } = useQuery({
+  // ✅ 기존 체험 데이터 불러오기
+  const { data, isLoading } = useQuery<
+    CreateActivityRequest & {
+      id: number;
+      subImages?: { id: number; imageUrl: string }[];
+    }
+  >({
     queryKey: ["activityDetail", id],
     queryFn: async () => {
-      const res = await api.get(`/activities/${id}`);
-      return res as CreateActivityRequest & { id: number };
+      const res = await api.get<
+        CreateActivityRequest & {
+          id: number;
+          subImages?: { id: number; imageUrl: string }[];
+        }
+      >(`/activities/${id}`);
+      return res;
     },
     enabled: !Number.isNaN(id),
   });
 
   useEffect(() => {
-    if (!data) return;
-    if (form) return; // 이미 유저가 편집 중이면 덮어쓰지 말자
-
+    if (!data || form) return;
     const t = setTimeout(() => {
-      setForm(data as CreateActivityRequest);
+      setForm({
+        ...data,
+        subImages: data.subImages ?? [], // ✅ subImages 존재 안 하면 빈 배열로 초기화
+      });
     }, 0);
-
     return () => clearTimeout(t);
   }, [data, form]);
 
   const mutation = useMutation({
-    mutationFn: async (payload: UpdateActivityRequest) => {
-      return updateActivity(id, payload);
-    },
+    mutationFn: async (payload: UpdateActivityRequest) =>
+      updateActivity(id, payload),
     onSuccess: (updated) => {
-      // 캐시 즉시 수정
       queryClient.setQueryData<ActivitiesResponse | undefined>(
         ["myActivities"],
-        (oldData: ActivitiesResponse | undefined) => {
+        (oldData) => {
           if (!oldData?.activities) return oldData;
           return {
             ...oldData,
@@ -71,7 +86,6 @@ export default function ExperienceEditPage() {
         },
       );
 
-      // 서버 데이터 다시 불러오기
       queryClient.invalidateQueries({ queryKey: ["myActivities"] });
       queryClient.invalidateQueries({ queryKey: ["activityDetail", id] });
 
@@ -79,18 +93,24 @@ export default function ExperienceEditPage() {
       setIsDirty(false);
     },
   });
-
-  const handleChange = (
-    key: keyof CreateActivityRequest,
-    value: string | number | string[] | CreateActivityRequest["schedules"],
+  const handleChange = <
+    K extends keyof (CreateActivityRequest & {
+      subImages?: { id?: number; imageUrl: string }[];
+    }),
+  >(
+    key: K,
+    value: (CreateActivityRequest & {
+      subImages?: { id?: number; imageUrl: string }[];
+    })[K],
   ) => {
     if (!form) return;
-    setIsDirty(true); // 수정 중 플래그 추가
+    setIsDirty(true);
     setForm((prev) => ({ ...prev!, [key]: value }));
   };
 
   const handleSubmit = () => {
     if (!form) return;
+
     if (
       !form.title ||
       !form.category ||
@@ -103,8 +123,54 @@ export default function ExperienceEditPage() {
       alert("필수 항목을 입력해 주세요.");
       return;
     }
-    setIsDirty(false); // 수정 버튼 클릭 시 이탈로 인식하지 않도록
-    mutation.mutate(form);
+
+    // ✅ 스케줄 로직
+    const originalSchedules = (data?.schedules ?? []) as Slot[];
+
+    const schedulesToAdd = (form.schedules as Slot[])
+      .filter((s) => !s.id)
+      .map((s) => ({
+        date: s.date,
+        startTime: s.startTime.slice(0, 5),
+        endTime: s.endTime.slice(0, 5),
+      }));
+
+    const scheduleIdsToRemove =
+      originalSchedules
+        .filter(
+          (orig) => !(form.schedules as Slot[]).some((s) => s.id === orig.id),
+        )
+        .map((s) => s.id!) ?? [];
+
+    // ✅ 서브 이미지 로직 (id와 imageUrl 둘 다 존재)
+    const originalSubImages = data?.subImages ?? [];
+    const currentSubImages = form.subImages ?? [];
+
+    // 추가된 이미지: id가 없고 imageUrl이 존재하는 경우
+    const subImageUrlsToAdd = currentSubImages
+      .filter((img) => !img.id && img.imageUrl)
+      .map((img) => img.imageUrl);
+
+    // 삭제된 이미지: 원래 있던 id가 현재에는 없는 경우
+    const subImageIdsToRemove = originalSubImages
+      .filter((orig) => !currentSubImages.some((img) => img.id === orig.id))
+      .map((img) => img.id);
+
+    const payload: UpdateActivityRequest = {
+      title: form.title,
+      category: form.category,
+      description: form.description,
+      price: form.price,
+      address: form.address,
+      bannerImageUrl: form.bannerImageUrl,
+      subImageUrlsToAdd,
+      subImageIdsToRemove,
+      schedulesToAdd,
+      scheduleIdsToRemove,
+    };
+
+    console.log("🧾 PATCH payload:", payload);
+    mutation.mutate(payload);
   };
 
   const handleModalConfirm = () => {
@@ -112,7 +178,6 @@ export default function ExperienceEditPage() {
     safePush("/mypage/experience");
   };
 
-  // 커스텀 push
   const safePush = (url: string) => {
     if (isDirty) {
       setPendingUrl(url);
@@ -122,13 +187,12 @@ export default function ExperienceEditPage() {
     }
   };
 
-  // 페이지 이탈 감지
   useEffect(() => {
     if (!isDirty) return;
 
     const handlePopState = (e: PopStateEvent) => {
       e.preventDefault();
-      setPendingUrl("/mypage/experience"); // 명시적으로 뒤로가기 시 이동할 경로 지정
+      setPendingUrl("/mypage/experience");
       setIsLeaveModalOpen(true);
     };
 
@@ -144,7 +208,6 @@ export default function ExperienceEditPage() {
         href.startsWith("tel:")
       )
         return;
-
       e.preventDefault();
       setPendingUrl(href);
       setIsLeaveModalOpen(true);
@@ -160,21 +223,18 @@ export default function ExperienceEditPage() {
     };
   }, [isDirty]);
 
-  //  “예” → 이동하려던 페이지로
   const handleLeaveConfirm = () => {
     setIsLeaveModalOpen(false);
-    const targetUrl = pendingUrl || "/mypage/experience";
-    router.push(targetUrl);
+    router.push(pendingUrl || "/mypage/experience");
   };
 
-  // “아니오” → 현재 페이지 유지
   const handleLeaveCancel = () => {
     setPendingUrl(null);
     setIsLeaveModalOpen(false);
   };
 
   const SAMPLE_OPTIONS = [
-    { label: "문화 예술", value: "문화 예술" },
+    { label: "문화 · 예술", value: "문화 · 예술" },
     { label: "식음료", value: "식음료" },
     { label: "투어", value: "투어" },
     { label: "관광", value: "관광" },
@@ -186,7 +246,7 @@ export default function ExperienceEditPage() {
   return (
     <main className="flex justify-center px-6">
       <div className="w-full max-w-[700px] mt-12">
-        <h3 className="mb-6 typo-18-b">내 체험 등록</h3>
+        <h3 className="mb-6 typo-18-b">내 체험 수정</h3>
 
         {/* 제목 */}
         <div className="mb-6">
@@ -216,10 +276,7 @@ export default function ExperienceEditPage() {
             value={form.description}
             onChange={(e) => handleChange("description", e.target.value)}
             placeholder="체험에 대한 설명을 입력해 주세요"
-            className="w-full rounded-2xl border border-border-default px-4 py-3
-              typo-14-m text-text-primary placeholder:text-text-secondary/60
-              focus:outline-none focus:ring-2 focus:ring-primary
-              h-[140px] md:h-[200px]"
+            className="w-full rounded-2xl border border-border-default px-4 py-3 typo-14-m text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary h-[140px] md:h-[200px]"
           />
         </div>
 
@@ -245,12 +302,12 @@ export default function ExperienceEditPage() {
         {/* 예약 가능한 시간대 */}
         <div className="mb-6">
           <DateSection
-            value={form.schedules}
+            value={form.schedules as Slot[]}
             onChange={(schedules) => handleChange("schedules", schedules)}
           />
         </div>
 
-        {/* 배너 이미지 등록 */}
+        {/* 배너 이미지 */}
         <div className="mb-6">
           <div className="mb-2 typo-16-b text-gray-950">배너 이미지 등록</div>
           <PhotoSection
@@ -260,13 +317,22 @@ export default function ExperienceEditPage() {
           />
         </div>
 
-        {/* 소개 이미지 등록 */}
+        {/* 소개 이미지 (subImages) */}
         <div className="mb-10">
           <div className="mb-2 typo-16-b text-gray-950">소개 이미지 등록</div>
           <PhotoSection
             limit={4}
-            value={form.subImageUrls}
-            onChange={(urls) => handleChange("subImageUrls", urls)}
+            // ✅ PhotoSection은 string[]을 받기 때문에 imageUrl만 추출
+            value={form.subImages?.map((img) => img.imageUrl) ?? []}
+            onChange={(urls) => {
+              const updatedSubImages = urls.map((url) => {
+                const existing = form.subImages?.find(
+                  (img) => img.imageUrl === url,
+                );
+                return existing ?? { id: undefined, imageUrl: url };
+              });
+              handleChange("subImages", updatedSubImages);
+            }}
           />
         </div>
 
@@ -292,7 +358,7 @@ export default function ExperienceEditPage() {
           <p>수정이 완료되었습니다.</p>
         </Modal>
 
-        {/* 이탈 확인 모달 추가 */}
+        {/* 이탈 확인 모달 */}
         <Modal
           open={isLeaveModalOpen}
           title=""
