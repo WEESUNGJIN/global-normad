@@ -50,7 +50,7 @@ export default function SideMenu({
       activeIcon: iconUserActive,
     },
     {
-      href: "/bookings",
+      href: "/mypage/bookings",
       label: "예약내역",
       icon: iconList,
       activeIcon: iconListActive,
