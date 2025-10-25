@@ -26,7 +26,9 @@ export default function ExperienceCard({
   return (
     <div className="flex rounded-3xl bg-white shadow-[0_4px_24px_rgba(156,180,202,0.2)] p-6 max-w-2xl mb-6">
       <div className="flex-1 ">
-        <h3 className="typo-16-b md:typo-18-b">{title}</h3>
+        <h3 className="typo-16-b md:typo-18-b leading-snug break-keep line-clamp-2">
+          {title}
+        </h3>
         <div className="flex mt-2 gap-0.5">
           <Image
             src={IconStar}
@@ -48,18 +50,18 @@ export default function ExperienceCard({
           </span>
           <span className="typo-14-m text-[#9F9DA7]  md:typo-16-m"> / 인</span>
         </div>
-        <div className="mt-3">
+        <div className="mt-4 flex gap-2 flex-wrap">
           <Button
             label="수정하기"
             variant="ghost"
             onClick={onEdit}
-            className="typo-14-m mr-2"
+            className="typo-14-m px-5 py-2 rounded-xl border border-gray-200 min-w-[90px] whitespace-nowrap"
           />
           <Button
             label="삭제하기"
             variant="secondary"
             onClick={onDelete}
-            className="typo-14-m"
+            className="typo-14-m px-5 py-2 rounded-xl min-w-[90px] whitespace-nowrap"
           />
         </div>
       </div>
