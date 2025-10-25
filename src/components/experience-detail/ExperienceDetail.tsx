@@ -86,11 +86,13 @@ export default function ExperienceDetail({
         {/* 모바일 및 태블릿 */}
         <div className="lg:hidden flex flex-col">
           <ExperienceDetailImages
-            images={[
-              { id: 0, imageUrl: activity.bannerImageUrl },
-              ...(activity.subImages || []),
-            ]}
+            images={
+              activity.subImages?.length
+                ? activity.subImages
+                : [{ id: 0, imageUrl: activity.bannerImageUrl }]
+            }
           />
+
           <ExperienceDetailInfo
             title={activity.title}
             category={activity.category}
@@ -115,10 +117,11 @@ export default function ExperienceDetail({
         <div className="hidden lg:grid lg:grid-cols-[1fr_400px] lg:gap-10 pt-16">
           <div className="flex flex-col">
             <ExperienceDetailImages
-              images={[
-                { id: 0, imageUrl: activity.bannerImageUrl },
-                ...(activity.subImages || []),
-              ]}
+              images={
+                activity.subImages?.length
+                  ? activity.subImages
+                  : [{ id: 0, imageUrl: activity.bannerImageUrl }]
+              }
             />
             <ExperienceDetailDescription description={activity.description} />
             <ExperienceDetailMap address={activity.address} />
