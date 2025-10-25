@@ -44,7 +44,7 @@ export default function SideMenu({
   className,
   items = [
     {
-      href: "/mypage",
+      href: "/mypage/profile",
       label: "내 정보",
       icon: iconUser,
       activeIcon: iconUserActive,
