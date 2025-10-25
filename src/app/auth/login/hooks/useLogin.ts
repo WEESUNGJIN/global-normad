@@ -9,7 +9,11 @@ export function useLogin() {
   const router = useRouter();
   const { setUser } = useAuthStore();
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (
+    email: string,
+    password: string,
+    onError: (msg: string) => void,
+  ) => {
     try {
       const res = await api.post<{
         user: { id: number; email: string; nickname: string };
@@ -24,8 +28,10 @@ export function useLogin() {
       router.push("/");
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const message = error.response?.data?.message || "로그인 실패";
-        alert(message);
+        const msg =
+          error.response?.data?.message ||
+          "이메일 또는 비밀번호가 올바르지 않습니다.";
+        onError(msg);
       } else {
         alert("알수 없는 오류가 발생했습니다");
       }

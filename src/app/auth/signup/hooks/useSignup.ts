@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import api from "@/utils/api";
-import { useRouter } from "next/navigation";
+
 import { useAuthStore } from "@/app/store/useAuthStore";
 
 interface SignupReqeust {
@@ -12,7 +12,6 @@ interface SignupReqeust {
 }
 
 export function useSignup() {
-  const router = useRouter();
   const { setUser } = useAuthStore(); // zustand 전역 상태 접근
 
   const signup = async (data: SignupReqeust) => {
@@ -27,6 +26,8 @@ export function useSignup() {
     email: string,
     nickname: string,
     password: string,
+    onError: (msg: string) => void,
+    onSuccess: (msg: string) => void,
   ) => {
     try {
       await signup({ email, nickname, password });
@@ -42,18 +43,18 @@ export function useSignup() {
 
       setUser(loginReq.user); //로그인시 전역 상태 업데이트
 
-      router.push("/");
+      onSuccess("회원가입이 완료되었습니다!");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
         const message = error.response?.data?.message as string | undefined;
 
         if (status === 409) {
-          alert(message ?? "이미 가입된 이메일입니다!");
+          onError(message ?? "이미 사용 중인 이메일입니다.");
           return;
         }
 
-        alert(message ?? "회원가입 중 오류가 발생했습니다.");
+        onError(message ?? "회원가입 중 오류가 발생했습니다.");
       }
     }
   };
