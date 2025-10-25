@@ -33,3 +33,21 @@ export const updateActivity = async (
 export const deleteActivity = async (activityId: number): Promise<void> => {
   await api.delete(`/my-activities/${activityId}`);
 };
+
+// 이미지 업로드 API 추가
+export const uploadActivityImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await api.post<{ activityImageUrl: string }>(
+    `/activities/image`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.activityImageUrl;
+};

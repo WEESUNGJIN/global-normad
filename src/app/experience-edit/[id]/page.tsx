@@ -10,39 +10,15 @@ import CategorySelect from "@/app/mypage/experience/components/CategorySelect";
 import AddressInput from "@/app/mypage/experience/components/AddressInput";
 import DateSection from "@/app/mypage/experience/components/DateSection";
 import PhotoSection from "@/app/mypage/experience/components/PhotoSection";
-import { CreateActivityRequest } from "@/types/experience";
-// testImg 나중에 인증 권한 해결 후 지울 예정
-import streetdanceImg from "@/assets/img/streetdance_main.png";
+import {
+  CreateActivityRequest,
+  UpdateActivityRequest,
+  ActivitiesResponse,
+} from "@/types/experience";
 import Image from "next/image";
 import warning from "@/assets/img/warning_state.png";
-
-const mockActivities: (CreateActivityRequest & { id: number })[] = Array.from(
-  { length: 40 },
-  (_, i) => ({
-    id: i + 1,
-    title: `체험 ${i + 1}번 타이틀`,
-    category: "액티비티",
-    description: `이건 ${i + 1}번 체험의 설명이에요.`,
-    address: `서울시 어딘가 ${i + 1}번지`,
-    price: 50000 + (i + 1) * 1000,
-    bannerImageUrl: streetdanceImg.src as string,
-    subImageUrls: [],
-    schedules: [
-      {
-        date: "2025-10-25",
-        startTime: "09:00",
-        endTime: "12:00",
-      },
-    ],
-  }),
-);
-
-interface MyActivitiesResponse {
-  activities: {
-    id: number;
-    [key: string]: unknown;
-  }[];
-}
+import api from "@/utils/api";
+import { updateActivity } from "@/app/mypage/experience/api/activities";
 
 export default function ExperienceEditPage() {
   const router = useRouter();
@@ -59,11 +35,10 @@ export default function ExperienceEditPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["activityDetail", id],
     queryFn: async () => {
-      const target = mockActivities.find((a) => a.id === Number(id));
-      return target!;
-      // 나중엔 아래처럼 교체하면 됨:
-      // return getActivityDetail(Number(id));
+      const res = await api.get(`/activities/${id}`);
+      return res as CreateActivityRequest & { id: number };
     },
+    enabled: !Number.isNaN(id),
   });
 
   useEffect(() => {
@@ -78,19 +53,15 @@ export default function ExperienceEditPage() {
   }, [data, form]);
 
   const mutation = useMutation({
-    mutationFn: async (payload: CreateActivityRequest) => {
-      // 나중엔 아래로 교체
-      // return updateActivity(Number(id), payload);
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      console.log("mock update", payload);
-      return { ...payload, id: Number(id) };
+    mutationFn: async (payload: UpdateActivityRequest) => {
+      return updateActivity(id, payload);
     },
     onSuccess: (updated) => {
       // 캐시 즉시 수정
-      queryClient.setQueryData<MyActivitiesResponse | undefined>(
+      queryClient.setQueryData<ActivitiesResponse | undefined>(
         ["myActivities"],
-        (oldData) => {
-          if (!oldData) return oldData;
+        (oldData: ActivitiesResponse | undefined) => {
+          if (!oldData?.activities) return oldData;
           return {
             ...oldData,
             activities: oldData.activities.map((a) =>
@@ -99,6 +70,7 @@ export default function ExperienceEditPage() {
           };
         },
       );
+
       // 서버 데이터 다시 불러오기
       queryClient.invalidateQueries({ queryKey: ["myActivities"] });
       queryClient.invalidateQueries({ queryKey: ["activityDetail", id] });
