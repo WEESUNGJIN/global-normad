@@ -6,6 +6,8 @@ import Link from "next/link";
 import LoginForm from "./components/LoginForm";
 import { redirectToKakaoAuth } from "@/utils/kakaoAuth";
 import logoGnb from "@/assets/img/logo_gnb.svg";
+import kakaoicon from "@/assets/icon/kakaoicon.svg";
+import Button from "@/components/Button";
 
 export default function LoginPage() {
   return (
@@ -33,12 +35,18 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-8">
-          <button
+          <Button
+            type="button"
             onClick={() => redirectToKakaoAuth("login")}
-            className="w-full border rounded-xl p-3 sm:p-4 text-sm sm:text-base"
-          >
-            카카오 로그인
-          </button>
+            label={
+              <div className="flex items-center justify-center gap-2">
+                <Image src={kakaoicon} alt="kakao" width={20} height={20} />
+                <span className="text-black">카카오 로그인</span>
+              </div>
+            }
+            fullWidth
+            className="!bg-[#FEE500] hover:!bg-[#E5C100] text-sm sm:text-base p-6"
+          />
         </div>
 
         <div className="mt-6 sm:mt-8 text-center">
