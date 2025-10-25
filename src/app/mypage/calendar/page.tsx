@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/Button";
 import emptyState from "@/assets/img/empty_state.png";
+import DownArrow from "@/assets/icon/icon_alt arrow_down.svg";
 import api from "@/utils/api";
 
 // ✅ 패널 포함된 캘린더 컴포넌트로 교체
@@ -110,27 +111,40 @@ useEffect(() => {
   }
 
   /** ✅ UI 렌더링 */
-  return (
+    return (
     <div className="space-y-6">
-      {/* 체험 선택 */}
-      <select
-        className="w-full rounded-2xl border border-border-default px-4 py-3 typo-14-m text-text-primary"
-        value={selectedActivity ?? ""}
-        onChange={(e) => setSelectedActivity(Number(e.target.value))}
-      >
-        {activities.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.title}
-          </option>
-        ))}
-      </select>
+      {/* 체험이 있을 때만 드롭다운 표시 */}
+      {activities.length > 0 && (
+        <div className="relative w-full">
+          <select
+            value={selectedActivity ?? ""}
+            onChange={(e) => setSelectedActivity(Number(e.target.value))}
+            className={`appearance-none w-full justify-between items-center p-4 gap-3 box-border
+              bg-white border border-gray-100 shadow-[0_2px_6px_rgba(0,0,0,0.02)] rounded-2xl
+              typo-14-m text-gray-950`}
+          >
+            {activities.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.title}
+              </option>
+            ))}
+          </select>
+
+          {/* 드롭다운 화살표 아이콘 */}
+          <Image
+            src={DownArrow}
+            alt="아래화살표"
+            width={24}
+            height={24}
+            className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+          />
+        </div>
+      )}
 
       {/* ✅ CalendarBoardWithPanel 사용 */}
       {selectedActivity && (
         <CalendarBoardWithPanel
-          // 캘린더에서 사용할 예약 데이터
           data={dashboard}
-          // 달 바뀔 때 API 다시 호출용
           onMonthChange={(date) => setActiveDate(date)}
         />
       )}
