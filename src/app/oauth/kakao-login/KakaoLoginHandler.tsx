@@ -2,23 +2,25 @@
 
 "use client";
 
-import { useEffect } from "react";
+import React, { Usable, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/utils/api";
 import { useAuthStore } from "@/app/store/useAuthStore";
 
 interface KakaoLoginHandlerProps {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Usable<Record<string, string | string[] | undefined>>;
 }
 
 export default function KakaoLoginHandler({
   searchParams,
-}: KakaoLoginHandlerProps) {
+}: KakaoLoginHandlerProps): React.ReactElement {
+  const params = use(searchParams);
+  const code = params.code as string | undefined;
+
   const router = useRouter();
   const { setUser } = useAuthStore();
 
   useEffect(() => {
-    const code = searchParams.code as string | undefined;
     if (!code) return;
 
     const handleKakaoLogin = async () => {
