@@ -8,7 +8,7 @@ import Modal from "@/components/Modal";
 import PasswordInput from "@/app/mypage/profile/components/PasswordInput";
 
 import { useSignup } from "../hooks/useSignup";
-import { isValidEmail, isValidSignup } from "../utils/validation";
+import { isValidEmail } from "../utils/validation";
 import { redirectToKakaoAuth } from "@/utils/kakaoAuth";
 import { useRouter } from "next/navigation";
 

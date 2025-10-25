@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import api from "@/utils/api";
-import { useRouter } from "next/navigation";
+
 import { useAuthStore } from "@/app/store/useAuthStore";
 
 interface SignupReqeust {
@@ -12,7 +12,6 @@ interface SignupReqeust {
 }
 
 export function useSignup() {
-  const router = useRouter();
   const { setUser } = useAuthStore(); // zustand 전역 상태 접근
 
   const signup = async (data: SignupReqeust) => {
