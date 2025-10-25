@@ -6,6 +6,8 @@ import Input from "@/components/Input";
 import Button from "@/components/Button";
 import Modal from "@/components/Modal";
 import PasswordInput from "@/app/mypage/profile/components/PasswordInput";
+import KakaoIcon from "@/assets/icon/kakaoicon.svg";
+import Image from "next/image";
 
 import { useSignup } from "../hooks/useSignup";
 import { isValidEmail } from "../utils/validation";
@@ -87,14 +89,20 @@ export default function SignupForm() {
         </span>
         <div className="flex-grow border-t border-gray-300" />
       </div>
+
       <Button
         type="button"
         onClick={() => redirectToKakaoAuth("signup")}
-        label="카카오 회원가입"
+        label={
+          <div className="flex items-center justify-center gap-2">
+            <Image src={KakaoIcon} alt="kakao" width={20} height={20} />
+            <span className="text-black">카카오 회원가입</span>
+          </div>
+        }
         fullWidth
-        variant="secondary"
-        className="text-sm sm:text-base"
+        className="!bg-[#FEE500] hover:!bg-[#E5C100] text-sm sm:text-base p-6"
       />
+
       <div className="text-center mt-6 sm:mt-8">
         <p className="text-gray-500 text-sm sm:text-base">
           회원이신가요?{" "}
