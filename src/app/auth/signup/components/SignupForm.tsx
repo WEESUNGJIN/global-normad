@@ -4,23 +4,37 @@
 import React, { useState } from "react";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
+import Modal from "@/components/Modal";
+import PasswordInput from "@/app/mypage/profile/components/PasswordInput";
+
 import { useSignup } from "../hooks/useSignup";
-import { isValidEmail, isValidSignup } from "../utils/validation";
+import { isValidEmail } from "../utils/validation";
 import { redirectToKakaoAuth } from "@/utils/kakaoAuth";
+import { useRouter } from "next/navigation";
 
 export default function SignupForm() {
   const [email, setEmail] = useState("");
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [checkPassword, setCheckPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
+  const router = useRouter();
   const { handleSignup } = useSignup();
-  const isValid = isValidSignup(email, nickname, password, checkPassword);
+
+  const isValid =
+    isValidEmail(email) &&
+    nickname.trim().length > 0 &&
+    password === checkPassword &&
+    password.length >= 8 &&
+    /[A-Za-z]/.test(password) &&
+    /\d/.test(password);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValid) return;
-    handleSignup(email, nickname, password);
+    handleSignup(email, nickname, password, setError, setSuccess);
   };
 
   return (
@@ -47,38 +61,15 @@ export default function SignupForm() {
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
         />
-        <Input
-          label="비밀번호"
-          type="password"
-          placeholder="8자 이상 입력해주세요."
-          value={password}
-          onChange={(e) => setPassword(e.target.value.trim())}
-          showPasswordToggle
-          status={
-            password.length > 0 && password.length < 8 ? "error" : "default"
-          }
-          helpText={
-            password.length > 0 && password.length < 8
-              ? "8자 이상 입력해 주세요."
-              : undefined
-          }
+
+        <PasswordInput
+          password={password}
+          checkPassword={checkPassword}
+          setPassword={setPassword}
+          setCheckPassword={setCheckPassword}
+          error={error}
         />
-        <Input
-          label="비밀번호 확인"
-          type="password"
-          placeholder="비밀번호를 한 번 더 입력해주세요."
-          value={checkPassword}
-          onChange={(e) => setCheckPassword(e.target.value)}
-          showPasswordToggle
-          status={
-            checkPassword && checkPassword !== password ? "error" : "default"
-          }
-          helpText={
-            checkPassword && checkPassword !== password
-              ? "비밀번호를 확인해 주세요."
-              : undefined
-          }
-        />
+
         <Button
           type="submit"
           size="lg"
@@ -88,6 +79,7 @@ export default function SignupForm() {
           variant={!isValid ? "secondary" : "primary"}
         />
       </form>
+
       <div className="flex items-center my-6 sm:my-8">
         <div className="flex-grow border-t border-gray-300" />
         <span className="mx-4 text-gray-500 text-sm">
@@ -114,6 +106,38 @@ export default function SignupForm() {
           </a>
         </p>
       </div>
+
+      <Modal
+        open={!!error}
+        title="회원가입 실패"
+        onClose={() => setError("")}
+        onConfirm={() => setError("")}
+        confirmText="확인"
+        showCancel={false}
+      >
+        <p>{error}</p>
+      </Modal>
+
+      <Modal
+        open={!!success}
+        title="회원가입 완료"
+        onClose={() => {
+          setSuccess("");
+          router.push("/");
+        }}
+        onConfirm={() => {
+          setSuccess("");
+          router.push("/");
+        }}
+        confirmText="확인"
+        showCancel={false}
+      >
+        <p>
+          회원가입이 완료되었습니다.
+          <br />
+          환영합니다!
+        </p>
+      </Modal>
     </>
   );
 }
