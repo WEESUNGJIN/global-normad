@@ -103,7 +103,7 @@ export default function ExperienceDetail({
             id={String(activity.id)}
           />
           <ExperienceDetailDescription description={activity.description} />
-          <ExperienceDetailMap address="zzzzzzz" />
+          <ExperienceDetailMap address={activity.address} />
           {activity && (
             <ExperienceDetailReviews
               activityId={activity.id}
