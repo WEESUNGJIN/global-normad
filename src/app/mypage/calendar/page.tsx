@@ -34,22 +34,32 @@ export default function CalendarPage() {
   const [activeDate, setActiveDate] = useState<Date>(new Date());
 
   /** ✅ 체험 목록 조회 */
-  useEffect(() => {
-    async function fetchActivities() {
-      try {
-        const res = await api.get<MyActivity[]>("/my-activities");
-        setActivities(res);
-        if (res.length > 0 && !selectedActivity) {
-          setSelectedActivity(res[0].id);
-        }
-      } catch (err) {
-        console.error("체험 리스트 조회 실패:", err);
-      } finally {
-        setLoading(false);
+  type MyActivitiesResponse = {
+  activities: MyActivity[];
+  nextCursorId?: number | null;
+};
+
+useEffect(() => {
+  async function fetchActivities() {
+    try {
+      // ✅ 실제 응답 구조에 맞게 타입 수정
+      const res = await api.get<MyActivitiesResponse>("/my-activities");
+
+      // ✅ 내부의 배열만 꺼내서 상태로 저장
+      setActivities(res.activities);
+
+      if (res.activities.length > 0 && !selectedActivity) {
+        setSelectedActivity(res.activities[0].id);
       }
+    } catch (err) {
+      console.error("체험 리스트 조회 실패:", err);
+    } finally {
+      setLoading(false);
     }
-    fetchActivities();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }
+
+  fetchActivities();
+}, []);
 
   /** ✅ 선택된 체험의 월별 예약 현황 조회 */
   useEffect(() => {
