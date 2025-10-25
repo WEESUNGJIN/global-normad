@@ -6,7 +6,12 @@ import Image from "next/image";
 import MinusIcon from "@/assets/icon/icon_minus.svg";
 import PlusIcon from "@/assets/icon/icon_plus.svg";
 
-export default function ReservationCard() {
+interface ReservationCardProps {
+  price: number;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function ReservationCard({ price }: ReservationCardProps) {
   const [count, setCount] = useState(1);
   const [selectedTime, setSelectedTime] = useState("15:00~16:00");
 
