@@ -27,26 +27,45 @@ export default function ExperienceEditPage() {
   const queryClient = useQueryClient();
   const params = useParams<{ id: string }>();
   const id = Number(params.id);
-  const [form, setForm] = useState<CreateActivityRequest | null>(null);
+  const [form, setForm] = useState<
+    | (CreateActivityRequest & {
+        subImages?: { id: number; imageUrl: string }[];
+      })
+    | null
+  >(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [pendingUrl, setPendingUrl] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
   // ✅ 기존 체험 데이터 불러오기
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<
+    CreateActivityRequest & {
+      id: number;
+      subImages?: { id: number; imageUrl: string }[];
+    }
+  >({
     queryKey: ["activityDetail", id],
-    queryFn: async (): Promise<CreateActivityRequest & { id: number }> => {
-      const res = await api.get(`/activities/${id}`);
-      return res as CreateActivityRequest & { id: number };
+    queryFn: async () => {
+      const res = await api.get<
+        CreateActivityRequest & {
+          id: number;
+          subImages?: { id: number; imageUrl: string }[];
+        }
+      >(`/activities/${id}`);
+      return res;
     },
     enabled: !Number.isNaN(id),
   });
 
   useEffect(() => {
-    if (!data) return;
-    if (form) return; // 이미 편집 중이면 덮어쓰기 금지
-    const t = setTimeout(() => setForm(data), 0);
+    if (!data || form) return;
+    const t = setTimeout(() => {
+      setForm({
+        ...data,
+        subImages: data.subImages ?? [], // ✅ subImages 존재 안 하면 빈 배열로 초기화
+      });
+    }, 0);
     return () => clearTimeout(t);
   }, [data, form]);
 
@@ -74,10 +93,15 @@ export default function ExperienceEditPage() {
       setIsDirty(false);
     },
   });
-
-  const handleChange = (
-    key: keyof CreateActivityRequest,
-    value: string | number | string[] | CreateActivityRequest["schedules"],
+  const handleChange = <
+    K extends keyof (CreateActivityRequest & {
+      subImages?: { id?: number; imageUrl: string }[];
+    }),
+  >(
+    key: K,
+    value: (CreateActivityRequest & {
+      subImages?: { id?: number; imageUrl: string }[];
+    })[K],
   ) => {
     if (!form) return;
     setIsDirty(true);
@@ -100,10 +124,9 @@ export default function ExperienceEditPage() {
       return;
     }
 
-    // ✅ 원본 데이터에서 기존 스케줄 ID 수집
+    // ✅ 스케줄 로직
     const originalSchedules = (data?.schedules ?? []) as Slot[];
 
-    // ✅ 새로 추가된 일정 (id가 없는 경우)
     const schedulesToAdd = (form.schedules as Slot[])
       .filter((s) => !s.id)
       .map((s) => ({
@@ -112,7 +135,6 @@ export default function ExperienceEditPage() {
         endTime: s.endTime.slice(0, 5),
       }));
 
-    // ✅ 삭제된 일정 (원본에 있었지만 현재 form에는 없는 경우)
     const scheduleIdsToRemove =
       originalSchedules
         .filter(
@@ -120,15 +142,19 @@ export default function ExperienceEditPage() {
         )
         .map((s) => s.id!) ?? [];
 
-    // ✅ 이미지 관련도 동일 로직
-    const originalSubImages = data?.subImageUrls ?? [];
-    const subImageUrlsToAdd =
-      form.subImageUrls?.filter((url) => !originalSubImages.includes(url)) ??
-      [];
-    const subImageIdsToRemove =
-      originalSubImages
-        .filter((url) => !form.subImageUrls?.includes(url))
-        .map((_, i) => i) ?? [];
+    // ✅ 서브 이미지 로직 (id와 imageUrl 둘 다 존재)
+    const originalSubImages = data?.subImages ?? [];
+    const currentSubImages = form.subImages ?? [];
+
+    // 추가된 이미지: id가 없고 imageUrl이 존재하는 경우
+    const subImageUrlsToAdd = currentSubImages
+      .filter((img) => !img.id && img.imageUrl)
+      .map((img) => img.imageUrl);
+
+    // 삭제된 이미지: 원래 있던 id가 현재에는 없는 경우
+    const subImageIdsToRemove = originalSubImages
+      .filter((orig) => !currentSubImages.some((img) => img.id === orig.id))
+      .map((img) => img.id);
 
     const payload: UpdateActivityRequest = {
       title: form.title,
@@ -152,7 +178,6 @@ export default function ExperienceEditPage() {
     safePush("/mypage/experience");
   };
 
-  // ✅ 안전 이동 (폼 변경 시 확인)
   const safePush = (url: string) => {
     if (isDirty) {
       setPendingUrl(url);
@@ -162,7 +187,6 @@ export default function ExperienceEditPage() {
     }
   };
 
-  // ✅ 페이지 이탈 감지
   useEffect(() => {
     if (!isDirty) return;
 
@@ -184,7 +208,6 @@ export default function ExperienceEditPage() {
         href.startsWith("tel:")
       )
         return;
-
       e.preventDefault();
       setPendingUrl(href);
       setIsLeaveModalOpen(true);
@@ -253,10 +276,7 @@ export default function ExperienceEditPage() {
             value={form.description}
             onChange={(e) => handleChange("description", e.target.value)}
             placeholder="체험에 대한 설명을 입력해 주세요"
-            className="w-full rounded-2xl border border-border-default px-4 py-3
-              typo-14-m text-text-primary placeholder:text-text-secondary/60
-              focus:outline-none focus:ring-2 focus:ring-primary
-              h-[140px] md:h-[200px]"
+            className="w-full rounded-2xl border border-border-default px-4 py-3 typo-14-m text-text-primary placeholder:text-text-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary h-[140px] md:h-[200px]"
           />
         </div>
 
@@ -287,7 +307,7 @@ export default function ExperienceEditPage() {
           />
         </div>
 
-        {/* 배너 이미지 등록 */}
+        {/* 배너 이미지 */}
         <div className="mb-6">
           <div className="mb-2 typo-16-b text-gray-950">배너 이미지 등록</div>
           <PhotoSection
@@ -297,13 +317,22 @@ export default function ExperienceEditPage() {
           />
         </div>
 
-        {/* 소개 이미지 등록 */}
+        {/* 소개 이미지 (subImages) */}
         <div className="mb-10">
           <div className="mb-2 typo-16-b text-gray-950">소개 이미지 등록</div>
           <PhotoSection
             limit={4}
-            value={form.subImageUrls}
-            onChange={(urls) => handleChange("subImageUrls", urls)}
+            // ✅ PhotoSection은 string[]을 받기 때문에 imageUrl만 추출
+            value={form.subImages?.map((img) => img.imageUrl) ?? []}
+            onChange={(urls) => {
+              const updatedSubImages = urls.map((url) => {
+                const existing = form.subImages?.find(
+                  (img) => img.imageUrl === url,
+                );
+                return existing ?? { id: undefined, imageUrl: url };
+              });
+              handleChange("subImages", updatedSubImages);
+            }}
           />
         </div>
 
