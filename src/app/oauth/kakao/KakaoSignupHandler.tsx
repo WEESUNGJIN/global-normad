@@ -28,6 +28,29 @@ export default function KakaoSignupHandler({
 
         // console.log("redirectUri:", redirectUri); //디버깅용
 
+        const tokenRes = await fetch("https://kauth.kakao.com/oauth/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            grant_type: "authorization_code",
+            client_id: process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY!,
+            redirect_uri: redirectUri,
+            code,
+          }),
+        });
+
+        const tokenData = await tokenRes.json();
+        const kakaoAccessToken = tokenData.access_token;
+
+        const profileRes = await fetch("https://kapi.kakao.com/v2/user/me", {
+          headers: {
+            Authorization: `Bearer ${kakaoAccessToken}`,
+            "Content-Type": "application/x-www-from-urlencoded;charset=utf-8",
+          },
+        });
+        const profileData = await profileRes.json();
+        const nickname = profileData.kakao_account?.profile?.nickname || "유저";
+
         const res = await api.post<{
           user: {
             id: number;
@@ -40,8 +63,9 @@ export default function KakaoSignupHandler({
         }>("/oauth/sign-up/kakao", {
           token: code,
           redirectUri,
-          nickname: "유저",
+          nickname,
         });
+
         localStorage.setItem("accessToken", res.accessToken);
         localStorage.setItem("refreshToken", res.refreshToken);
         setUser(res.user);
