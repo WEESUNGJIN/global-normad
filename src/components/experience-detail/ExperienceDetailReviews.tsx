@@ -59,9 +59,9 @@ export default function ExperienceDetailReviews({
   if (isLoading) return <p>리뷰를 불러오는 중...</p>;
 
   return (
-    <section>
+    <section className="pt-5 md:pt-8">
       {/* 상단 요약 */}
-      <div className="pt-5 flex gap-2 items-center">
+      <div className="flex gap-2 items-center">
         <h2 className="typo-16-b md:text-lg text-gray-950">체험 후기</h2>
         <p className="typo-14-sb md:text-base text-gray-700">
           {(reviewCount ?? 0).toLocaleString()}개

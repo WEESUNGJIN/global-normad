@@ -1,9 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import starIcon from "@/assets/icon/icon_star_on.svg";
 import mapIcon from "@/assets/icon/icon_map.svg";
 import MoreIcon from "@/assets/icon/icon_more.svg";
+
+import Dropdown from "@/components/Dropdown";
 
 interface ExperienceDetailInfoProps {
   title: string;
@@ -12,6 +15,7 @@ interface ExperienceDetailInfoProps {
   rating: number;
   reviewCount: number;
   isOwner: boolean;
+  id: string;
 }
 
 export default function ExperienceDetailInfo({
@@ -21,9 +25,20 @@ export default function ExperienceDetailInfo({
   rating,
   reviewCount,
   isOwner,
+  id,
 }: ExperienceDetailInfoProps) {
+  const router = useRouter();
+
+  const handleOwnerAction = (option: string) => {
+    if (option === "수정하기") {
+      router.push(`/experience-edit/${id}`);
+    } else if (option === "삭제하기") {
+      console.log("삭제 모달 오픈");
+    }
+  };
+
   return (
-    <section className="flex flex-col py-5 lg:py-0 border-b border-gray-100 lg:border-none">
+    <section className="relative flex flex-col py-5 lg:py-0 border-b border-gray-100 lg:border-none">
       {/* 카테고리 + 제목 */}
       <div className="pb-4">
         <p className="typo-13-m md:text-sm text-gray-700 mb-1 md:mb-2">
@@ -59,9 +74,15 @@ export default function ExperienceDetailInfo({
 
       {/* 등록자 표시 */}
       {isOwner && (
-        <button type="button" className="absolute right-0 top-0">
-          <Image src={MoreIcon} alt="더보기" width={28} height={28} />
-        </button>
+        <div className="absolute right-0 top-0">
+          <Dropdown
+            trigger="click"
+            customIcon={MoreIcon}
+            options={["수정하기", "삭제하기"]}
+            onSelect={handleOwnerAction}
+            highlightSelected={false}
+          />
+        </div>
       )}
     </section>
   );

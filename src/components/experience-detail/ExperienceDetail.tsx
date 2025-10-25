@@ -85,14 +85,20 @@ export default function ExperienceDetail({
       <div className="relative px-6 md:px-8 lg:px-80 pb-[120px] lg:pb-44">
         {/* 모바일 및 태블릿 */}
         <div className="lg:hidden flex flex-col">
-          <ExperienceDetailImages images={activity.subImages} />
+          <ExperienceDetailImages
+            images={[
+              { id: 0, imageUrl: activity.bannerImageUrl },
+              ...(activity.subImages || []),
+            ]}
+          />
           <ExperienceDetailInfo
             title={activity.title}
             category={activity.category}
             address={activity.address}
             rating={activity.rating}
             reviewCount={activity.reviewCount}
-            isOwner={isOwner}
+            isOwner={true}
+            id={String(activity.id)}
           />
           <ExperienceDetailDescription description={activity.description} />
           <ExperienceDetailMap address={activity.address} />
@@ -108,7 +114,12 @@ export default function ExperienceDetail({
         {/* 데스크탑 */}
         <div className="hidden lg:grid lg:grid-cols-[1fr_400px] lg:gap-10 pt-16">
           <div className="flex flex-col">
-            <ExperienceDetailImages images={activity.subImages} />
+            <ExperienceDetailImages
+              images={[
+                { id: 0, imageUrl: activity.bannerImageUrl },
+                ...(activity.subImages || []),
+              ]}
+            />
             <ExperienceDetailDescription description={activity.description} />
             <ExperienceDetailMap address={activity.address} />
             {activity && (
@@ -127,7 +138,8 @@ export default function ExperienceDetail({
               address={activity.address}
               rating={activity.rating}
               reviewCount={activity.reviewCount}
-              isOwner={isOwner}
+              isOwner={true}
+              id={String(activity.id)}
             />
             {!isOwner && <ReservationCard price={activity.price} />}
           </div>
