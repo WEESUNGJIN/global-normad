@@ -23,7 +23,7 @@ const isTokenExpired = (token: string) => {
 };
 
 authApi.interceptors.request.use(async (config) => {
-  let accessToken = localStorage.getItem("accesToken");
+  let accessToken = localStorage.getItem("accessToken");
   const refreshToken = localStorage.getItem("refreshToken");
 
   if (accessToken && isTokenExpired(accessToken)) {
@@ -72,7 +72,7 @@ authApi.interceptors.response.use(
 
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return authApi(originalRequest);
-      } catch (error) {
+      } catch {
         useAuthStore.getState().logout();
       }
     }
