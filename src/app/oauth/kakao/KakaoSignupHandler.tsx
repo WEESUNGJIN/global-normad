@@ -2,21 +2,27 @@
 
 "use client";
 
-import { useEffect } from "react";
+import React, { use, useEffect } from "react";
+import type { Usable } from "react";
 import { useRouter } from "next/navigation";
+
 import api from "@/utils/api";
 import { useAuthStore } from "@/app/store/useAuthStore";
 
+interface KakaoSignupHandlerProps {
+  searchParams: Usable<Record<string, string | string[] | undefined>>;
+}
+
 export default function KakaoSignupHandler({
   searchParams,
-}: {
-  searchParams: Record<string, string | string[] | undefined>;
-}) {
+}: KakaoSignupHandlerProps): React.ReactElement {
+  const params = use(searchParams);
+  const code = params.code as string | undefined;
+
   const router = useRouter();
   const { setUser } = useAuthStore();
 
   useEffect(() => {
-    const code = searchParams.code as string | undefined;
     if (!code) return;
 
     const handleKakaoSignup = async () => {
@@ -45,7 +51,7 @@ export default function KakaoSignupHandler({
         const profileRes = await fetch("https://kapi.kakao.com/v2/user/me", {
           headers: {
             Authorization: `Bearer ${kakaoAccessToken}`,
-            "Content-Type": "application/x-www-from-urlencoded;charset=utf-8",
+            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
           },
         });
         const profileData = await profileRes.json();
@@ -79,11 +85,11 @@ export default function KakaoSignupHandler({
     };
 
     handleKakaoSignup();
-  }, [router, searchParams, setUser]);
+  }, [code, router, setUser]);
 
   return (
     <div className="flex h-screen items-center justify-center">
-      <p className="text-gray-600 text-lg">카카오 로그인 중입니다..</p>
+      <p className="text-gray-600 text-lg">카카오 회원가입 중입니다..</p>
     </div>
   );
 }
