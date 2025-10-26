@@ -25,7 +25,8 @@ interface Activity {
   price: number;
   address: string;
   bannerImageUrl: string;
-  subImages: SubImage[];
+  subImages?: SubImage[];
+  subImageUrls?: string[];
   reviewCount: number;
   rating: number;
 }
@@ -45,29 +46,30 @@ export default function ExperienceDetail({
       try {
         console.log("체험 상세 데이터 요청 시작");
 
-        // 타입 명시 (api.ts에서 .data만 반환하므로)
-        const activityRes = (await api.get("activities?method=offset")) as {
-          activities: Activity[];
-          totalCount: number;
-        };
+        const activityRes = (await api.get(
+          `activities/${activityId}`,
+        )) as Activity;
 
-        console.log("API 응답 데이터:", activityRes);
-
-        if (!activityRes || !activityRes.activities) {
-          console.error("activities 데이터가 없습니다:", activityRes);
+        if (!activityRes) {
+          console.error("activity 데이터가 없습니다:", activityRes);
           return;
         }
 
-        const foundActivity = activityRes.activities.find(
-          (a: Activity) => a.id === activityId,
-        );
+        const normalizedActivity: Activity = {
+          ...activityRes,
+          subImages:
+            activityRes.subImages && activityRes.subImages.length > 0
+              ? activityRes.subImages
+              : activityRes.subImageUrls
+                ? activityRes.subImageUrls.map((url, idx) => ({
+                    id: idx,
+                    imageUrl: url,
+                  }))
+                : [],
+        };
 
-        if (foundActivity) {
-          setActivity(foundActivity);
-          console.log("찾은 체험:", foundActivity);
-        } else {
-          console.warn(`id ${activityId} 체험을 찾을 수 없습니다.`);
-        }
+        setActivity(normalizedActivity);
+        console.log("정규화된 체험:", normalizedActivity);
       } catch (err) {
         console.error("체험 상세 조회 실패:", err);
       }
@@ -87,7 +89,7 @@ export default function ExperienceDetail({
         <div className="lg:hidden flex flex-col">
           <ExperienceDetailImages
             images={
-              activity.subImages?.length
+              Array.isArray(activity.subImages) && activity.subImages.length > 0
                 ? activity.subImages
                 : [{ id: 0, imageUrl: activity.bannerImageUrl }]
             }
@@ -118,7 +120,8 @@ export default function ExperienceDetail({
           <div className="flex flex-col">
             <ExperienceDetailImages
               images={
-                activity.subImages?.length
+                Array.isArray(activity.subImages) &&
+                activity.subImages.length > 0
                   ? activity.subImages
                   : [{ id: 0, imageUrl: activity.bannerImageUrl }]
               }
