@@ -7,7 +7,7 @@ import type { Usable } from "react";
 import { useRouter } from "next/navigation";
 
 import api from "@/utils/api";
-import { useAuthStore } from "@/app/store/useAuthStore";
+import { useAuthStore, User } from "@/app/store/useAuthStore";
 
 interface KakaoLoginHandlerProps {
   searchParams: Usable<Record<string, string | string[] | undefined>>;
@@ -46,10 +46,12 @@ export default function KakaoLoginHandler({
           redirectUri,
         });
 
+        const kakaoUser = { ...res.user, provider: "KAKAO" } as User;
+
         localStorage.setItem("accessToken", res.accessToken);
         localStorage.setItem("refreshToken", res.refreshToken);
 
-        setUser(res.user); // 유저 정보 업데이트
+        setUser(kakaoUser); // 유저 정보 업데이트
 
         console.log("카카오 로그인 성공", res.user);
         router.push("/");

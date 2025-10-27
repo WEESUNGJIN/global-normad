@@ -7,6 +7,7 @@ export interface User {
   email: string;
   nickname: string;
   profileImageUrl?: string;
+  provider?: "KAKAO"; //확장성 높음 LOCAL | KAKAO | GOOGLE | APPLE
 }
 
 interface AuthState {
