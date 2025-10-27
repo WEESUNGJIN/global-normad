@@ -5,9 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/Button";
 import emptyState from "@/assets/img/empty_state.png";
+import DownArrow from "@/assets/icon/icon_alt arrow_down.svg";
 import api from "@/utils/api";
-
-// ✅ 패널 포함된 캘린더 컴포넌트로 교체
 import CalendarBoardWithPanel from "@/app/mypage/calendar/components/CalendarBoardWithPanel";
 
 /** 내 체험 요약 타입 */
@@ -33,38 +32,39 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [activeDate, setActiveDate] = useState<Date>(new Date());
 
-  /** ✅ 체험 목록 조회 */
+  /** ✅ 체험 목록 응답 타입 */
   type MyActivitiesResponse = {
-  activities: MyActivity[];
-  nextCursorId?: number | null;
-};
+    activities: MyActivity[];
+    nextCursorId?: number | null;
+  };
 
-useEffect(() => {
-  async function fetchActivities() {
-    try {
-      // ✅ 실제 응답 구조에 맞게 타입 수정
-      const res = await api.get<MyActivitiesResponse>("/my-activities");
+  /** ✅ 체험 목록 조회 (최초 1회만 실행) */
+  useEffect(() => {
+    async function fetchActivities() {
+      try {
+        const res = await api.get<MyActivitiesResponse>("/my-activities");
+        setActivities(res.activities);
 
-      // ✅ 내부의 배열만 꺼내서 상태로 저장
-      setActivities(res.activities);
-
-      if (res.activities.length > 0 && !selectedActivity) {
-        setSelectedActivity(res.activities[0].id);
+        // ✅ 첫 번째 체험을 기본 선택
+        if (res.activities.length > 0 && !selectedActivity) {
+          setSelectedActivity(res.activities[0].id);
+        }
+      } catch (err) {
+        console.error("체험 리스트 조회 실패:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("체험 리스트 조회 실패:", err);
-    } finally {
-      setLoading(false);
     }
-  }
 
-  fetchActivities();
-}, []);
+    fetchActivities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ✅ selectedActivity 넣지 않음 (한 번만 실행하도록)
 
   /** ✅ 선택된 체험의 월별 예약 현황 조회 */
   useEffect(() => {
     async function fetchDashboard() {
       if (!selectedActivity) return;
+
       try {
         const year = activeDate.getFullYear();
         const month = activeDate.getMonth() + 1;
@@ -76,8 +76,9 @@ useEffect(() => {
         console.error("예약 현황 조회 실패:", err);
       }
     }
+
     fetchDashboard();
-  }, [selectedActivity, activeDate]);
+  }, [selectedActivity, activeDate]); // ✅ 정상적인 의존성 배열
 
   /** ✅ 로딩 상태 */
   if (loading) {
@@ -112,25 +113,39 @@ useEffect(() => {
   /** ✅ UI 렌더링 */
   return (
     <div className="space-y-6">
-      {/* 체험 선택 */}
-      <select
-        className="w-full rounded-2xl border border-border-default px-4 py-3 typo-14-m text-text-primary"
-        value={selectedActivity ?? ""}
-        onChange={(e) => setSelectedActivity(Number(e.target.value))}
-      >
-        {activities.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.title}
-          </option>
-        ))}
-      </select>
+      {/* ✅ 체험 드롭다운 */}
+      {activities.length > 0 && (
+        <div className="relative w-full">
+          <select
+            value={selectedActivity ?? ""}
+            onChange={(e) => setSelectedActivity(Number(e.target.value))}
+            className="appearance-none w-full justify-between items-center p-4 gap-3 box-border
+              bg-white border border-gray-100 shadow-[0_2px_6px_rgba(0,0,0,0.02)] rounded-2xl
+              typo-14-m text-gray-950"
+          >
+            {activities.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.title}
+              </option>
+            ))}
+          </select>
 
-      {/* ✅ CalendarBoardWithPanel 사용 */}
+          {/* ✅ 드롭다운 화살표 */}
+          <Image
+            src={DownArrow}
+            alt="아래화살표"
+            width={24}
+            height={24}
+            className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+          />
+        </div>
+      )}
+
+      {/* ✅ 캘린더 + 패널 */}
       {selectedActivity && (
         <CalendarBoardWithPanel
-          // 캘린더에서 사용할 예약 데이터
+          activityId={selectedActivity}
           data={dashboard}
-          // 달 바뀔 때 API 다시 호출용
           onMonthChange={(date) => setActiveDate(date)}
         />
       )}

@@ -25,7 +25,7 @@ export default function ExperienceRegisterPage() {
     description: "",
     address: "",
     price: 0,
-    schedules: [{ date: "", startTime: "", endTime: "" }],
+    schedules: [],
     bannerImageUrl: "",
     subImageUrls: [],
   });
@@ -199,9 +199,14 @@ export default function ExperienceRegisterPage() {
         <div className="mb-6">
           <div className="mb-2 typo-16-b text-gray-950">가격</div>
           <Input
-            value={form.price}
+            value={form.price === 0 ? "" : form.price.toString()}
             placeholder="체험 금액을 입력해 주세요"
-            onChange={(e) => handleChange("price", Number(e.target.value))}
+            onChange={(e) =>
+              handleChange(
+                "price",
+                e.target.value === "" ? 0 : Number(e.target.value),
+              )
+            }
           />
         </div>
 

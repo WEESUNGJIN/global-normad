@@ -29,9 +29,32 @@ const filterOrder: ReservationFilter[] = [
   "completed",
 ];
 
+const PAGE_SIZE = 5;
+
+type PageMeta = {
+  page?: number;
+  totalPages?: number;
+  isLastPage?: boolean;
+  nextCursor?: string | null;
+};
+
+function inferIsLastPage(
+  res: MyReservationsResponse & PageMeta,
+  receivedCount: number,
+  pageSize: number
+): boolean {
+  if (typeof res.isLastPage === "boolean") return res.isLastPage;
+  if ("nextCursor" in res) return (res.nextCursor ?? null) === null;
+  if (typeof res.page === "number" && typeof res.totalPages === "number") {
+    return res.page >= res.totalPages;
+  }
+  return receivedCount < pageSize;
+}
+
 export default function BookingsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [filter, setFilter] = useState<ReservationFilter>("all");
   const [openCardId, setOpenCardId] = useState<number | null>(null);
 
@@ -45,94 +68,139 @@ export default function BookingsPage() {
   const [targetReservation, setTargetReservation] =
     useState<Reservation | null>(null);
 
-  // ✅ 무한 스크롤 상태
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const observerRef = useRef<HTMLDivElement | null>(null);
 
-  const PAGE_SIZE = 5;
+  const seenIdsRef = useRef<Set<number>>(new Set());
 
-  // ✅ 예약 데이터 불러오기 (React 권장 구조)
+  // ✅ 예약 리스트 불러오기
   useEffect(() => {
-    if (!hasMore) return;
+    if (!hasMore) {
+      setLoading(false);
+      return;
+    }
+
+    let aborted = false;
 
     const loadReservations = async () => {
       try {
         setIsFetching(true);
-        const res = await api.get<MyReservationsResponse>(
+
+        const res = await api.get<MyReservationsResponse & PageMeta>(
           `/my-reservations?page=${page}&limit=${PAGE_SIZE}`
         );
 
-        if (res.reservations.length === 0) {
-          setHasMore(false);
-        } else {
-          setReservations((prev) => [...prev, ...res.reservations]);
+        if (aborted) return;
+
+        const incoming = res.reservations ?? [];
+        const uniqueNew = incoming.filter((r) => !seenIdsRef.current.has(r.id));
+        const noNewItems = uniqueNew.length === 0;
+        const isEnd = inferIsLastPage(res, incoming.length, PAGE_SIZE) || noNewItems;
+
+        if (uniqueNew.length > 0) {
+          setReservations((prev) => {
+            const map = new Map<number, Reservation>();
+            prev.forEach((p) => map.set(p.id, p));
+            uniqueNew.forEach((n) => {
+              map.set(n.id, n);
+              seenIdsRef.current.add(n.id);
+            });
+            return Array.from(map.values());
+          });
         }
+
+        if (isEnd) setHasMore(false);
       } catch (err) {
         console.error("예약 리스트 조회 실패:", err);
+        setHasMore(false);
       } finally {
-        setIsFetching(false);
-        setLoading(false);
+        if (!aborted) {
+          setIsFetching(false);
+          setLoading(false);
+        }
       }
     };
 
     loadReservations();
+    return () => {
+      aborted = true;
+    };
   }, [page, hasMore]);
 
-  // ✅ IntersectionObserver (스크롤 감지)
+  // ✅ 무한 스크롤 감시
   useEffect(() => {
     if (!hasMore || isFetching) return;
+    const el = observerRef.current;
+    if (!el) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasMore && !isFetching) {
           setPage((prev) => prev + 1);
         }
       },
       { threshold: 1.0 }
     );
 
-    if (observerRef.current) observer.observe(observerRef.current);
+    observer.observe(el);
     return () => observer.disconnect();
   }, [hasMore, isFetching]);
 
-  // ✅ 필터 적용
+  // ✅ 클라이언트 필터
   const filtered = useMemo(
-    () => reservations.filter((r) => (filter === "all" ? true : r.status === filter)),
+    () =>
+      reservations.filter((r) =>
+        filter === "all" ? true : r.status === filter
+      ),
     [reservations, filter]
   );
 
-  // ✅ 필터 표시 여부
-  const availableFilters = useMemo(() => {
-    if (reservations.length === 0) return [];
-    return filterOrder;
-  }, [reservations]);
-
-  // ✅ 후기 제출
+  // ✅ 후기 작성 (서버 저장)
   const handleSubmitReview = async () => {
     if (!selectedReservation) return;
     try {
-      console.log("후기 등록:", {
-        reservationId: selectedReservation.id,
+      const { id: reservationId } = selectedReservation;
+
+      // 🔥 서버 저장
+      await api.post(`/my-reservations/${reservationId}/reviews`, {
         rating,
         content,
       });
-      // TODO: 후기 등록 API 연동 예정
+
+      // ✅ 로컬 상태 업데이트
+      setReservations((prev) =>
+        prev.map((r) =>
+          r.id === selectedReservation.id ? { ...r, reviewSubmitted: true } : r
+        )
+      );
+
       setOpenReviewModal(false);
       setRating(0);
       setContent("");
-    } catch (err) {
+      alert("후기가 성공적으로 등록되었습니다!");
+    } catch (err: unknown) {
       console.error("후기 등록 실패:", err);
+      const apiError = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+
+      if (apiError.response?.data?.message) {
+        alert(`후기 등록 실패: ${apiError.response.data.message}`);
+      } else {
+        alert("후기 등록 중 오류가 발생했습니다.");
+      }
     }
   };
 
-  // ✅ 예약 취소
+  // ✅ 예약 취소 (로컬 반영)
   const handleCancelReservation = async () => {
     if (!targetReservation) return;
     try {
       console.log("예약 취소 요청:", targetReservation.id);
-      // TODO: 실제 API 연동 예정
       setReservations((prev) =>
         prev.map((r) =>
           r.id === targetReservation.id ? { ...r, status: "canceled" } : r
@@ -145,44 +213,42 @@ export default function BookingsPage() {
     }
   };
 
-  if (loading) {
-    return <p>로딩 중...</p>;
-  }
+  if (loading) return <p>로딩 중...</p>;
 
   const hasReservations = reservations.length > 0;
 
   return hasReservations ? (
     <div className="space-y-6">
       {/* ✅ 필터 */}
-      {availableFilters.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {availableFilters.map((f) => (
-            <button
-              key={f}
-              onClick={() => {
-                setFilter(f);
-                setOpenCardId(null);
-              }}
-              className={`px-4 py-2 rounded-full border ${
-                filter === f
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-gray-700 border-gray-200"
-              }`}
-            >
-              {filterLabel(f)}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="flex flex-wrap gap-2">
+        {filterOrder.map((f) => (
+          <button
+            key={f}
+            onClick={() => {
+              setFilter(f);
+              setOpenCardId(null);
+            }}
+            className={`px-4 py-2 rounded-full border ${
+              filter === f
+                ? "bg-primary text-white border-primary"
+                : "bg-white text-gray-700 border-gray-200"
+            }`}
+          >
+            {filterLabel(f)}
+          </button>
+        ))}
+      </div>
 
-      {/* ✅ 예약 카드 리스트 */}
+      {/* ✅ 예약 카드 */}
       {filtered.map((r) => (
         <div key={r.id}>
           <div
             className={`cursor-pointer transition-all ${
               openCardId === r.id ? "ring-2 ring-primary/30 rounded-2xl" : ""
             }`}
-            onClick={() => setOpenCardId((prev) => (prev === r.id ? null : r.id))}
+            onClick={() =>
+              setOpenCardId((prev) => (prev === r.id ? null : r.id))
+            }
           >
             <ListCard
               thumbnail={r.activity.bannerImageUrl}
@@ -215,8 +281,7 @@ export default function BookingsPage() {
                   />
                 </>
               )}
-
-              {r.status === "completed" && (
+              {r.status === "completed" && !r.reviewSubmitted && (
                 <Button
                   label="후기 작성"
                   variant="primary"
@@ -232,8 +297,15 @@ export default function BookingsPage() {
         </div>
       ))}
 
-      {/* ✅ 무한스크롤 감시용 엘리먼트 */}
-      {hasMore && (
+      {/* ✅ 비어있을 때 */}
+      {filtered.length === 0 && (
+        <div className="rounded-2xl border border-gray-100 bg-white py-10 text-center text-gray-500">
+          해당 조건의 예약이 없습니다.
+        </div>
+      )}
+
+      {/* ✅ 무한스크롤 */}
+      {hasMore && filtered.length > 0 && (
         <div
           ref={observerRef}
           className="h-10 flex justify-center items-center text-gray-400"
@@ -242,7 +314,7 @@ export default function BookingsPage() {
         </div>
       )}
 
-      {/* ✅ 예약 취소 확인 모달 */}
+      {/* ✅ 예약 취소 모달 */}
       <Modal
         open={openCancelModal}
         onClose={() => setOpenCancelModal(false)}
