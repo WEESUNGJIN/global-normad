@@ -39,7 +39,7 @@ export default function ExperienceDetail({
   activityId,
 }: ExperienceDetailProps) {
   const [activity, setActivity] = useState<Activity | null>(null);
-  const [isOwner] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -55,6 +55,11 @@ export default function ExperienceDetail({
           return;
         }
 
+        const storedAuth = localStorage.getItem("auth-storage");
+        const currentUser = storedAuth
+          ? JSON.parse(storedAuth)?.state?.user
+          : null;
+
         const normalizedActivity: Activity = {
           ...activityRes,
           subImages:
@@ -69,6 +74,14 @@ export default function ExperienceDetail({
         };
 
         setActivity(normalizedActivity);
+
+        // 작성자 본인인지 확인
+        if (currentUser && currentUser.id === normalizedActivity.userId) {
+          setIsOwner(true);
+        } else {
+          setIsOwner(false);
+        }
+
         console.log("정규화된 체험:", normalizedActivity);
       } catch (err) {
         console.error("체험 상세 조회 실패:", err);
