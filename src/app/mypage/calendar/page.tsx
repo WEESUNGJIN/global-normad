@@ -144,6 +144,7 @@ useEffect(() => {
       {/* ✅ CalendarBoardWithPanel 사용 */}
       {selectedActivity && (
         <CalendarBoardWithPanel
+          activityId={selectedActivity}
           data={dashboard}
           onMonthChange={(date) => setActiveDate(date)}
         />
