@@ -6,6 +6,7 @@ interface Props {
   setPassword: (v: string) => void;
   setCheckPassword: (v: string) => void;
   error: string;
+  disabled?: boolean;
 }
 
 export default function PasswordInput({
@@ -14,6 +15,7 @@ export default function PasswordInput({
   setPassword,
   setCheckPassword,
   error,
+  disabled = false,
 }: Props) {
   const MIN_LENGTH = 8;
 
@@ -50,9 +52,12 @@ export default function PasswordInput({
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         showPasswordToggle
-        placeholder="8자 이상 입력해주세요."
+        placeholder={
+          disabled ? "카카오 로그인 사용 중입니다." : "8자 이상 입력해주세요."
+        }
         status={passwordStatus}
         helpText={passwordHelpText}
+        disabled={disabled}
         type="password"
       />
       <Input
@@ -60,9 +65,10 @@ export default function PasswordInput({
         value={checkPassword}
         onChange={(e) => setCheckPassword(e.target.value)}
         showPasswordToggle
-        placeholder="비밀번호를 한 번 더 입력해주세요."
+        placeholder={disabled ? "" : "비밀번호를 한 번 더 입력해주세요."}
         status={checkStatus}
         helpText={checkHelpText}
+        disabled={disabled}
         type="password"
       />
     </>

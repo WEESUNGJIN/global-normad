@@ -9,6 +9,8 @@ import SaveButton from "./SaveButton";
 
 export default function ProfileForm() {
   const { user, setUser } = useAuthStore();
+  const isKakaoUser = user?.provider === "KAKAO";
+
   const [nickname, setNickname] = useState(user?.nickname || "");
   const [password, setPassword] = useState("");
   const [checkPassword, setCheckPassword] = useState("");
@@ -62,6 +64,7 @@ export default function ProfileForm() {
         setPassword={setPassword}
         setCheckPassword={setCheckPassword}
         error={error}
+        disabled={isKakaoUser}
       />
       <SaveButton success={success} />
     </form>
