@@ -46,14 +46,52 @@ export default function KakaoLoginHandler({
           redirectUri,
         });
 
-        const kakaoUser = { ...res.user, provider: "KAKAO" } as User;
-
         localStorage.setItem("accessToken", res.accessToken);
         localStorage.setItem("refreshToken", res.refreshToken);
 
+        const tokenRes = await fetch("https://kauth.kakao.com/oauth/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            grant_type: "authorization_code",
+            client_id: process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY!,
+            redirect_uri: redirectUri,
+            code,
+          }),
+        });
+        const tokenData = await tokenRes.json();
+        const kakaoAccessToken = tokenData.access_token;
+
+        let profileImageUrl = res.user.profileImageUrl || null;
+
+        if (kakaoAccessToken) {
+          const talkProfileRes = await fetch(
+            "https://kapi.kakao.com/v1/api/talk/profile",
+            {
+              headers: { Authorization: `Bearer ${kakaoAccessToken}` },
+            },
+          );
+          const talkProfileData = await talkProfileRes.json();
+
+          if (
+            talkProfileData?.profileImageURL ||
+            talkProfileData?.profile_image_url
+          ) {
+            profileImageUrl =
+              talkProfileData.profileImageURL ||
+              talkProfileData?.profile_image_url;
+          }
+        }
+
+        const kakaoUser = {
+          ...res.user,
+          profileImageUrl,
+          provider: "KAKAO",
+        } as User;
+
         setUser(kakaoUser); // 유저 정보 업데이트
 
-        console.log("카카오 로그인 성공", res.user);
+        console.log("카카오 로그인 성공", kakaoUser);
         router.push("/");
       } catch (error) {
         console.error("카카오 로그인 실패", error);
