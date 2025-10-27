@@ -2,8 +2,10 @@
 
 "use client";
 
-import React, { Usable, use, useEffect } from "react";
+import React, { use, useEffect } from "react";
+import type { Usable } from "react";
 import { useRouter } from "next/navigation";
+
 import api from "@/utils/api";
 import { useAuthStore } from "@/app/store/useAuthStore";
 
@@ -59,7 +61,7 @@ export default function KakaoLoginHandler({
     };
 
     handleKakaoLogin();
-  }, [router, searchParams, setUser]);
+  }, [code, router, setUser]);
 
   return (
     <div className="flex h-screen items-center justify-center">
