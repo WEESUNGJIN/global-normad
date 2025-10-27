@@ -104,17 +104,27 @@
 
 /* ===== 오늘 날짜 표시 색상 커스터마이징 ===== */
 .calendar-board .react-calendar__tile--now {
-  background: rgba(0, 133, 255, 0.1) !important; /* 💙 연한 파랑톤 */
-  border: 1px solid rgba(0, 133, 255, 0.25) !important;
-  color: inherit !important; /* 숫자색 유지 */
+  background: #8A66FF !important; /* 💜 primary 500 */
+  border: none !important; /* 획 제거 */
+  color: #ffffff !important; /* 글씨 흰색 */
 }
 
-/* hover/focus 시에도 동일하게 유지 */
+/* hover/focus 시 */
 .calendar-board .react-calendar__tile--now:enabled:hover,
 .calendar-board .react-calendar__tile--now:enabled:focus {
-  background: rgba(0, 133, 255, 0.15) !important;
-  border-color: rgba(0, 133, 255, 0.35) !important;
+  background: #8A66FF !important;
+  border: none !important;
+  color: #ffffff !important;
+}
+
+/* ===== 클릭한 날짜(활성화) 색상 ===== */
+.calendar-board .react-calendar__tile--active,
+.calendar-board .react-calendar__tile--active:enabled:hover,
+.calendar-board .react-calendar__tile--active:enabled:focus {
+  background: #F1E1FF !important; /* 💜 primary 100 */
+  border: 1px solid rgba(138, 102, 255, 0.35) !important; /* 기존 획 유지 */
   color: inherit !important;
+  outline: none !important;
 }
 
 /* ===== 빨간 점(예약 있는 날만 표시) ===== */
