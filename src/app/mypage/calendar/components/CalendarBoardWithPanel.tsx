@@ -16,7 +16,16 @@ import {
 
 import CalendarBoard from "@/app/mypage/calendar/components/calendarBoard/CalendarBoard";
 import iconDelete from "@/assets/icon/icon_delete.svg";
+import DownArrow from "@/assets/icon/icon_alt arrow_down.svg";
+import {
+  getReservedSchedule,
+  getReservationsBySchedule,
+  updateReservationStatus,
+} from "@/app/mypage/calendar/api/reservationApi";
 
+/* ======================================
+   📘 타입 정의
+====================================== */
 export type ReservationSummary = {
   date: string;
   reservations: {
@@ -27,11 +36,20 @@ export type ReservationSummary = {
 };
 
 type Props = {
+  /** ✅ 부모에서 선택된 체험 ID */
+  activityId: number | undefined;
   data: ReservationSummary[];
   onMonthChange?: (date: Date) => void;
 };
 
-export default function CalendarBoardWithPanel({ data, onMonthChange }: Props) {
+/* ======================================
+   📅 CalendarBoardWithPanel
+====================================== */
+export default function CalendarBoardWithPanel({
+  activityId,
+  data,
+  onMonthChange,
+}: Props) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
@@ -53,11 +71,12 @@ export default function CalendarBoardWithPanel({ data, onMonthChange }: Props) {
     useDismiss(context),
   ]);
 
-  // ✅ 날짜 클릭 시 anchor 지정
+  /** ✅ 날짜 클릭 시 패널 열기 */
   const handleDateClick = (date: Date) => {
-    const ymd = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-      date.getDate()
-    ).padStart(2, "0")}`;
+    const ymd = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(date.getDate()).padStart(2, "0")}`;
     setSelectedDate(ymd);
 
     const tiles = document.querySelectorAll(".react-calendar__tile");
@@ -70,7 +89,6 @@ export default function CalendarBoardWithPanel({ data, onMonthChange }: Props) {
     }
   };
 
-  // ✅ 렌더 후 anchorEl이 변경될 때만 ref 연결
   useEffect(() => {
     if (anchorEl) refs.setReference(anchorEl);
   }, [anchorEl, refs]);
@@ -80,22 +98,35 @@ export default function CalendarBoardWithPanel({ data, onMonthChange }: Props) {
     [data, selectedDate]
   );
 
-  // ✅ 안전하게 style 전달 (렌더 시점에서 ref 접근 X)
-  const safeFloatingStyles = useMemo(() => ({ ...floatingStyles }), [floatingStyles]);
+  const safeFloatingStyles = useMemo(
+    () => ({ ...floatingStyles }),
+    [floatingStyles]
+  );
 
   return (
     <div className="relative w-full flex flex-col items-center">
-      <CalendarBoard data={data} onMonthChange={onMonthChange} onDateClick={handleDateClick} />
+      <CalendarBoard
+        data={data}
+        onMonthChange={onMonthChange}
+        onDateClick={handleDateClick}
+      />
 
-      {selectedDate && selectedData && anchorEl && (
+      {!activityId && selectedDate && (
+        <p className="mt-3 text-sm text-rose-500">
+          활동 ID가 설정되지 않았습니다. 상위 컴포넌트에서 activityId를 전달해주세요.
+        </p>
+      )}
+
+      {selectedDate && selectedData && anchorEl && activityId && (
         <FloatingPortal>
           <div
             {...getFloatingProps()}
-            ref={(el) => refs.setFloating(el)} // ✅ 콜백 ref로 교체
+            ref={(el) => refs.setFloating(el)}
             style={safeFloatingStyles}
             className="z-50"
           >
             <ReservationPanel
+              activityId={activityId}
               date={selectedDate}
               data={selectedData}
               onClose={() => {
@@ -111,8 +142,8 @@ export default function CalendarBoardWithPanel({ data, onMonthChange }: Props) {
 }
 
 /* ======================================
-   ✅ ReservationPanel 그대로 유지
-   ====================================== */
+   🪄 ReservationPanel
+====================================== */
 type PanelTab = "pending" | "confirmed" | "declined";
 
 type ReservationItem = {
@@ -123,46 +154,127 @@ type ReservationItem = {
 };
 
 function ReservationPanel({
+  activityId,
   date,
   data,
   onClose,
 }: {
+  activityId: number;
   date: string;
-  data: { date: string; reservations: { pending: number; confirmed: number; completed: number } };
+  data: {
+    date: string;
+    reservations: { pending: number; confirmed: number; completed: number };
+  };
   onClose: () => void;
 }) {
   const [tab, setTab] = useState<PanelTab>("pending");
+  const [scheduleList, setScheduleList] = useState<
+    { scheduleId: number; startTime: string; endTime: string }[]
+  >([]);
+  const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(
+    null
+  );
+  const [list, setList] = useState<ReservationItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false); // ✅ 로딩 상태 추가
 
-  const list: ReservationItem[] = useMemo(() => {
-    if (tab === "pending") {
-      return [
-        { id: 1, nickname: "정만철", people: 10, status: "pending" },
-        { id: 2, nickname: "정만철", people: 12, status: "pending" },
-      ];
-    }
-    if (tab === "confirmed") {
-      return [{ id: 3, nickname: "정만철", people: 10, status: "confirmed" }];
-    }
-    return [{ id: 4, nickname: "정만철", people: 12, status: "declined" }];
-  }, [tab]);
+  /* ✅ 날짜별 예약 스케줄 조회 */
+  useEffect(() => {
+    if (!activityId || !date) return;
 
+    const formattedDate = date.includes(".")
+      ? date.split(".").join("-")
+      : date;
+
+    const fetchSchedules = async () => {
+      try {
+        const res = await getReservedSchedule(activityId, formattedDate);
+        setScheduleList(res);
+        setSelectedScheduleId(res.length > 0 ? res[0].scheduleId : null);
+      } catch (err) {
+        console.error("❌ 예약 스케줄 조회 실패:", err);
+        setScheduleList([]);
+      }
+    };
+    fetchSchedules();
+  }, [activityId, date]);
+
+  /* ✅ 선택된 스케줄 & 탭별 예약 내역 조회 */
+  useEffect(() => {
+    if (!activityId || !selectedScheduleId) return;
+
+    const fetchReservations = async () => {
+      setIsLoading(true); // 로딩 시작
+      try {
+        const res = await getReservationsBySchedule(
+          activityId,
+          selectedScheduleId,
+          tab
+        );
+        setList(
+          res.reservations.map(
+            (r: {
+              id: number;
+              nickname: string;
+              headCount: number;
+              status: string;
+            }) => ({
+              id: r.id,
+              nickname: r.nickname,
+              people: r.headCount,
+              status: r.status as PanelTab,
+            })
+          )
+        );
+      } catch (err) {
+        console.error("❌ 예약 내역 조회 실패:", err);
+        setList([]);
+      } finally {
+        setIsLoading(false); // 로딩 종료
+      }
+    };
+    fetchReservations();
+  }, [activityId, selectedScheduleId, tab, date]);
+
+  /* ✅ 승인 / 거절 */
+  const handleUpdateStatus = async (
+    id: number,
+    status: "confirmed" | "declined"
+  ) => {
+    try {
+      await updateReservationStatus(activityId, id, status);
+      setList((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error("❌ 예약 상태 변경 실패:", err);
+    }
+  };
+
+  /* ✅ 날짜 포맷 */
   const labelDate = useMemo(() => {
     const d = new Date(date);
-    return `${d.getFullYear().toString().slice(2)}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+    return `${d.getFullYear().toString().slice(2)}년 ${
+      d.getMonth() + 1
+    }월 ${d.getDate()}일`;
   }, [date]);
 
   const tabCount = {
     pending: data.reservations.pending ?? 0,
     confirmed: data.reservations.confirmed ?? 0,
-    declined: 1,
+    declined: 0,
   };
 
   return (
     <div className="bg-white shadow-xl rounded-3xl w-[320px] sm:w-[340px] h-[500px] p-5 border border-gray-100">
+      {/* 헤더 */}
       <div className="flex justify-between items-center mb-3">
         <p className="text-[18px] font-semibold text-gray-900">{labelDate}</p>
         <button onClick={onClose} aria-label="닫기">
-          <Image src={iconDelete} alt="닫기" width={20} height={20} className="opacity-60 hover:opacity-90 transition" />
+          <Image
+            src={iconDelete}
+            alt="닫기"
+            width={20}
+            height={20}
+            className="opacity-60 hover:opacity-90 transition"
+          />
         </button>
       </div>
 
@@ -174,11 +286,17 @@ function ReservationPanel({
               key={key}
               type="button"
               className={`pb-2 text-sm ${
-                tab === key ? "text-primary font-semibold border-b-2 border-primary" : "text-gray-500"
+                tab === key
+                  ? "text-primary font-semibold border-b-2 border-primary"
+                  : "text-gray-500"
               }`}
               onClick={() => setTab(key)}
             >
-              {key === "pending" ? "신청" : key === "confirmed" ? "승인" : "거절"}{" "}
+              {key === "pending"
+                ? "신청"
+                : key === "confirmed"
+                ? "승인"
+                : "거절"}{" "}
               {tabCount[key]}
             </button>
           ))}
@@ -188,11 +306,30 @@ function ReservationPanel({
       {/* 예약 시간 */}
       <div className="mb-3">
         <label className="text-gray-800 text-sm">예약 시간</label>
-        <div className="mt-2">
-          <select className="w-full border border-gray-200 rounded-[12px] px-3 py-2 text-gray-800 focus:ring-2 focus:ring-primary">
-            <option>14:00 - 15:00</option>
-            <option>15:30 - 16:30</option>
+        <div className="relative mt-2">
+          <select
+            className="w-full border border-gray-200 rounded-[12px] px-3 py-2 text-gray-800 focus:ring-2 focus:ring-primary appearance-none"
+            onChange={(e) => setSelectedScheduleId(Number(e.target.value))}
+            value={selectedScheduleId ?? ""}
+          >
+            {scheduleList.length === 0 && (
+              <option value="">스케줄이 없습니다</option>
+            )}
+            {scheduleList.map((s) => (
+              <option key={s.scheduleId} value={s.scheduleId}>
+                {s.startTime} - {s.endTime}
+              </option>
+            ))}
           </select>
+
+          {/* ✅ 드롭다운 화살표 아이콘 */}
+          <Image
+            src={DownArrow}
+            alt="드롭다운 화살표"
+            width={20}
+            height={20}
+            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-70"
+          />
         </div>
       </div>
 
@@ -200,38 +337,55 @@ function ReservationPanel({
       <div className="overflow-y-auto max-h-[330px] pr-1">
         <label className="block text-gray-800 text-sm mb-3">예약 내역</label>
 
-        {list.map((r) => (
-          <div key={r.id} className="border border-gray-200 rounded-2xl p-4 mb-3 bg-white">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex flex-col gap-1">
-                <p className="typo-14-b text-gray-800">닉네임 {r.nickname}</p>
-                <p className="typo-14-m text-gray-500">인원 {r.people}명</p>
-              </div>
-
-              {tab === "pending" ? (
-                <div className="flex flex-col gap-2">
-                  <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition text-sm">
-                    승인하기
-                  </button>
-                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
-                    거절하기
-                  </button>
+        {isLoading ? (
+          <p className="text-center text-sm text-gray-400 py-10">
+            불러오는 중...
+          </p>
+        ) : list.length === 0 ? (
+          <p className="text-center text-sm text-gray-400 py-10">
+            해당 내역이 없습니다.
+          </p>
+        ) : (
+          list.map((r) => (
+            <div
+              key={r.id}
+              className="border border-gray-200 rounded-2xl p-4 mb-3 bg-white"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-1">
+                  <p className="typo-14-b text-gray-800">
+                    닉네임 {r.nickname}
+                  </p>
+                  <p className="typo-14-m text-gray-500">인원 {r.people}명</p>
                 </div>
-              ) : tab === "confirmed" ? (
-                <span className="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 text-[12px] px-3 py-[6px]">
-                  예약 승인
-                </span>
-              ) : (
-                <span className="inline-flex items-center rounded-full bg-rose-50 text-rose-600 text-[12px] px-3 py-[6px]">
-                  예약 거절
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
 
-        {list.length === 0 && (
-          <p className="text-center text-sm text-gray-400 py-10">해당 내역이 없습니다.</p>
+                {tab === "pending" ? (
+                  <div className="flex flex-col gap-2">
+                    <button
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition text-sm"
+                      onClick={() => handleUpdateStatus(r.id, "confirmed")}
+                    >
+                      승인하기
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm"
+                      onClick={() => handleUpdateStatus(r.id, "declined")}
+                    >
+                      거절하기
+                    </button>
+                  </div>
+                ) : tab === "confirmed" ? (
+                  <span className="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 text-[12px] px-3 py-[6px]">
+                    예약 승인
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center rounded-full bg-rose-50 text-rose-600 text-[12px] px-3 py-[6px]">
+                    예약 거절
+                  </span>
+                )}
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>
