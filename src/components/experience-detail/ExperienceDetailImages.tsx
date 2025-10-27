@@ -2,6 +2,22 @@ interface ExperienceDetailImagesProps {
   images: { id: number; imageUrl: string }[];
 }
 
+const getCornerClass = (idx: number, length: number) => {
+  const last = length - 1;
+  switch (idx) {
+    case 0:
+      return "rounded-tl-2xl";
+    case 1:
+      return "rounded-tr-2xl";
+    case last - 1:
+      return "rounded-bl-2xl";
+    case last:
+      return "rounded-br-2xl";
+    default:
+      return "";
+  }
+};
+
 export default function ExperienceDetailImages({
   images,
 }: ExperienceDetailImagesProps) {
@@ -23,44 +39,49 @@ export default function ExperienceDetailImages({
         </div>
       ) : images.length === 2 ? (
         // 2장일 때: 반반 배치
-        <div className="grid grid-cols-2 gap-4">
-          {images.map((img) => (
-            <img
-              key={img.id}
-              src={img.imageUrl}
-              alt={`체험 이미지 ${img.id}`}
-              className="w-full h-full object-cover rounded-2xl"
-            />
-          ))}
-        </div>
-      ) : images.length === 3 ? (
-        // 3장일 때: 왼쪽 세로형 + 오른쪽 두 개
-        <div className="grid grid-cols-[2fr_1fr] grid-rows-2 gap-4 h-[400px]">
+        <div className="grid grid-cols-2 gap-3">
           <img
             src={images[0].imageUrl}
-            alt="대표 이미지"
-            className="row-span-2 w-full h-full object-cover rounded-2xl"
+            alt="소개 이미지 1"
+            className="w-full h-full object-cover rounded-l-2xl"
           />
           <img
             src={images[1].imageUrl}
-            alt="보조 이미지 1"
-            className="w-full h-full object-cover rounded-2xl"
+            alt="소개 이미지 2"
+            className="w-full h-full object-cover rounded-r-2xl"
+          />
+        </div>
+      ) : images.length === 3 ? (
+        // 3장일 때: 왼쪽 세로형 + 오른쪽 두 개
+        <div className="grid grid-cols-[1.4fr_1fr] grid-rows-2 gap-2 md:gap-3 h-[245px] md:h-[400px]">
+          <img
+            src={images[0].imageUrl}
+            alt="소개 이미지1"
+            className="row-span-2 w-full h-full object-cover rounded-l-2xl"
+          />
+          <img
+            src={images[1].imageUrl}
+            alt="소개 이미지 2"
+            className="w-full h-full object-cover rounded-tr-2xl"
           />
           <img
             src={images[2].imageUrl}
-            alt="보조 이미지 2"
-            className="w-full h-full object-cover rounded-2xl"
+            alt="소개 이미지 3"
+            className="w-full h-full object-cover rounded-br-2xl"
           />
         </div>
       ) : (
         // 4장 이상: 기본 2열 그리드
-        <div className="grid grid-cols-2 gap-4">
-          {images.map((img) => (
+        <div className="grid grid-cols-2 gap-3">
+          {images.map((img, idx) => (
             <img
               key={img.id}
               src={img.imageUrl}
               alt={`체험 이미지 ${img.id}`}
-              className="w-full h-auto object-cover rounded-2xl"
+              className={`w-full h-auto object-cover ${getCornerClass(
+                idx,
+                images.length,
+              )}`}
             />
           ))}
         </div>
