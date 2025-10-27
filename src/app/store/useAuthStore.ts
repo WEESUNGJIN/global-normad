@@ -1,5 +1,6 @@
 // src/store/useAuthStore.ts
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface User {
   id: number;
@@ -17,15 +18,24 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isAuthenticated: false,
-  isResoring: true,
-  setUser: (user) => set({ user, isAuthenticated: true, isResoring: false }),
-  setRestoring: (value) => set({ isResoring: value }),
-  logout: () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    set({ user: null, isAuthenticated: false, isResoring: false });
-  },
-}));
+export const useAuthStore = create(
+  persist<AuthState>(
+    (set) => ({
+      user: null,
+      isAuthenticated: false,
+      isResoring: true,
+      setUser: (user) =>
+        set({ user, isAuthenticated: true, isResoring: false }),
+      setRestoring: (value) => set({ isResoring: value }),
+      logout: () => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("auth-storage");
+        set({ user: null, isAuthenticated: false, isResoring: false });
+      },
+    }),
+    {
+      name: "auth-storage",
+    },
+  ),
+);
