@@ -2,11 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import React, { useState } from "react";
+
 import starIcon from "@/assets/icon/icon_star_on.svg";
 import mapIcon from "@/assets/icon/icon_map.svg";
-import MoreIcon from "@/assets/icon/icon_more.svg";
+import moreIcon from "@/assets/icon/icon_more.svg";
+import warningStateImg from "@/assets/img/warning_state.png";
 
 import Dropdown from "@/components/Dropdown";
+import Modal from "@/components/Modal";
+import { deleteActivity } from "@/app/mypage/experience/api/activities";
+import { getReservationDashboard } from "@/app/mypage/calendar/api/reservationApi";
 
 interface ExperienceDetailInfoProps {
   title: string;
@@ -28,12 +34,54 @@ export default function ExperienceDetailInfo({
   id,
 }: ExperienceDetailInfoProps) {
   const router = useRouter();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleOwnerAction = (option: string) => {
     if (option === "수정하기") {
       router.push(`/experience-edit/${id}`);
     } else if (option === "삭제하기") {
-      console.log("삭제 모달 오픈");
+      setIsDeleteModalOpen(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const now = new Date();
+      const year = now.getFullYear().toString();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+
+      // 예약 현황 조회
+      const res = await getReservationDashboard(Number(id), year, month);
+      const reservationData = Array.isArray(res) ? res : [];
+
+      interface ReservationSummary {
+        date: string;
+        reservations: {
+          completed: number;
+          confirmed: number;
+          pending: number;
+        };
+      }
+
+      // 예약 상태 검사
+      const hasPendingOrConfirmed = reservationData.some(
+        (r: ReservationSummary) =>
+          r.reservations.pending > 0 || r.reservations.confirmed > 0,
+      );
+
+      if (hasPendingOrConfirmed) {
+        alert("신청 예약이 있는 체험은 삭제할 수 없습니다.");
+        return;
+      }
+
+      await deleteActivity(Number(id));
+      alert("체험이 삭제되었습니다.");
+      router.push("/");
+    } catch (err: unknown) {
+      console.error("삭제 중 오류:", err);
+      alert("삭제 중 오류가 발생했습니다.");
+    } finally {
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -74,16 +122,42 @@ export default function ExperienceDetailInfo({
 
       {/* 등록자 표시 */}
       {isOwner && (
-        <div className="absolute right-0 top-0">
+        <div className="absolute top-5 -right-3 lg:top-0">
           <Dropdown
             trigger="click"
-            customIcon={MoreIcon}
+            customIcon={moreIcon}
             options={["수정하기", "삭제하기"]}
             onSelect={handleOwnerAction}
             highlightSelected={false}
           />
         </div>
       )}
+
+      <Modal
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        confirmText="네"
+        cancelText="아니요"
+        onConfirm={handleDeleteConfirm}
+        widthClass="w-80 md:w-100"
+        actionsMaxClass="max-w-[234px] md:max-w-[282px]"
+      >
+        <div className="-mt-3 flex flex-col items-center justify-center">
+          {/* 상단 경고 아이콘 */}
+          <Image
+            src={warningStateImg}
+            alt="경고 아이콘"
+            width={48}
+            height={48}
+            className="w-12 h-12 md:w-[88px] md:h-[88px]"
+          />
+
+          {/* 문구 */}
+          <h3 className="typo-16-b md:text-lg text-gray-950">
+            체험을 삭제하시겠습니까?
+          </h3>
+        </div>
+      </Modal>
     </section>
   );
 }

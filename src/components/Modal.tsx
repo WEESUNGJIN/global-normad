@@ -7,11 +7,11 @@ interface ModalProps {
   open: boolean;
   title?: string;
   children?: React.ReactNode;
-  confirmText?: string;        // 기본: "확인"
-  cancelText?: string;         // 비우면 자동으로 취소 버튼 숨김
+  confirmText?: string; // 기본: "확인"
+  cancelText?: string; // 비우면 자동으로 취소 버튼 숨김
   onClose?: () => void;
   onConfirm?: () => void;
-  showCancel?: boolean;        // 기본: true
+  showCancel?: boolean; // 기본: true
   /** 외부에서 폭 클래스 오버라이드 (예: "max-w-sm" 또는 "w-[320px] sm:w-[400px]") */
   widthClass?: string;
   /** 버튼 영역의 최대 폭 오버라이드 (예: "max-w-[260px] sm:max-w-[340px]") */
@@ -36,7 +36,8 @@ export default function Modal({
 
   // 기본값 + 외부 오버라이드
   const widthClass = widthClassProp ?? "w-[320px] sm:w-[400px]";
-  const actionsMaxClass = actionsMaxClassProp ?? "max-w-[260px] sm:max-w-[340px]";
+  const actionsMaxClass =
+    actionsMaxClassProp ?? "max-w-[260px] sm:max-w-[340px]";
 
   // ✅ Hook을 조건부 return 이전에 호출
   const Actions = React.useMemo(() => {
@@ -58,7 +59,7 @@ export default function Modal({
         <div
           className={clsx(
             "mt-6 grid grid-cols-2 gap-3 mx-auto w-full",
-            actionsMaxClass
+            actionsMaxClass,
           )}
         >
           <Button
@@ -96,7 +97,11 @@ export default function Modal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* 반투명 배경 */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+        aria-hidden
+      />
 
       {/* 모달 본체 */}
       <div
@@ -105,7 +110,7 @@ export default function Modal({
         className={clsx(
           "relative text-center bg-white dark:bg-gray-900 rounded-[24px] shadow-xl border border-border-default p-[30px]",
           widthClass,
-          "max-w-[calc(100vw-2rem)]"
+          "max-w-[calc(100vw-2rem)]",
         )}
       >
         {/* 제목 */}
