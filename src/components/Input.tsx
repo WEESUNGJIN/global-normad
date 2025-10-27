@@ -101,7 +101,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
           ref={ref}
           type={effectiveType}
           className={clsx(
-            "w-full rounded-2xl md:rounded-3xl bg-white dark:bg-gray-900",
+            "w-full rounded-2xl bg-white dark:bg-gray-900",
             "px-4 py-5",
             hasLeading && "pl-11",
             "typo-14-m text-text-primary placeholder:text-text-secondary/60",

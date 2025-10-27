@@ -12,6 +12,7 @@ import warningStateImg from "@/assets/img/warning_state.png";
 import Dropdown from "@/components/Dropdown";
 import Modal from "@/components/Modal";
 import { deleteActivity } from "@/app/mypage/experience/api/activities";
+import { getReservationDashboard } from "@/app/mypage/calendar/api/reservationApi";
 
 interface ExperienceDetailInfoProps {
   title: string;
@@ -45,11 +46,39 @@ export default function ExperienceDetailInfo({
 
   const handleDeleteConfirm = async () => {
     try {
+      const now = new Date();
+      const year = now.getFullYear().toString();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+
+      // 예약 현황 조회
+      const res = await getReservationDashboard(Number(id), year, month);
+      const reservationData = Array.isArray(res) ? res : [];
+
+      interface ReservationSummary {
+        date: string;
+        reservations: {
+          completed: number;
+          confirmed: number;
+          pending: number;
+        };
+      }
+
+      // 예약 상태 검사
+      const hasPendingOrConfirmed = reservationData.some(
+        (r: ReservationSummary) =>
+          r.reservations.pending > 0 || r.reservations.confirmed > 0,
+      );
+
+      if (hasPendingOrConfirmed) {
+        alert("신청 예약이 있는 체험은 삭제할 수 없습니다.");
+        return;
+      }
+
       await deleteActivity(Number(id));
       alert("체험이 삭제되었습니다.");
       router.push("/");
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      console.error("삭제 중 오류:", err);
       alert("삭제 중 오류가 발생했습니다.");
     } finally {
       setIsDeleteModalOpen(false);
