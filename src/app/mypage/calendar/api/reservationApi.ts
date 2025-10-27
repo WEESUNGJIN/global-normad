@@ -1,4 +1,5 @@
 import api from "@/utils/api";
+import { AxiosError } from "axios";
 
 /** ===============================
  * 📘 내 체험 리스트 조회
@@ -20,9 +21,13 @@ export const getMyActivities = async () => {
 
     console.log("✅ [getMyActivities] 응답:", res);
     return res;
-  } catch (error: any) {
-    console.error("❌ [getMyActivities] 실패:", error);
-    throw error;
+  } catch (error) {
+    const err = error as AxiosError;
+    console.error("❌ [getMyActivities] 실패:", {
+      status: err.response?.status,
+      message: err.response?.data,
+    });
+    throw err;
   }
 };
 
@@ -51,9 +56,13 @@ export const getReservationDashboard = async (
 
     console.log("✅ [getReservationDashboard] 응답:", res);
     return res;
-  } catch (error: any) {
-    console.error("❌ [getReservationDashboard] 실패:", error);
-    throw error;
+  } catch (error) {
+    const err = error as AxiosError;
+    console.error("❌ [getReservationDashboard] 실패:", {
+      status: err.response?.status,
+      message: err.response?.data,
+    });
+    throw err;
   }
 };
 
@@ -66,7 +75,6 @@ export const getReservedSchedule = async (
   date: string
 ) => {
   try {
-    // ✅ 서버는 YYYY-MM-DD 형식만 허용
     const formattedDate = date.includes(".")
       ? date.split(".").join("-")
       : date;
@@ -95,12 +103,13 @@ export const getReservedSchedule = async (
 
     console.log("✅ [getReservedSchedule] 응답:", res);
     return res;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError;
     console.error("❌ [getReservedSchedule] 실패:", {
-      status: error?.response?.status,
-      message: error?.response?.data || error.message,
+      status: err.response?.status,
+      message: err.response?.data,
     });
-    throw error;
+    throw err;
   }
 };
 
@@ -132,12 +141,13 @@ export const getReservationsBySchedule = async (
 
     console.log("✅ [getReservationsBySchedule] 응답:", res);
     return res;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError;
     console.error("❌ [getReservationsBySchedule] 실패:", {
-      status: error?.response?.status,
-      message: error?.response?.data || error.message,
+      status: err.response?.status,
+      message: err.response?.data || err.message,
     });
-    throw error;
+    throw err;
   }
 };
 
@@ -162,11 +172,12 @@ export const updateReservationStatus = async (
       status,
     });
     return res;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError;
     console.error("❌ [updateReservationStatus] 실패:", {
-      status: error?.response?.status,
-      message: error?.response?.data || error.message,
+      status: err.response?.status,
+      message: err.response?.data || err.message,
     });
-    throw error;
+    throw err;
   }
 };
