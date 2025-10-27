@@ -25,12 +25,12 @@ export default function ExperienceDetailImages({
     <section className="pt-8 lg:pt-0">
       {/* 이미지가 없을 때 */}
       {!images?.length ? (
-        <div className="w-full aspect-[4/3] bg-gray-100 rounded-2xl flex items-center justify-center text-gray-500">
+        <div className="w-full aspect-[4/3] h-[245px] md:h-[400px] bg-gray-100 rounded-2xl flex items-center justify-center text-gray-500">
           이미지가 없습니다
         </div>
       ) : images.length === 1 ? (
         // 1장일 때: 크게 하나만
-        <div className="w-full aspect-[4/3]">
+        <div className="w-full aspect-[4/3] h-[245px] md:h-[400px]">
           <img
             src={images[0].imageUrl}
             alt="대표 이미지"
@@ -39,7 +39,7 @@ export default function ExperienceDetailImages({
         </div>
       ) : images.length === 2 ? (
         // 2장일 때: 반반 배치
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 grid-rows-1 gap-3 h-[245px] md:h-[400px]">
           <img
             src={images[0].imageUrl}
             alt="소개 이미지 1"
@@ -72,13 +72,13 @@ export default function ExperienceDetailImages({
         </div>
       ) : (
         // 4장 이상: 기본 2열 그리드
-        <div className="grid grid-cols-2 gap-3">
-          {images.map((img, idx) => (
+        <div className="grid grid-cols-2 grid-rows-2 gap-3 h-[245px] md:h-[400px]">
+          {images.slice(0, 4).map((img, idx) => (
             <img
               key={img.id}
               src={img.imageUrl}
               alt={`체험 이미지 ${img.id}`}
-              className={`w-full h-auto object-cover ${getCornerClass(
+              className={`w-full h-full object-cover ${getCornerClass(
                 idx,
                 images.length,
               )}`}
