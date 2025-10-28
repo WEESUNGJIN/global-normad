@@ -163,7 +163,7 @@ export default function CategorySection({
   }, [selectedCategory, priceSortOrder]);
 
   return (
-    <section className="px-6 md:px-8 lg:px-0 pt-10 pb-32 md:pb-[200px]">
+    <section className="px-6 md:px-8 lg:px-0 pt-10 md:pt-20 pb-32 md:pb-[200px]">
       <div className="flex items-center justify-between mb-4 md:mb-5">
         <div className="flex items-center gap-1">
           <Image
@@ -194,7 +194,7 @@ export default function CategorySection({
               ${
                 selectedCategory === cat.id
                   ? "bg-black text-white border-black"
-                  : "bg-white text-text-primary border-border-default"
+                  : "bg-white text-text-primary border border-gray-100"
               }`}
           >
             <div className="relative w-4 h-4 md:w-6 md:h-6 flex-shrink-0">
