@@ -21,8 +21,39 @@ export default function PopularSection() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(4);
-  const observerRef = useRef<HTMLDivElement | null>(null);
 
+  const loadMoreRef = useRef<() => void>(() => {});
+  loadMoreRef.current = async () => {
+    if (isLoading || !hasMore) return; // 중복 호출 방지
+    setIsLoading(true);
+
+    try {
+      const data = await fetchPopularExperiencesInfinite(offset);
+
+      if (data.activities.length > 0) {
+        setActivities((prev) => {
+          const combined = [...prev, ...data.activities];
+          const unique = combined.filter(
+            (item, index, self) =>
+              index === self.findIndex((t) => t.id === item.id),
+          );
+          return unique;
+        });
+
+        setOffset(data.nextOffset ?? offset + 8);
+        setHasMore(!!data.nextOffset);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error("인기 체험 추가 로드 실패:", err);
+    } finally {
+      // 약간의 딜레이를 줘서 빠른 연속 트리거 방지
+      setTimeout(() => setIsLoading(false), 300);
+    }
+  };
+
+  // 초기 데이터 로드 (최초 1회)
   useEffect(() => {
     (async () => {
       try {
@@ -36,46 +67,7 @@ export default function PopularSection() {
     })();
   }, []);
 
-  useEffect(() => {
-    const loadMore = async () => {
-      if (isLoading || !hasMore) return;
-
-      try {
-        setIsLoading(true);
-        const data = await fetchPopularExperiencesInfinite(offset);
-
-        if (data.activities.length > 0) {
-          setActivities((prev) => {
-            const combined = [...prev, ...data.activities];
-            const unique = combined.filter(
-              (item, index, self) =>
-                index === self.findIndex((t) => t.id === item.id),
-            );
-            return unique;
-          });
-
-          setOffset(data.nextOffset ?? offset + 8);
-          setHasMore(!!data.nextOffset);
-        } else {
-          setHasMore(false);
-        }
-      } catch (err) {
-        console.error("인기 체험 추가 로드 실패:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore && !isLoading) {
-        loadMore();
-      }
-    });
-
-    if (observerRef.current) observer.observe(observerRef.current);
-    return () => observer.disconnect();
-  }, [offset, hasMore, isLoading]);
-
+  // 반응형 카드 수 조정
   useEffect(() => {
     const updateVisibleCount = () => {
       if (window.innerWidth < 768) return setVisibleCount(activities.length);
@@ -88,17 +80,33 @@ export default function PopularSection() {
     return () => window.removeEventListener("resize", updateVisibleCount);
   }, [activities.length]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const nextIndex = currentIndex + visibleCount;
-    if (nextIndex < activities.length) {
-      setCurrentIndex(nextIndex);
+    if (nextIndex < activities.length) setCurrentIndex(nextIndex);
+
+    // ✅ 추가 로드 조건: 다음 인덱스가 거의 끝에 도달하면 fetch
+    if (
+      nextIndex + visibleCount >= activities.length - 2 &&
+      hasMore &&
+      !isLoading
+    ) {
+      await loadMoreRef.current();
     }
   };
 
   const handlePrev = () => {
     const prevIndex = currentIndex - visibleCount;
-    if (prevIndex >= 0) {
-      setCurrentIndex(prevIndex);
+    if (prevIndex >= 0) setCurrentIndex(prevIndex);
+  };
+
+  const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
+    if (
+      scrollLeft + clientWidth >= scrollWidth - 100 &&
+      hasMore &&
+      !isLoading
+    ) {
+      await loadMoreRef.current();
     }
   };
 
@@ -121,6 +129,7 @@ export default function PopularSection() {
       </h2>
 
       <div
+        onScroll={handleScroll}
         className={clsx(
           "flex overflow-x-auto md:overflow-x-hidden scrollbar-hide transition-transform duration-300 ease-in-out",
           "gap-3 md:gap-[3.5%] lg:gap-6",
@@ -172,13 +181,6 @@ export default function PopularSection() {
         >
           <Image src={iconArrowRight} alt="다음" />
         </button>
-      )}
-
-      <div ref={observerRef} className="h-4" />
-      {isLoading && (
-        <p className="text-gray-400 text-sm text-center mt-4 animate-pulse">
-          로딩 중...
-        </p>
       )}
     </section>
   );
