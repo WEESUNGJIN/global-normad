@@ -194,7 +194,7 @@ export default function CategorySection({
               ${
                 selectedCategory === cat.id
                   ? "bg-black text-white border-black"
-                  : "bg-white text-text-primary border-border-default"
+                  : "bg-white text-text-primary border border-gray-100"
               }`}
           >
             <div className="relative w-4 h-4 md:w-6 md:h-6 flex-shrink-0">

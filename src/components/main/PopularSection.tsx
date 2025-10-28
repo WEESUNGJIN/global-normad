@@ -128,60 +128,62 @@ export default function PopularSection() {
         인기 체험
       </h2>
 
-      <div
-        onScroll={handleScroll}
-        className={clsx(
-          "flex overflow-x-auto md:overflow-x-hidden scrollbar-hide transition-transform duration-300 ease-in-out",
-          "gap-3 md:gap-[3.5%] lg:gap-6",
-        )}
-      >
-        {(visibleCards ?? []).map((act) => (
-          <div
-            key={act.id}
-            onClick={() => router.push(`/experience-detail/${act.id}`)}
+      <div className="relative">
+        <div
+          onScroll={handleScroll}
+          className={clsx(
+            "flex overflow-x-auto md:overflow-x-hidden scrollbar-hide transition-transform duration-300 ease-in-out",
+            "gap-3 md:gap-[3.5%] lg:gap-6",
+          )}
+        >
+          {(visibleCards ?? []).map((act) => (
+            <div
+              key={act.id}
+              onClick={() => router.push(`/experience-detail/${act.id}`)}
+              className={clsx(
+                "cursor-pointer flex-shrink-0",
+                "w-[44.5%] md:w-[46.5%] lg:w-[23.4%]",
+              )}
+            >
+              <Card className="!w-full">
+                <Card.Image src={act.bannerImageUrl} alt={act.title} />
+                <Card.Content>
+                  <Card.Title className="line-clamp-1">{act.title}</Card.Title>
+                  <Card.Meta rating={act.rating} count={act.reviewCount} />
+                  <Card.Price
+                    price={`₩ ${act.price.toLocaleString()}`}
+                    unit="/ 인"
+                  />
+                </Card.Content>
+              </Card>
+            </div>
+          ))}
+        </div>
+
+        {currentIndex > 0 && (
+          <button
+            onClick={handlePrev}
             className={clsx(
-              "cursor-pointer flex-shrink-0",
-              "w-[44.5%] md:w-[46.5%] lg:w-[23.4%]",
+              "hidden md:flex absolute top-1/2 -translate-y-1/2 left-[-26px]",
+              "w-[54px] h-[54px] bg-white border border-gray-100 rounded-full shadow-md items-center justify-center",
             )}
           >
-            <Card className="!w-full">
-              <Card.Image src={act.bannerImageUrl} alt={act.title} />
-              <Card.Content>
-                <Card.Title className="line-clamp-1">{act.title}</Card.Title>
-                <Card.Meta rating={act.rating} count={act.reviewCount} />
-                <Card.Price
-                  price={`₩ ${act.price.toLocaleString()}`}
-                  unit="/ 인"
-                />
-              </Card.Content>
-            </Card>
-          </div>
-        ))}
+            <Image src={iconArrowLeft} alt="이전" />
+          </button>
+        )}
+
+        {currentIndex + visibleCount < activities.length && (
+          <button
+            onClick={handleNext}
+            className={clsx(
+              "hidden md:flex absolute top-1/2 -translate-y-1/2 right-0 lg:-right-7",
+              "w-[54px] h-[54px] bg-white border border-gray-100 rounded-full shadow-md items-center justify-center",
+            )}
+          >
+            <Image src={iconArrowRight} alt="다음" />
+          </button>
+        )}
       </div>
-
-      {currentIndex > 0 && (
-        <button
-          onClick={handlePrev}
-          className={clsx(
-            "hidden md:flex absolute top-1/2 -translate-y-1/2 left-[-24px]",
-            "w-[54px] h-[54px] bg-white border border-gray-300 rounded-full shadow-md items-center justify-center",
-          )}
-        >
-          <Image src={iconArrowLeft} alt="이전" />
-        </button>
-      )}
-
-      {currentIndex + visibleCount < activities.length && (
-        <button
-          onClick={handleNext}
-          className={clsx(
-            "hidden md:flex absolute top-1/2 -translate-y-1/2 right-1 lg:right-[-22px]",
-            "w-[54px] h-[54px] bg-white border border-gray-300 rounded-full shadow-md items-center justify-center",
-          )}
-        >
-          <Image src={iconArrowRight} alt="다음" />
-        </button>
-      )}
     </section>
   );
 }
