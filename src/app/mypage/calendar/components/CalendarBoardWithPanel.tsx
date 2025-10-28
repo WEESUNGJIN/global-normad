@@ -242,14 +242,49 @@ function ReservationPanel({
   ) => {
     try {
       await updateReservationStatus(activityId, id, status);
+
       // ✅ 승인 시: 같은 스케줄 내 다른 예약 자동 거절
       if (status === "confirmed" && selectedScheduleId) {
-        const declinedPromises = list
-          .filter((r) => r.id !== id)
-          .map((r) => updateReservationStatus(activityId, r.id, "declined"));
-        await Promise.all(declinedPromises);
+        const declinedTargets = list.filter((r) => r.id !== id);
+        if (declinedTargets.length > 0) {
+          const declinedPromises = declinedTargets.map((r) =>
+            updateReservationStatus(activityId, r.id, "declined")
+          );
+          await Promise.allSettled(declinedPromises);
+
+          // ✅ 카운트 동기화
+          setTabCount((prev) => ({
+            ...prev,
+            confirmed: prev.confirmed + 1,
+            pending: Math.max(prev.pending - (declinedTargets.length + 1), 0),
+            declined: prev.declined + declinedTargets.length,
+          }));
+        } else {
+          // ✅ 승인만 된 경우
+          setTabCount((prev) => ({
+            ...prev,
+            confirmed: prev.confirmed + 1,
+            pending: Math.max(prev.pending - 1, 0),
+          }));
+        }
       }
+
+      // ✅ 거절 시 카운트 갱신
+      if (status === "declined") {
+        setTabCount((prev) => ({
+          ...prev,
+          declined: prev.declined + 1,
+          pending: Math.max(prev.pending - 1, 0),
+        }));
+      }
+
+      // ✅ UI 갱신 (현재 탭만 새로고침)
       setList((prev) => prev.filter((r) => r.id !== id));
+
+      // ✅ 승인 후 자동 갱신: “승인” 탭으로 전환
+      if (status === "confirmed") {
+        setTab("confirmed");
+      }
     } catch (err) {
       console.error("❌ 예약 상태 변경 실패:", err);
     }
@@ -263,16 +298,16 @@ function ReservationPanel({
     }월 ${d.getDate()}일`;
   }, [date]);
 
-  const tabCount = {
+  const [tabCount, setTabCount] = useState({
     pending: data.reservations.pending ?? 0,
     confirmed: data.reservations.confirmed ?? 0,
     declined: 0,
-  };
+  });
 
   return (
-    <div className="bg-white shadow-xl rounded-3xl w-[320px] sm:w-[340px] h-[500px] p-5 border border-gray-100">
+    <div className="bg-white shadow-xl rounded-3xl w-[320px] sm:w-[340px] h-[500px] p-5 border border-gray-100 flex flex-col">
       {/* 헤더 */}
-      <div className="flex justify-between items-center mb-3">
+      <div className="flex justify-between items-center mb-3 flex-shrink-0">
         <p className="text-[18px] font-semibold text-gray-900">{labelDate}</p>
         <button onClick={onClose} aria-label="닫기">
           <Image
@@ -286,7 +321,7 @@ function ReservationPanel({
       </div>
 
       {/* 탭 */}
-      <div className="mb-4">
+      <div className="mb-4 flex-shrink-0">
         <div className="flex items-center gap-6 border-b border-gray-200">
           {(["pending", "confirmed", "declined"] as PanelTab[]).map((key) => (
             <button
@@ -311,7 +346,7 @@ function ReservationPanel({
       </div>
 
       {/* 예약 시간 */}
-      <div className="mb-3">
+      <div className="mb-3 flex-shrink-0">
         <label className="text-gray-800 text-sm">예약 시간</label>
         <div className="relative mt-2">
           <select
@@ -329,7 +364,7 @@ function ReservationPanel({
             ))}
           </select>
 
-          {/* ✅ 드롭다운 화살표 아이콘 */}
+          {/* 드롭다운 화살표 */}
           <Image
             src={DownArrow}
             alt="드롭다운 화살표"
@@ -341,7 +376,7 @@ function ReservationPanel({
       </div>
 
       {/* 예약 내역 */}
-      <div className="overflow-y-auto max-h-[330px] pr-1">
+      <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
         <label className="block text-gray-800 text-sm mb-3">예약 내역</label>
 
         {isLoading ? (
