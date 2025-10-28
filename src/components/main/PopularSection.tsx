@@ -116,7 +116,7 @@ export default function PopularSection() {
       : activities.slice(currentIndex, currentIndex + visibleCount);
 
   return (
-    <section className="pt-14 md:pt-20 lg:pt-24 pl-6 md:pl-8 lg:pl-0 relative">
+    <section className="pt-14 md:pt-20 lg:pt-23 pl-6 md:pl-8 lg:pl-0 relative">
       <h2 className="typo-18-b -ml-[2px] md:text-2xl mb-4 md:mb-5 flex items-center">
         <Image
           src={emojiFire}
