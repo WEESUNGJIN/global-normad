@@ -28,7 +28,7 @@ const PAGE_SIZE = 10;
 const LS_KEY = "gn:read-notifs:v1";
 const API_BASE_URL = "https://sp-globalnomad-api.vercel.app/17-2";
 
-/* -------------------- API 함수들 -------------------- */
+/* -------------------- API 함수들 (변경 없음) -------------------- */
 async function fetchNotifications(cursorId?: number, token?: string): Promise<ApiResponse> {
   // ✅ 토큰이 없으면 빈 응답 반환
   if (!token) {
@@ -92,7 +92,7 @@ async function deleteNotification(notificationId: number, token?: string): Promi
   }
 }
 
-/* -------------------- 읽음 상태 로컬저장 -------------------- */
+/* -------------------- 읽음 상태 로컬저장 (변경 없음) -------------------- */
 function loadReadSet(): Set<number> {
   try {
     if (typeof window === "undefined") return new Set();
@@ -118,10 +118,9 @@ function saveReadSet(s: Set<number>) {
 /* -------------------- 메인 컴포넌트 -------------------- */
 export default function NotificationPopover({
   children,
-  widthClassName = "w-[360px]",
-  maxHeightClassName = "max-h-[480px]",
+  widthClassName = "w-[360px]", // 데스크톱 기본값
+  maxHeightClassName = "max-h-[480px]", // 데스크톱 기본값
 }: Props) {
-  // ✅ user 변수 제거 - 현재 사용하지 않음
   const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   const [open, setOpen] = useState(false);
@@ -157,11 +156,11 @@ export default function NotificationPopover({
     loadInitialReadSet();
   }, []);
 
-  /* 알림 데이터 로드 */
+  /* 알림 데이터 로드 (변경 없음) */
   const loadNotifications = useCallback(async (resetData = false) => {
     if (loading) return;
     
-    // ✅ accessToken 확인
+    // accessToken 확인
     if (!accessToken) {
       console.log('User not logged in - no access token available');
       if (resetData) {
@@ -196,9 +195,9 @@ export default function NotificationPopover({
     } finally {
       setLoading(false);
     }
-  }, [loading, cursorId, accessToken]); // ✅ accessToken으로 변경
+  }, [loading, cursorId, accessToken]);
 
-  /* 열릴 때 초기 데이터 로드 */
+  /* 열릴 때 초기 데이터 로드 (변경 없음) */
   useEffect(() => {
     if (open && !initialLoaded && !loading) {
       const timer = setTimeout(() => {
@@ -208,7 +207,7 @@ export default function NotificationPopover({
     }
   }, [open, initialLoaded, loading, loadNotifications]);
 
-  /* 무한 스크롤 */
+  /* 무한 스크롤 (변경 없음) */
   useEffect(() => {
     if (!open) return;
     const el = sentinelRef.current;
@@ -228,7 +227,7 @@ export default function NotificationPopover({
     return () => io.disconnect();
   }, [open, hasMore, loading, loadNotifications]);
 
-  /* ESC */
+  /* ESC (변경 없음) */
   useEffect(() => {
     function onEsc(ev: KeyboardEvent) {
       if (ev.key === "Escape") {
@@ -241,7 +240,7 @@ export default function NotificationPopover({
     return () => document.removeEventListener("keydown", onEsc);
   }, [open, handleClose]);
 
-  /* 바깥 클릭 */
+  /* 바깥 클릭 (변경 없음) */
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
       if (!panelRef.current) return;
@@ -253,7 +252,7 @@ export default function NotificationPopover({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open, handleClose]);
 
-  /* ✅ 알림 삭제 (accessToken 전달) */
+  /* 알림 삭제 (변경 없음 - 단일 삭제 로직은 유지) */
   const removeItem = async (id: number) => {
     if (!accessToken) {
       alert('로그인이 필요합니다.');
@@ -261,7 +260,9 @@ export default function NotificationPopover({
     }
 
     try {
-      await deleteNotification(id, accessToken);
+      // ✅ 이 API 호출은 하나의 알림 ID만 삭제합니다.
+      await deleteNotification(id, accessToken); 
+      // ✅ 프론트엔드에서도 해당 ID만 필터링하여 제거합니다. (단일 삭제 로직)
       setItems(prev => prev.filter(n => n.id !== id));
       const next = new Set(readSet);
       next.delete(id);
@@ -273,7 +274,7 @@ export default function NotificationPopover({
     }
   };
 
-  /* ✅ 뱃지 계산 - 실제 안 읽은 알림만 표시 */
+  /* 뱃지 계산 (변경 없음) */
   const unreadCount = useMemo(() => {
     if (!initialLoaded) return 0;
     
@@ -281,7 +282,7 @@ export default function NotificationPopover({
     return unreadItems.length;
   }, [readSet, items, initialLoaded]);
 
-  /* 트리거 핸들러 */
+  /* 트리거 핸들러 (변경 없음) */
   const onTriggerClick = () => {
     if (open) handleClose();
     else setOpen(true);
@@ -293,6 +294,21 @@ export default function NotificationPopover({
       onTriggerClick();
     }
   };
+
+  // ✅ 모바일 팝오버를 위한 반응형 클래스 (이전 요청대로 팝오버 유지)
+  const popoverPositionClass = open
+    ? "fixed top-12 left-1/2 transform -translate-x-1/2 w-full max-w-sm md:absolute md:top-auto md:left-auto md:right-0 md:transform-none md:mt-2" 
+    : "";
+
+  const finalWidthClass = open
+    ? `w-full max-w-sm md:${widthClassName}`
+    : widthClassName;
+    
+  // ✅ 모바일 환경에서 잘리지 않도록 최대 높이를 유동적으로 조정
+  const finalMaxHeightClass = open
+    ? `max-h-[80vh] md:${maxHeightClassName}` // 모바일에서는 화면 높이의 80%로 제한
+    : maxHeightClassName;
+
 
   /* -------------------- 렌더 -------------------- */
   return (
@@ -307,7 +323,7 @@ export default function NotificationPopover({
         className="inline-flex relative"
       >
         {children}
-        {/* ✅ 원래 색상으로 복구 (빨간색 -> 기본 primary 색상) */}
+        {/* 뱃지 (변경 없음) */}
         {initialLoaded && unreadCount > 0 && (
           <span
             aria-hidden
@@ -319,11 +335,17 @@ export default function NotificationPopover({
       </span>
 
       {open && (
+        // ✅ 팝오버 컨테이너에 반응형 스타일 적용
         <div
           role="dialog"
           aria-label="알림"
           ref={panelRef}
-          className={`absolute right-0 mt-2 ${widthClassName} ${maxHeightClassName} z-50 rounded-2xl shadow-xl border border-gray-100 bg-white overflow-hidden`}
+          className={`
+            ${popoverPositionClass} 
+            ${finalWidthClass} 
+            ${finalMaxHeightClass} 
+            z-50 rounded-2xl shadow-xl border border-gray-100 bg-white overflow-hidden
+          `}
         >
           {/* 헤더 */}
           <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
@@ -338,7 +360,7 @@ export default function NotificationPopover({
           </div>
 
           {/* 리스트 */}
-          <div className="overflow-y-auto max-h-[420px]">
+          <div className="overflow-y-auto max-h-full"> {/* max-h-full로 설정하여 부모의 높이(finalMaxHeightClass)를 따르게 함 */}
             {loading && !initialLoaded && (
               <p className="px-4 py-8 text-sm text-gray-500">
                 알림을 불러오는 중...
@@ -361,19 +383,21 @@ export default function NotificationPopover({
                 const contentHighlighted = n.content
                   .replace(
                     /승인/g,
-                    `<span class='text-[var(--color-primary-600,#5B21B6)] font-medium'>승인</span>`
+                    `<span class='text-purple-600 font-medium'>승인</span>`
                   )
                   .replace(
                     /거절/g,
-                    `<span class='text-[var(--color-red-600,#DC2626)] font-medium'>거절</span>`
+                    `<span class='text-red-600 font-medium'>거절</span>`
                   );
+
+                const unreadBg = 'bg-purple-50';
 
                 return (
                   <li
                     key={n.id}
                     className={`px-4 py-3 hover:bg-gray-50 transition-colors ${
                       !isRead
-                        ? "bg-[var(--color-primary-50,#F5F3FF)]"
+                        ? unreadBg
                         : "bg-white"
                     }`}
                   >
@@ -399,13 +423,16 @@ export default function NotificationPopover({
                         />
                       </div>
 
-                      <button
-                        onClick={() => removeItem(n.id)}
-                        className="self-start p-1 rounded hover:bg-gray-200 text-gray-500"
-                        aria-label="알림 삭제"
-                      >
-                        ✕
-                      </button>
+                      {/* ✅ 조건부 렌더링: '예약 승인' 알림이 아닐 경우에만 삭제 버튼을 표시합니다. */}
+                      {!isApproved && (
+                        <button
+                          onClick={() => removeItem(n.id)}
+                          className="self-start p-1 rounded hover:bg-gray-200 text-gray-500"
+                          aria-label="알림 삭제"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                   </li>
                 );
