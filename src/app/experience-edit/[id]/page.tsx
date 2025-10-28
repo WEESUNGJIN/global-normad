@@ -21,6 +21,7 @@ import Image from "next/image";
 import warning from "@/assets/img/warning_state.png";
 import api from "@/utils/api";
 import { updateActivity } from "@/app/mypage/experience/api/activities";
+import axios from "axios";
 
 export default function ExperienceEditPage() {
   const router = useRouter();
@@ -37,6 +38,7 @@ export default function ExperienceEditPage() {
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [pendingUrl, setPendingUrl] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [dateSectionKey, setDateSectionKey] = useState(0);
 
   // ✅ 기존 체험 데이터 불러오기
   const { data, isLoading } = useQuery<
@@ -92,6 +94,28 @@ export default function ExperienceEditPage() {
       setIsModalOpen(true);
       setIsDirty(false);
     },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        const message =
+          error.response?.data?.message ?? "수정 중 오류가 발생했습니다.";
+        alert(message);
+        //activityDetail 최신화
+        queryClient.invalidateQueries({ queryKey: ["activityDetail", id] });
+
+        //DateSection 리렌더 유도
+        setDateSectionKey((prev) => prev + 1);
+
+        //form의 schedules를 새로 세팅 (기존 data 기반)
+        if (data?.schedules) {
+          setForm((prev) => ({
+            ...prev!,
+            schedules: [...(data.schedules as Slot[])],
+          }));
+        }
+      } else {
+        alert("알 수 없는 오류가 발생했습니다.");
+      }
+    },
   });
   const handleChange = <
     K extends keyof (CreateActivityRequest & {
@@ -124,7 +148,7 @@ export default function ExperienceEditPage() {
       return;
     }
 
-    // ✅ 스케줄 로직
+    // 스케줄 로직
     const originalSchedules = (data?.schedules ?? []) as Slot[];
 
     const schedulesToAdd = (form.schedules as Slot[])
@@ -142,7 +166,7 @@ export default function ExperienceEditPage() {
         )
         .map((s) => s.id!) ?? [];
 
-    // ✅ 서브 이미지 로직 (id와 imageUrl 둘 다 존재)
+    // 서브 이미지 로직 (id와 imageUrl 둘 다 존재)
     const originalSubImages = data?.subImages ?? [];
     const currentSubImages = form.subImages ?? [];
 
@@ -302,6 +326,7 @@ export default function ExperienceEditPage() {
         {/* 예약 가능한 시간대 */}
         <div className="mb-6">
           <DateSection
+            key={dateSectionKey}
             value={form.schedules as Slot[]}
             onChange={(schedules) => handleChange("schedules", schedules)}
           />
@@ -322,7 +347,7 @@ export default function ExperienceEditPage() {
           <div className="mb-2 typo-16-b text-gray-950">소개 이미지 등록</div>
           <PhotoSection
             limit={4}
-            // ✅ PhotoSection은 string[]을 받기 때문에 imageUrl만 추출
+            // PhotoSection은 string[]을 받기 때문에 imageUrl만 추출
             value={form.subImages?.map((img) => img.imageUrl) ?? []}
             onChange={(urls) => {
               const updatedSubImages = urls.map((url) => {
