@@ -242,6 +242,13 @@ function ReservationPanel({
   ) => {
     try {
       await updateReservationStatus(activityId, id, status);
+      // ✅ 승인 시: 같은 스케줄 내 다른 예약 자동 거절
+      if (status === "confirmed" && selectedScheduleId) {
+        const declinedPromises = list
+          .filter((r) => r.id !== id)
+          .map((r) => updateReservationStatus(activityId, r.id, "declined"));
+        await Promise.all(declinedPromises);
+      }
       setList((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
       console.error("❌ 예약 상태 변경 실패:", err);
