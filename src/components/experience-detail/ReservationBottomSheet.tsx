@@ -122,7 +122,7 @@ export default function ReservationBottomSheet({
             {/* 날짜/시간 선택 */}
             {step === "date" && (
               <>
-                <p className="typo-20-b mb-6 text-gray-950">날짜</p>
+                <p className="typo-18-b mb-[10px] text-gray-950">날짜</p>
                 <ReservationDatePicker
                   selectedDate={selectedDate}
                   setSelectedDate={setSelectedDate}
@@ -130,7 +130,7 @@ export default function ReservationBottomSheet({
                 />
 
                 <div className="mt-8">
-                  <p className="typo-16-b mb-3 text-gray-950">
+                  <p className="typo-16-b mb-4 text-gray-950">
                     예약 가능한 시간
                   </p>
 
