@@ -181,7 +181,7 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
             </button>
           ))
         ) : (
-          <p className="text-gray-400 mt-4 typo-14-m">
+          <p className="text-gray-500 pt-10 pb-6 typo-14-m text-center">
             선택한 날짜에는 예약 가능한 시간이 없습니다.
           </p>
         )}

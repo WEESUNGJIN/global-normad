@@ -95,7 +95,7 @@ export default function Modal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center">
       {/* 반투명 배경 */}
       <div
         className="absolute inset-0 bg-black/50"
