@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import clsx from "clsx";
 import GNB from "@/components/GNB";
 import Footer from "@/components/Footer";
 import ExperienceDetailImages from "@/components/experience-detail/ExperienceDetailImages";
@@ -9,7 +10,17 @@ import ExperienceDetailDescription from "@/components/experience-detail/Experien
 import ExperienceDetailMap from "@/components/experience-detail/ExperienceDetailMap";
 import ExperienceDetailReviews from "@/components/experience-detail/ExperienceDetailReviews";
 import ReservationCard from "@/components/experience-detail/ReservationCard";
+import ReservationBottomSheet from "@/components/experience-detail/ReservationBottomSheet";
+import Modal from "@/components/Modal";
 import api from "@/utils/api";
+import type { AxiosError } from "axios";
+
+interface Schedule {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+}
 
 interface SubImage {
   id: number;
@@ -29,6 +40,7 @@ interface Activity {
   subImageUrls?: string[];
   reviewCount: number;
   rating: number;
+  schedules?: Schedule[];
 }
 
 interface ExperienceDetailProps {
@@ -40,12 +52,19 @@ export default function ExperienceDetail({
 }: ExperienceDetailProps) {
   const [activity, setActivity] = useState<Activity | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+
+  const [selectedReservation, setSelectedReservation] = useState<{
+    date: Date;
+    time: string;
+    count: number;
+  } | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        console.log("체험 상세 데이터 요청 시작");
-
         const activityRes = (await api.get(
           `activities/${activityId}`,
         )) as Activity;
@@ -92,6 +111,46 @@ export default function ExperienceDetail({
   }, [activityId]);
 
   if (!activity) return <p>로딩 중...</p>;
+
+  const handleReserve = async () => {
+    if (!selectedReservation || !activity) return;
+
+    try {
+      const { date, time, count } = selectedReservation;
+
+      const matchedSchedule = activity.schedules?.find((s) => {
+        const scheduleDate = new Date(s.date);
+        return (
+          scheduleDate.toDateString() === date.toDateString() &&
+          `${s.startTime}~${s.endTime}` === time
+        );
+      });
+
+      if (!matchedSchedule) {
+        setModalMessage("선택한 스케줄을 찾을 수 없습니다.");
+        setIsModalOpen(true);
+        return;
+      }
+
+      // 예약 요청
+      await api.post(`/activities/${activity.id}/reservations`, {
+        scheduleId: matchedSchedule.id,
+        headCount: count,
+      });
+
+      setModalMessage("예약이 완료되었습니다!");
+      setIsModalOpen(true);
+      setSelectedReservation(null);
+    } catch (err) {
+      const axiosError = err as AxiosError;
+      if (axiosError.response?.status === 409) {
+        setModalMessage("이미 신청된 예약입니다.");
+      } else {
+        setModalMessage("예약에 실패했습니다. 다시 시도해주세요.");
+      }
+      setIsModalOpen(true);
+    }
+  };
 
   return (
     <main>
@@ -160,28 +219,84 @@ export default function ExperienceDetail({
               isOwner={isOwner}
               id={String(activity.id)}
             />
-            {!isOwner && <ReservationCard price={activity.price} />}
+            {!isOwner && <ReservationCard activityId={activity.id} />}
           </div>
         </div>
       </div>
 
-      {/* 하단 예약 바 (모바일 전용) */}
+      {/* 하단 예약 바 */}
       {!isOwner && (
-        <div className="lg:hidden fixed bottom-0 left-0 w-full z-[9999] bg-white border-t border-gray-100 px-6 pt-[22px] pb-[max(env(safe-area-inset-bottom),16px)]">
+        <div className="lg:hidden fixed bottom-0 left-0 w-full z-[9000] bg-white border-t border-gray-100 px-6 pt-[22px] pb-[max(env(safe-area-inset-bottom),16px)]">
           <div className="flex items-center justify-between mb-3">
             <p className="typo-18-b text-gray-950">
-              ₩{activity.price.toLocaleString()}{" "}
-              <span className="typo-16-m text-gray-600">/ 인</span>
+              ₩
+              {(
+                (activity.price ?? 0) * (selectedReservation?.count ?? 1)
+              ).toLocaleString()}{" "}
+              <span className="typo-16-m text-gray-600">
+                / {selectedReservation?.count ?? 1}명
+              </span>
             </p>
-            <button className="typo-16-b text-primary border-b-2 border-primary">
-              날짜 선택하기
-            </button>
+
+            {selectedReservation ? (
+              <button
+                onClick={() => setIsSheetOpen(true)}
+                className="typo-16-b text-primary border-b-2 border-primary"
+              >
+                {`${selectedReservation.date
+                  .toISOString()
+                  .slice(2, 10)
+                  .replace(/-/g, "/")} ${selectedReservation.time}`}
+              </button>
+            ) : (
+              <button
+                className="typo-16-b text-primary border-b-2 border-primary"
+                onClick={() => setIsSheetOpen(true)}
+              >
+                날짜 선택하기
+              </button>
+            )}
           </div>
-          <button className="w-full py-4 rounded-[14px] bg-primary text-white typo-16-b disabled:bg-gray-300">
+
+          {/* 예약 버튼 활성화 조건 */}
+          <button
+            className={clsx(
+              "w-full py-4 rounded-[14px] typo-16-b transition",
+              selectedReservation
+                ? "bg-primary text-white"
+                : "bg-gray-300 text-white",
+            )}
+            disabled={!selectedReservation}
+            onClick={handleReserve}
+          >
             예약하기
           </button>
         </div>
       )}
+
+      {/* 시트 연결 */}
+      {isSheetOpen && (
+        <ReservationBottomSheet
+          activityId={activity.id}
+          price={activity.price}
+          initialData={selectedReservation}
+          onClose={() => setIsSheetOpen(false)}
+          onConfirm={(data) => setSelectedReservation(data)}
+        />
+      )}
+
+      <Modal
+        open={isModalOpen}
+        confirmText="확인"
+        showCancel={false}
+        onConfirm={() => setIsModalOpen(false)}
+        onClose={() => setIsModalOpen(false)}
+        actionsMaxClass="max-w-[180px] md:max-w-[200px]"
+      >
+        <div className="mb-2">
+          <h3 className="typo-16-b md:text-lg">{modalMessage}</h3>
+        </div>
+      </Modal>
 
       <Footer />
     </main>

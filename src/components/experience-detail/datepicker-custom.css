@@ -1,0 +1,84 @@
+.react-datepicker {
+  border: none !important;
+  font-family: inherit;
+  width: 100%;
+  display: block !important;
+}
+
+.react-datepicker__month-container {
+  width: 100%;
+  background: white;
+  margin-left: -3px;
+}
+
+.react-datepicker__header {
+  background: transparent;
+  border-bottom: none;
+  padding: 0 1rem;
+}
+
+.react-datepicker__day-name {
+  color: #49494c;
+  font-size: 16px;
+  font-weight: 600;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.react-datepicker__month {
+  margin: 0;
+}
+
+.react-datepicker__day {
+  font-size: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%; /* 원형 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.react-datepicker__day--outside-month {
+  color: #b3b4bc !important;
+  pointer-events: none;
+}
+
+.custom-calendar {
+  width: 100%;
+}
+
+/* react-datepicker 기본 today 색상 덮어쓰기 */
+.react-datepicker__day--today {
+  background-color: #f1e1ff !important;
+  color: #8a66ff !important;
+  border-radius: 50% !important;
+}
+
+/* 선택된 날짜가 오늘일 때는 선택 스타일이 우선 */
+.react-datepicker__day--selected {
+  background-color: #8a66ff !important;
+  color: white !important;
+  border-radius: 50% !important;
+}
+
+/* 기본 hover 회색 배경 제거 */
+.react-datepicker__day:hover {
+  background-color: #e6e6e5 !important;
+  border-radius: 50% !important;
+}
+
+/* 오늘 날짜 위에 hover 시에도 색상 유지 */
+.react-datepicker__day--today:hover {
+  background-color: #f1e1ff !important;
+  color: #8a66ff !important;
+}
+
+/* 선택된 날짜 위에 hover 시에도 색상 유지 */
+.react-datepicker__day--selected:hover {
+  background-color: #8a66ff !important;
+  color: white !important;
+}
