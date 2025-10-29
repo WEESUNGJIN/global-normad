@@ -8,6 +8,8 @@ import api from "@/utils/api";
 import MinusIcon from "@/assets/icon/icon_minus.svg";
 import PlusIcon from "@/assets/icon/icon_plus.svg";
 import ReservationDatePicker from "@/components/experience-detail/ReservationDatePicker";
+import Modal from "@/components/Modal";
+import type { AxiosError } from "axios";
 
 interface Schedule {
   id: number;
@@ -33,6 +35,8 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
     const fetchActivity = async () => {
@@ -98,8 +102,23 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
         body,
       );
       console.log("예약 성공:", res);
-    } catch (err) {
+
+      setModalMessage("예약이 완료되었습니다.");
+      setIsModalOpen(true);
+    } catch (err: unknown) {
       console.error("예약 실패:", err);
+
+      const axiosError = err as AxiosError;
+
+      const status = axiosError.response?.status;
+
+      if (status === 409) {
+        setModalMessage("이미 신청된 예약입니다.");
+      } else {
+        setModalMessage("예약에 실패했습니다. 다시 시도해주세요.");
+      }
+
+      setIsModalOpen(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -190,6 +209,19 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
           예약하기
         </button>
       </div>
+
+      <Modal
+        open={isModalOpen}
+        confirmText="확인"
+        showCancel={false}
+        onConfirm={() => setIsModalOpen(false)}
+        onClose={() => setIsModalOpen(false)}
+        actionsMaxClass="max-w-[180px] md:max-w-[200px]"
+      >
+        <div className="mb-2">
+          <h3 className="typo-16-b md:text-lg">{modalMessage}</h3>
+        </div>
+      </Modal>
     </div>
   );
 }
