@@ -244,8 +244,9 @@ export default function ExperienceDetail({
                 className="typo-16-b text-primary border-b-2 border-primary"
               >
                 {`${selectedReservation.date
-                  .toLocaleDateString("ko-KR")
-                  .slice(2)} ${selectedReservation.time}`}
+                  .toISOString()
+                  .slice(2, 10)
+                  .replace(/-/g, "/")} ${selectedReservation.time}`}
               </button>
             ) : (
               <button
