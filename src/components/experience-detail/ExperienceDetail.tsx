@@ -239,11 +239,14 @@ export default function ExperienceDetail({
             </p>
 
             {selectedReservation ? (
-              <p className="typo-16-b text-primary border-b-2 border-primary">
+              <button
+                onClick={() => setIsSheetOpen(true)}
+                className="typo-16-b text-primary border-b-2 border-primary"
+              >
                 {`${selectedReservation.date
                   .toLocaleDateString("ko-KR")
                   .slice(2)} ${selectedReservation.time}`}
-              </p>
+              </button>
             ) : (
               <button
                 className="typo-16-b text-primary border-b-2 border-primary"
@@ -275,8 +278,9 @@ export default function ExperienceDetail({
         <ReservationBottomSheet
           activityId={activity.id}
           price={activity.price}
+          initialData={selectedReservation}
           onClose={() => setIsSheetOpen(false)}
-          onConfirm={(data) => setSelectedReservation(data)} // ← 선택 데이터 전달만
+          onConfirm={(data) => setSelectedReservation(data)}
         />
       )}
 

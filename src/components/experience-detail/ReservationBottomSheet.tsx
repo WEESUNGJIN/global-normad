@@ -28,17 +28,24 @@ interface ReservationBottomSheetProps {
   price: number;
   onClose: () => void;
   onConfirm: (data: { date: Date; time: string; count: number }) => void;
+  initialData?: { date: Date; time: string; count: number } | null;
 }
 
 export default function ReservationBottomSheet({
   activityId,
   onClose,
   onConfirm,
+  initialData,
 }: ReservationBottomSheetProps) {
   const [activity, setActivity] = useState<Experience | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [count, setCount] = useState(1);
+
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    initialData?.date ?? null,
+  );
+  const [selectedTime, setSelectedTime] = useState<string | null>(
+    initialData?.time ?? null,
+  );
+  const [count, setCount] = useState(initialData?.count ?? 1);
 
   const [step, setStep] = useState<"date" | "count">("date");
   const [isMobile, setIsMobile] = useState(false);
