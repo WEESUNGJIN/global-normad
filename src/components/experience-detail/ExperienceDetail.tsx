@@ -160,7 +160,7 @@ export default function ExperienceDetail({
               isOwner={isOwner}
               id={String(activity.id)}
             />
-            {!isOwner && <ReservationCard price={activity.price} />}
+            {!isOwner && <ReservationCard activityId={activity.id} />}
           </div>
         </div>
       </div>

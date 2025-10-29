@@ -13,6 +13,7 @@ import iconArrowRight from "@/assets/icon/icon_alt arrow_right.svg";
 interface ReservationDatePickerProps {
   selectedDate: Date | null;
   setSelectedDate: (date: Date | null) => void;
+  includeDates?: Date[];
 }
 
 export default function ReservationDatePicker({
