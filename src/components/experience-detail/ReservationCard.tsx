@@ -10,6 +10,7 @@ import PlusIcon from "@/assets/icon/icon_plus.svg";
 import ReservationDatePicker from "@/components/experience-detail/ReservationDatePicker";
 
 interface Schedule {
+  id: number;
   date: string;
   startTime: string;
   endTime: string;
@@ -31,6 +32,7 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
   const [count, setCount] = useState(1);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchActivity = async () => {
@@ -45,6 +47,14 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
     fetchActivity();
   }, [activityId]);
 
+  const availableDates =
+    activity?.schedules.map((s) => {
+      const [year, month, day] = s.date.split("-").map(Number);
+      const d = new Date(year, month - 1, day);
+      d.setHours(9, 0, 0, 0); // 한국 시간 기준 보정
+      return d;
+    }) ?? [];
+
   const availableTimes = selectedDate
     ? (activity?.schedules
         ?.filter((s) => {
@@ -56,20 +66,44 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
         .map((s) => `${s.startTime}~${s.endTime}`) ?? [])
     : [];
 
-  const handleReserve = () => {
-    if (!selectedDate || !selectedTime) {
-      alert("날짜와 시간을 모두 선택해주세요.");
-      return;
-    }
-  };
+  const handleReserve = async () => {
+    if (!selectedDate || !selectedTime || !activity) return;
 
-  const availableDates =
-    activity?.schedules.map((s) => {
+    setIsSubmitting(true);
+
+    const matchedSchedule = activity.schedules.find((s) => {
       const [year, month, day] = s.date.split("-").map(Number);
       const d = new Date(year, month - 1, day);
       d.setHours(9, 0, 0, 0);
-      return d;
-    }) ?? [];
+      return (
+        selectedDate.toDateString() === d.toDateString() &&
+        `${s.startTime}~${s.endTime}` === selectedTime
+      );
+    });
+
+    if (!matchedSchedule) {
+      console.error("선택한 스케줄 정보를 찾을 수 없습니다.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const body = {
+        scheduleId: matchedSchedule.id,
+        headCount: count,
+      };
+
+      const res = await api.post(
+        `/activities/${activityId}/reservations`,
+        body,
+      );
+      console.log("예약 성공:", res);
+    } catch (err) {
+      console.error("예약 실패:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="px-6 py-8 w-100 rounded-3xl border border-gray-100 shadow-searchbar bg-white">
@@ -151,7 +185,7 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
               : "bg-gray-300 text-white cursor-not-allowed",
           )}
           onClick={handleReserve}
-          disabled={!selectedTime}
+          disabled={!selectedTime || isSubmitting}
         >
           예약하기
         </button>
