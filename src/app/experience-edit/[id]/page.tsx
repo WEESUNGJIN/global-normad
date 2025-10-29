@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Modal from "@/components/Modal";
 import Input from "@/components/Input";
@@ -27,6 +27,7 @@ export default function ExperienceEditPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const params = useParams<{ id: string }>();
+  const pathname = usePathname();
   const id = Number(params.id);
   const [form, setForm] = useState<
     | (CreateActivityRequest & {
@@ -40,7 +41,7 @@ export default function ExperienceEditPage() {
   const [isDirty, setIsDirty] = useState(false);
   const [dateSectionKey, setDateSectionKey] = useState(0);
 
-  // ✅ 기존 체험 데이터 불러오기
+  // 기존 체험 데이터 불러오기
   const { data, isLoading } = useQuery<
     CreateActivityRequest & {
       id: number;
@@ -65,7 +66,7 @@ export default function ExperienceEditPage() {
     const t = setTimeout(() => {
       setForm({
         ...data,
-        subImages: data.subImages ?? [], // ✅ subImages 존재 안 하면 빈 배열로 초기화
+        subImages: data.subImages ?? [], // subImages 존재 안 하면 빈 배열로 초기화
       });
     }, 0);
     return () => clearTimeout(t);
@@ -214,10 +215,21 @@ export default function ExperienceEditPage() {
   useEffect(() => {
     if (!isDirty) return;
 
-    const handlePopState = (e: PopStateEvent) => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      Object.defineProperty(e, "returnValue", {
+        configurable: true,
+        value: "",
+      });
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // 뒤로가기(라우터 pop) 감지
+    const handlePop = (e: PopStateEvent) => {
       e.preventDefault();
       setPendingUrl("/mypage/experience");
       setIsLeaveModalOpen(true);
+      history.pushState(null, "", pathname); // 스택 복원
     };
 
     const handleLinkClick = (e: MouseEvent) => {
@@ -237,15 +249,16 @@ export default function ExperienceEditPage() {
       setIsLeaveModalOpen(true);
     };
 
-    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("popstate", handlePop);
     document.addEventListener("click", handleLinkClick, true);
     history.pushState(null, "", window.location.href);
 
     return () => {
-      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePop);
       document.removeEventListener("click", handleLinkClick);
     };
-  }, [isDirty]);
+  }, [isDirty, pathname]);
 
   const handleLeaveConfirm = () => {
     setIsLeaveModalOpen(false);
@@ -255,6 +268,8 @@ export default function ExperienceEditPage() {
   const handleLeaveCancel = () => {
     setPendingUrl(null);
     setIsLeaveModalOpen(false);
+
+    router.push(pathname);
   };
 
   const SAMPLE_OPTIONS = [
