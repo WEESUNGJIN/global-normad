@@ -58,14 +58,23 @@ export default function ProfileForm() {
         setNickname={setNickname}
         error={error}
       />
-      <PasswordInput
-        password={password}
-        checkPassword={checkPassword}
-        setPassword={setPassword}
-        setCheckPassword={setCheckPassword}
-        error={error}
-        disabled={isKakaoUser}
-      />
+      {!isKakaoUser ? (
+        <PasswordInput
+          password={password}
+          checkPassword={checkPassword}
+          setPassword={setPassword}
+          setCheckPassword={setCheckPassword}
+          error={error}
+          disabled={isKakaoUser}
+        />
+      ) : (
+        <div className="flex items-center gap-2 text-gray-600 text-sm">
+          <span>
+            ⚠️ 소셜 로그인 계정은{" "}
+            <span className="font-medium">비밀번호 변경</span>이 불가능합니다.
+          </span>
+        </div>
+      )}
       <SaveButton success={success} />
     </form>
   );

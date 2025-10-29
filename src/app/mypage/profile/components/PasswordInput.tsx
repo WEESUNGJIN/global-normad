@@ -28,6 +28,8 @@ export default function PasswordInput({
 
   const isMismatch = password && checkPassword && password !== checkPassword;
 
+  const isPasswordEmpty = !password.trim();
+
   const passwordStatus =
     error.includes("비밀번호") || isInvalidPassword ? "error" : "default";
   const checkStatus = isMismatch ? "error" : "default";
@@ -65,10 +67,16 @@ export default function PasswordInput({
         value={checkPassword}
         onChange={(e) => setCheckPassword(e.target.value)}
         showPasswordToggle
-        placeholder={disabled ? "" : "비밀번호를 한 번 더 입력해주세요."}
+        placeholder={
+          disabled
+            ? ""
+            : isPasswordEmpty
+              ? "새 비밀번호를 먼저 작성해 주세요."
+              : "비밀번호를 한 번 더 입력해주세요."
+        }
         status={checkStatus}
         helpText={checkHelpText}
-        disabled={disabled}
+        disabled={disabled || isPasswordEmpty}
         type="password"
       />
     </>

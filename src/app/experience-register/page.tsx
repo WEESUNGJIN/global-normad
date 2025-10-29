@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createActivity } from "@/app/mypage/experience/api/activities";
 import { ApiError, CreateActivityRequest } from "@/types/experience";
@@ -18,7 +18,7 @@ import warning from "@/assets/img/warning_state.png";
 export default function ExperienceRegisterPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-
+  const pathname = usePathname();
   const [form, setForm] = useState<CreateActivityRequest>({
     title: "",
     category: "",
@@ -93,23 +93,30 @@ export default function ExperienceRegisterPage() {
     }
   };
 
-  // 페이지 이탈 감지
   useEffect(() => {
     if (!isDirty) return;
 
-    // 브라우저 뒤로가기 감지
-    const handlePopState = (e: PopStateEvent) => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      setPendingUrl("/mypage/experience"); // 명시적으로 뒤로가기 시 이동할 경로 지정
+      Object.defineProperty(e, "returnValue", {
+        configurable: true,
+        value: "",
+      });
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // 뒤로가기(라우터 pop) 감지
+    const handlePop = (e: PopStateEvent) => {
+      e.preventDefault();
+      setPendingUrl("/mypage/experience");
       setIsLeaveModalOpen(true);
+      history.pushState(null, "", pathname); // 스택 복원
     };
 
-    // 링크 클릭 감지 (로고, 프로필 등)
     const handleLinkClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       const anchor = target?.closest("a") as HTMLAnchorElement | null;
       if (!anchor) return;
-
       const href = anchor.getAttribute("href");
       if (
         !href ||
@@ -118,21 +125,21 @@ export default function ExperienceRegisterPage() {
         href.startsWith("tel:")
       )
         return;
-
       e.preventDefault();
       setPendingUrl(href);
       setIsLeaveModalOpen(true);
     };
 
-    window.addEventListener("popstate", handlePopState);
+    window.addEventListener("popstate", handlePop);
     document.addEventListener("click", handleLinkClick, true);
     history.pushState(null, "", window.location.href);
 
     return () => {
-      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePop);
       document.removeEventListener("click", handleLinkClick);
     };
-  }, [isDirty]);
+  }, [isDirty, pathname]);
 
   // “예” → 이동하려던 페이지로
   const handleLeaveConfirm = () => {
