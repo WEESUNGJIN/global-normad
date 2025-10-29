@@ -62,6 +62,7 @@ export default function ReservationDatePicker({
         dayClassName={(date) => {
           const isSelected =
             selectedDate?.toDateString() === date.toDateString();
+
           const isToday = date.toDateString() === new Date().toDateString();
 
           return clsx(
@@ -71,10 +72,9 @@ export default function ReservationDatePicker({
               "bg-[#8A66FF] text-white": isSelected,
 
               // 오늘 날짜
-              "bg-[#F1E1FF] text-[#8A66FF]": isToday && !isSelected,
+              "bg-[#F1E1FF] text-[#8A66FF]": isToday && isSelected,
 
-              // 일반 날짜
-              "text-[#49494C]": !isSelected && !isToday,
+              "!bg-transparent": !isSelected && !isToday,
             },
           );
         }}

@@ -29,7 +29,7 @@ export default function ReservationCard({ price }: ReservationCardProps) {
   };
 
   return (
-    <div className="p-6 w-100 rounded-3xl border border-gray-100 shadow-searchbar bg-white">
+    <div className="px-6 py-8 w-100 rounded-3xl border border-gray-100 shadow-searchbar bg-white">
       {/* 가격 */}
       <div className="flex items-center mb-6">
         <p className="typo-24-b text-gray-950 leading-none">
@@ -80,7 +80,7 @@ export default function ReservationCard({ price }: ReservationCardProps) {
               "w-full py-4 typo-16-m rounded-xl mt-4 border transition",
               selectedTime === time
                 ? "bg-primary text-white border-transparent"
-                : "border-gray-200 text-gray-950 hover:text-primary",
+                : "border-gray-200 text-gray-950",
             )}
           >
             {time}
