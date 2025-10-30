@@ -2,6 +2,7 @@
 import clsx from "clsx";
 import Tag from "@/components/Tag";
 import Button from "@/components/Button";
+import { useState } from "react";
 
 export type ReservationStatus =
   | "pending"
@@ -9,8 +10,6 @@ export type ReservationStatus =
   | "declined"
   | "canceled"
   | "completed";
-
-// type MobileState = "done" | "ing"; // done=후기작성 / ing=예약변경·취소 // 모바일 코드 변경으로 사용 안함
 
 export interface ListCardProps {
   // 공통 필수
@@ -38,8 +37,6 @@ export interface ListCardProps {
 
   showActions?: boolean;
 
-  // 모바일 테스트용
-  // forceMobileState?: MobileState; // 모바일 코드 변경으로 사용 안함
   actionsDisabled?: boolean;
 }
 
@@ -71,13 +68,25 @@ export default function ListCard({
   onClickChange,
   onClickCancel,
   variant = "pc",
-  // forceMobileState, // 모바일 코드 변경으로 사용 안함
   actionsDisabled,
 }: ListCardProps) {
   const { v: tagVariant, t: tagText } = badge(status);
-  // const mobileState: MobileState =
-  //   forceMobileState ?? (status === "completed" ? "done" : "ing"); 모바일 코드 변경으로 사용 안함
   const hasSubtitle = !!subtitle?.trim();
+
+  // ✅ 모바일에서 사용할 내부 토글 상태
+  const [showMobileActions, setShowMobileActions] = useState(false);
+
+  // ✅ 카드 본체 클릭 핸들러: 모바일에서만 토글 기능을 수행
+  const handleCardClick = () => {
+    if (variant === "mobile") {
+      // 액션이 있는 상태일 때만 토글
+      if (status === "pending" || status === "completed") {
+          setShowMobileActions(!showMobileActions);
+      }
+    }
+    // PC에서는 클릭해도 아무 일 없음
+  };
+
 
   const ProgressActions = (
     <div className={clsx(variant === "mobile" ? "grid grid-cols-2 gap-3" : "flex gap-2")}>
@@ -118,19 +127,32 @@ export default function ListCard({
     />
   );
 
-  /* ───────────── MOBILE (시안 동일: 309/139, 38px 겹침, 버튼 410px) ───────────── */
+  /* ───────────── MOBILE (클릭 시 하단 버튼 토글) ───────────── */
   if (variant === "mobile") {
-    // 고정값: 카드 309, 이미지 139, 카드가 가리는 폭 38 → 밖으로 보이는 폭 101
-    // 총 너비(버튼 기준) = 309 + 101 = 410
+    // 원본 비율 (309px + 101px = 410px)을 유지하면서 가변 너비로 전환합니다.
+    const CARD_WIDTH_RATIO = "75.36%"; // 309 / 410
+    const IMAGE_WIDTH_RATIO = "34%";  // 139px 부분
+
     return (
-      <div className={clsx("relative w-[410px]", className)}>
-        {/* 이미지: 카드 뒤에 깔리고, 오른쪽으로 101px 노출되도록 right:0에 배치 */}
-        <div className="absolute right-0 top-0 -z-10 w-[139px] h-[139px] rounded-[20px] overflow-hidden">
+      // w-full, max-w-[410px]로 변경하여 가변 너비 및 최대 너비 제한
+      <div className={clsx("relative w-full max-w-[410px]", className)}>
+        
+        {/* 이미지: 오른쪽 139px 부분 */}
+        {/* ✅ 수정: w-[34%] 대신 style prop 사용 */}
+        <div 
+            className={`absolute right-0 top-0 -z-10 h-[139px] rounded-[20px] overflow-hidden`}
+            style={{ width: IMAGE_WIDTH_RATIO }} // <== 인라인 스타일 적용
+        >
           <img src={thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
         </div>
 
-        {/* 카드: 폭 309, 높이 139, 이미지 위 38px 덮음 */}
-        <div className="relative z-0 h-[139px] w-[309px] rounded-[20px] bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+        {/* 카드: 왼쪽 309px 부분 */}
+        {/* ✅ 수정: w-[75.36%] 대신 style prop 사용 */}
+        <div 
+          className="relative z-0 h-[139px] rounded-[20px] bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden cursor-pointer"
+          style={{ width: CARD_WIDTH_RATIO }} // <== 인라인 스타일 적용
+          onClick={handleCardClick}
+        >
           <div className="h-full px-5 py-5 flex flex-col justify-between">
             <div>
               {tagText && (
@@ -164,27 +186,29 @@ export default function ListCard({
           </div>
         </div>
 
-        {/* 버튼: 카드+이미지 전체 폭(410px)에 맞춤 */}
-        <div className="mt-3 w-[410px]">
-          {status === "completed"
-            ? DoneCTA
-            : status === "pending"
-            ? ProgressActions
-            : null}
-        </div>
+        {/* 버튼: w-full 유지 (문제 없음) */}
+        {showMobileActions && (
+          <div className="mt-3 w-full">
+            {status === "completed"
+              ? DoneCTA
+              : status === "pending"
+              ? ProgressActions
+              : null}
+          </div>
+        )}
       </div>
     );
   }
 
-  /* ───────────── PC ───────────── */
+  /* ───────────── PC (버튼 고정 표시) ───────────── */
   return (
     <div
       className={clsx(
         "flex items-stretch bg-white rounded-[20px] shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100 overflow-hidden",
-        // ✅ PC 높이를 200px로 고정
         "h-[200px]",
         className
       )}
+      onClick={handleCardClick}
     >
       {/* 좌 텍스트 */}
       <div className="flex-1 p-5 flex flex-col justify-between">
@@ -200,7 +224,6 @@ export default function ListCard({
           )}
           <div>
             <h4 className="typo-16-b text-text-primary mb-1 line-clamp-2">
-                {/* ✅ 제목이 2줄을 넘지 않도록 line-clamp-2 적용 (높이 유지 목적) */}
                 {title}
             </h4>
             {hasSubtitle ? (
@@ -215,6 +238,7 @@ export default function ListCard({
           </div>
         </div>
 
+        {/* PC 버튼 위치: 텍스트 영역의 하단 우측 (항상 표시됨) */}
         <div className="flex justify-between items-center mt-4">
           <div>
             <span className="typo-16-b text-text-primary">{price}</span>
@@ -229,7 +253,7 @@ export default function ListCard({
         </div>
       </div>
 
-      {/* 우 이미지: 카드 내부에서 꽉 차게, 높이 200px에 맞춰집니다. */}
+      {/* 우 이미지 */}
       <div className="w-[180px] shrink-0 overflow-hidden">
         <img
           src={thumbnail}
