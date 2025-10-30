@@ -1,4 +1,4 @@
-// src/app/oauth/kakao-login/KakaoLoginHandler.tsx
+// src/app/oauth/kakao-login/KakaoSignupHandler.tsx
 
 "use client";
 
@@ -9,13 +9,13 @@ import { useRouter } from "next/navigation";
 import api from "@/utils/api";
 import { useAuthStore, User } from "@/app/store/useAuthStore";
 
-interface KakaoLoginHandlerProps {
+interface KakaoSignupHandlerProps {
   searchParams: Usable<Record<string, string | string[] | undefined>>;
 }
 
-export default function KakaoLoginHandler({
+export default function KakaoSignupHandler({
   searchParams,
-}: KakaoLoginHandlerProps): React.ReactElement {
+}: KakaoSignupHandlerProps): React.ReactElement {
   const params = use(searchParams);
   const code = params.code as string | undefined;
 
@@ -23,14 +23,21 @@ export default function KakaoLoginHandler({
   const { setUser } = useAuthStore();
 
   useEffect(() => {
-    if (!code) return;
+    if (!code) {
+      console.warn("code 없음 searchParams:", params);
+      return;
+    }
 
-    const handleKakaoLogin = async () => {
+    const handleKakaoSignup = async () => {
       try {
         const redirectUri =
           process.env.NODE_ENV === "production"
-            ? "https://inmyday.vercel.app/oauth/kakao-login"
-            : "http://localhost:3000/oauth/kakao-login";
+            ? "https://inmyday.vercel.app/oauth/kakao"
+            : "http://localhost:3000/oauth/kakao";
+
+        console.log("🚀 [KAKAO SIGNUP] 요청 전 파라미터 확인");
+        console.log("code(token):", code);
+        console.log("redirectUri:", redirectUri);
 
         const res = await api.post<{
           user: {
@@ -41,17 +48,11 @@ export default function KakaoLoginHandler({
           };
           accessToken: string;
           refreshToken: string;
-        }>("/oauth/sign-in/kakao", {
+        }>("/oauth/sign-up/kakao", {
           token: code,
           redirectUri,
+          nickname: "유저",
         });
-
-        console.log("카카오 로그인 응답 전체:", res);
-        console.log("카카오 로그인 유저 데이터:", res.user);
-        console.log(
-          "카카오 로그인 프로필 이미지 URL:",
-          res.user?.profileImageUrl,
-        );
 
         const kakaoUser = {
           ...res.user,
@@ -72,7 +73,7 @@ export default function KakaoLoginHandler({
       }
     };
 
-    handleKakaoLogin();
+    handleKakaoSignup();
   }, [code, router, setUser]);
 
   return (
