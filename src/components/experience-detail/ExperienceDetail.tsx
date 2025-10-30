@@ -110,7 +110,21 @@ export default function ExperienceDetail({
     fetchData();
   }, [activityId]);
 
-  if (!activity) return <p>로딩 중...</p>;
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSheetOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  if (!activity)
+    return (
+      <p className="text-center typo-16-m text-gray-800 pt-6">로딩 중...</p>
+    );
 
   const handleReserve = async () => {
     if (!selectedReservation || !activity) return;
