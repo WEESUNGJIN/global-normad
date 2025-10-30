@@ -42,7 +42,7 @@ type PageMeta = {
 function inferIsLastPage(
   res: MyReservationsResponse & PageMeta,
   receivedCount: number,
-  pageSize: number
+  pageSize: number,
 ): boolean {
   if (typeof res.isLastPage === "boolean") return res.isLastPage;
   if ("nextCursor" in res) return (res.nextCursor ?? null) === null;
@@ -92,7 +92,7 @@ export default function BookingsPage() {
         setIsFetching(true);
 
         const res = await api.get<MyReservationsResponse & PageMeta>(
-          `/my-reservations?page=${page}&limit=${PAGE_SIZE}`
+          `/my-reservations?page=${page}&limit=${PAGE_SIZE}`,
         );
 
         if (aborted) return;
@@ -146,7 +146,7 @@ export default function BookingsPage() {
           setPage((prev) => prev + 1);
         }
       },
-      { threshold: 1.0 }
+      { threshold: 1.0 },
     );
 
     observer.observe(el);
@@ -157,9 +157,9 @@ export default function BookingsPage() {
   const filtered = useMemo(
     () =>
       reservations.filter((r) =>
-        filter === "all" ? true : r.status === filter
+        filter === "all" ? true : r.status === filter,
       ),
-    [reservations, filter]
+    [reservations, filter],
   );
 
   // ✅ 후기 작성 (서버 저장)
@@ -175,8 +175,8 @@ export default function BookingsPage() {
 
       setReservations((prev) =>
         prev.map((r) =>
-          r.id === selectedReservation.id ? { ...r, reviewSubmitted: true } : r
-        )
+          r.id === selectedReservation.id ? { ...r, reviewSubmitted: true } : r,
+        ),
       );
 
       setOpenReviewModal(false);
@@ -210,8 +210,8 @@ export default function BookingsPage() {
 
       setReservations((prev) =>
         prev.map((r) =>
-          r.id === targetReservation.id ? { ...r, status: "canceled" } : r
-        )
+          r.id === targetReservation.id ? { ...r, status: "canceled" } : r,
+        ),
       );
 
       setOpenCancelModal(false);
@@ -293,7 +293,11 @@ export default function BookingsPage() {
                     label="예약 변경"
                     variant="secondary"
                     className="w-1/3 h-11"
-                    onClick={() => router.push(`/experience-detail/${r.activity.id}`)}
+                    onClick={() =>
+                      router.push(
+                        `/experience-detail/${r.activity.id}?mode=edit&reservationId=${r.id}`,
+                      )
+                    }
                   />
                   <Button
                     label="예약 취소"
@@ -306,8 +310,8 @@ export default function BookingsPage() {
                   />
                 </>
               )}
-              {r.status === "completed" && (
-                r.reviewSubmitted ? (
+              {r.status === "completed" &&
+                (r.reviewSubmitted ? (
                   <Button
                     label="후기 완료"
                     variant="secondary"
@@ -324,8 +328,7 @@ export default function BookingsPage() {
                       setOpenReviewModal(true);
                     }}
                   />
-                )
-              )}
+                ))}
             </div>
           )}
         </div>

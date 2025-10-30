@@ -18,7 +18,6 @@ interface Schedule {
 
 interface Experience {
   id: number;
-  title: string;
   price: number;
   schedules: Schedule[];
 }
@@ -27,7 +26,7 @@ interface ReservationBottomSheetProps {
   activityId: number;
   price: number;
   onClose: () => void;
-  onConfirm: (data: { date: Date; time: string; count: number }) => void;
+  onConfirm: (data: { date: Date; time: string; count: number }) => void; // ✅ 선택 데이터만 전달
   initialData?: { date: Date; time: string; count: number } | null;
 }
 
@@ -38,7 +37,6 @@ export default function ReservationBottomSheet({
   initialData,
 }: ReservationBottomSheetProps) {
   const [activity, setActivity] = useState<Experience | null>(null);
-
   const [selectedDate, setSelectedDate] = useState<Date | null>(
     initialData?.date ?? null,
   );
@@ -46,7 +44,6 @@ export default function ReservationBottomSheet({
     initialData?.time ?? null,
   );
   const [count, setCount] = useState(initialData?.count ?? 1);
-
   const [step, setStep] = useState<"date" | "count">("date");
   const [isMobile, setIsMobile] = useState(false);
 
@@ -90,28 +87,17 @@ export default function ReservationBottomSheet({
       : [];
 
   const handleConfirm = () => {
-    if (isMobile) {
-      if (step === "date") {
-        if (!selectedDate || !selectedTime) {
-          alert("날짜와 시간을 선택해주세요.");
-          return;
-        }
-        setStep("count");
-        return;
-      }
-
-      if (step === "count") {
-        onConfirm({ date: selectedDate!, time: selectedTime!, count });
-        onClose();
-        return;
-      }
-    }
-
     if (!selectedDate || !selectedTime) {
       alert("날짜와 시간을 선택해주세요.");
       return;
     }
 
+    if (isMobile && step === "date") {
+      setStep("count");
+      return;
+    }
+
+    // ✅ 예약 정보만 상위로 전달
     onConfirm({ date: selectedDate, time: selectedTime, count });
     onClose();
   };
@@ -126,7 +112,6 @@ export default function ReservationBottomSheet({
       <div className="w-full bg-white rounded-t-3xl p-6 md:p-8 animate-slide-up max-h-[90vh] overflow-y-auto">
         {isMobile ? (
           <>
-            {/* 날짜/시간 선택 */}
             {step === "date" && (
               <>
                 <p className="typo-18-b mb-[10px] text-gray-950">날짜</p>
@@ -140,7 +125,6 @@ export default function ReservationBottomSheet({
                   <p className="typo-16-b mb-4 text-gray-950">
                     예약 가능한 시간
                   </p>
-
                   {availableTimes.length > 0 ? (
                     <div className="flex flex-col gap-3">
                       {availableTimes.map((time) => (
@@ -167,10 +151,8 @@ export default function ReservationBottomSheet({
               </>
             )}
 
-            {/* 인원 선택 */}
             {step === "count" && (
               <>
-                {/* 상단 뒤로가기 */}
                 <div className="flex items-center mb-2">
                   <button onClick={() => setStep("date")} className="mr-2">
                     <Image
@@ -189,8 +171,6 @@ export default function ReservationBottomSheet({
 
                 <div className="flex items-center justify-between">
                   <p className="typo-16-b text-gray-950">참여 인원 수</p>
-
-                  {/* 인원 조절 버튼 */}
                   <div className="flex items-center justify-between border border-gray-300 rounded-xl px-5 py-3 min-w-[140px]">
                     <button
                       onClick={() => setCount((p) => Math.max(1, p - 1))}
@@ -203,11 +183,9 @@ export default function ReservationBottomSheet({
                         height={20}
                       />
                     </button>
-
                     <span className="typo-16-b text-gray-800 text-center">
                       {count}
                     </span>
-
                     <button
                       onClick={() => setCount((p) => p + 1)}
                       className="flex items-center justify-center"
@@ -238,7 +216,6 @@ export default function ReservationBottomSheet({
             <div className="bg-white md:shadow-searchbar md:rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
               <div>
                 <p className="typo-16-b mb-4 text-gray-950">예약 가능한 시간</p>
-
                 {availableTimes.length > 0 ? (
                   <div className="flex flex-col gap-3">
                     {availableTimes.map((time) => (
@@ -297,7 +274,6 @@ export default function ReservationBottomSheet({
           </div>
         )}
 
-        {/* 하단 확인 버튼 */}
         <div className="pt-8">
           <button
             className={clsx(
@@ -307,7 +283,7 @@ export default function ReservationBottomSheet({
                 : "bg-gray-300 text-white",
             )}
             disabled={!selectedDate || !selectedTime}
-            onClick={handleConfirm}
+            onClick={handleConfirm} // ✅ 여기서 상위 전달만 수행
           >
             확인
           </button>

@@ -27,9 +27,15 @@ interface Experience {
 
 interface ReservationCardProps {
   activityId: number;
+  isEditMode?: boolean;
+  reservationId?: string | null;
 }
 
-export default function ReservationCard({ activityId }: ReservationCardProps) {
+export default function ReservationCard({
+  activityId,
+  isEditMode = false,
+  reservationId = null,
+}: ReservationCardProps) {
   const [activity, setActivity] = useState<Experience | null>(null);
   const [count, setCount] = useState(1);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -47,38 +53,15 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
         console.error("체험 데이터 불러오기 실패:", err);
       }
     };
-
     fetchActivity();
   }, [activityId]);
 
-  const availableDates =
-    activity?.schedules.map((s) => {
-      const [year, month, day] = s.date.split("-").map(Number);
-      const d = new Date(year, month - 1, day);
-      d.setHours(9, 0, 0, 0); // 한국 시간 기준 보정
-      return d;
-    }) ?? [];
-
-  const availableTimes = selectedDate
-    ? (activity?.schedules
-        ?.filter((s) => {
-          const [year, month, day] = s.date.split("-").map(Number);
-          const d = new Date(year, month - 1, day);
-          d.setHours(9, 0, 0, 0);
-          return selectedDate.toDateString() === d.toDateString();
-        })
-        .map((s) => `${s.startTime}~${s.endTime}`) ?? [])
-    : [];
-
   const handleReserve = async () => {
     if (!selectedDate || !selectedTime || !activity) return;
-
     setIsSubmitting(true);
 
     const matchedSchedule = activity.schedules.find((s) => {
-      const [year, month, day] = s.date.split("-").map(Number);
-      const d = new Date(year, month - 1, day);
-      d.setHours(9, 0, 0, 0);
+      const d = new Date(s.date);
       return (
         selectedDate.toDateString() === d.toDateString() &&
         `${s.startTime}~${s.endTime}` === selectedTime
@@ -86,38 +69,38 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
     });
 
     if (!matchedSchedule) {
-      console.error("선택한 스케줄 정보를 찾을 수 없습니다.");
       setIsSubmitting(false);
+      setModalMessage("선택한 스케줄을 찾을 수 없습니다.");
+      setIsModalOpen(true);
       return;
     }
 
     try {
-      const body = {
-        scheduleId: matchedSchedule.id,
-        headCount: count,
-      };
-
-      const res = await api.post(
-        `/activities/${activityId}/reservations`,
-        body,
-      );
-      console.log("예약 성공:", res);
-
-      setModalMessage("예약이 완료되었습니다.");
-      setIsModalOpen(true);
-    } catch (err: unknown) {
-      console.error("예약 실패:", err);
-
-      const axiosError = err as AxiosError;
-
-      const status = axiosError.response?.status;
-
-      if (status === 409) {
-        setModalMessage("이미 신청된 예약입니다.");
+      if (isEditMode && reservationId) {
+        // 기존 예약 취소 + 새 예약 생성
+        await api.patch(`/my-reservations/${reservationId}`, {
+          status: "canceled",
+        });
+        await api.post(`/activities/${activityId}/reservations`, {
+          scheduleId: matchedSchedule.id,
+          headCount: count,
+        });
+        setModalMessage("예약이 성공적으로 변경되었습니다.");
       } else {
-        setModalMessage("예약에 실패했습니다. 다시 시도해주세요.");
+        await api.post(`/activities/${activityId}/reservations`, {
+          scheduleId: matchedSchedule.id,
+          headCount: count,
+        });
+        setModalMessage("예약이 완료되었습니다.");
       }
-
+      setIsModalOpen(true);
+    } catch (err) {
+      const axiosError = err as AxiosError;
+      setModalMessage(
+        axiosError.response?.status === 409
+          ? "이미 신청된 예약입니다."
+          : "예약 처리 중 오류가 발생했습니다.",
+      );
       setIsModalOpen(true);
     } finally {
       setIsSubmitting(false);
@@ -143,7 +126,9 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
           <ReservationDatePicker
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
-            includeDates={availableDates}
+            includeDates={
+              activity?.schedules.map((s) => new Date(s.date)) ?? []
+            }
           />
         </div>
       </div>
@@ -165,21 +150,27 @@ export default function ReservationCard({ activityId }: ReservationCardProps) {
       {/* 예약 가능한 시간 */}
       <div className="pb-6 border-b border-gray-100">
         <p className="typo-16-b text-gray-950">예약 가능한 시간</p>
-        {availableTimes.length > 0 ? (
-          availableTimes.map((time) => (
-            <button
-              key={time}
-              onClick={() => setSelectedTime(time)}
-              className={clsx(
-                "w-full py-4 typo-16-m rounded-xl mt-4 border transition",
-                selectedTime === time
-                  ? "bg-primary text-white border-transparent"
-                  : "border-gray-200 text-gray-950",
-              )}
-            >
-              {time}
-            </button>
-          ))
+        {activity?.schedules.length ? (
+          activity.schedules
+            .filter((s) => {
+              const d = new Date(s.date);
+              return selectedDate?.toDateString() === d.toDateString();
+            })
+            .map((s) => `${s.startTime}~${s.endTime}`)
+            .map((time) => (
+              <button
+                key={time}
+                onClick={() => setSelectedTime(time)}
+                className={clsx(
+                  "w-full py-4 typo-16-m rounded-xl mt-4 border transition",
+                  selectedTime === time
+                    ? "bg-primary text-white border-transparent"
+                    : "border-gray-200 text-gray-950",
+                )}
+              >
+                {time}
+              </button>
+            ))
         ) : (
           <p className="text-gray-500 pt-10 pb-6 typo-14-m text-center">
             선택한 날짜에는 예약 가능한 시간이 없습니다.

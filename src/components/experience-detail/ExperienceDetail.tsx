@@ -62,17 +62,27 @@ export default function ExperienceDetail({
     count: number;
   } | null>(null);
 
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [reservationId, setReservationId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get("mode");
+      const id = params.get("reservationId");
+      setIsEditMode(mode === "edit");
+      setReservationId(id);
+      console.log("🔍 URL 파라미터 확인:", { mode, id });
+    }
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       try {
         const activityRes = (await api.get(
           `activities/${activityId}`,
         )) as Activity;
-
-        if (!activityRes) {
-          console.error("activity 데이터가 없습니다:", activityRes);
-          return;
-        }
+        if (!activityRes) return;
 
         const storedAuth = localStorage.getItem("auth-storage");
         const currentUser = storedAuth
@@ -93,15 +103,7 @@ export default function ExperienceDetail({
         };
 
         setActivity(normalizedActivity);
-
-        // 작성자 본인인지 확인
-        if (currentUser && currentUser.id === normalizedActivity.userId) {
-          setIsOwner(true);
-        } else {
-          setIsOwner(false);
-        }
-
-        console.log("정규화된 체험:", normalizedActivity);
+        setIsOwner(currentUser && currentUser.id === normalizedActivity.userId);
       } catch (err) {
         console.error("체험 상세 조회 실패:", err);
       }
@@ -110,13 +112,11 @@ export default function ExperienceDetail({
     fetchData();
   }, [activityId]);
 
+  // 예약 시트 연 상태로 데스크탑 변경 시 시트 안보이게
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsSheetOpen(false);
-      }
+      if (window.innerWidth >= 1024) setIsSheetOpen(false);
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -126,6 +126,7 @@ export default function ExperienceDetail({
       <p className="text-center typo-16-m text-gray-800 pt-6">로딩 중...</p>
     );
 
+  // 예약 변경 (변경 모드 → 취소 후 새 예약 생성)
   const handleReserve = async () => {
     if (!selectedReservation || !activity) return;
 
@@ -146,21 +147,34 @@ export default function ExperienceDetail({
         return;
       }
 
-      // 예약 요청
-      await api.post(`/activities/${activity.id}/reservations`, {
-        scheduleId: matchedSchedule.id,
-        headCount: count,
-      });
+      if (isEditMode && reservationId) {
+        // 기존 예약 취소
+        await api.patch(`/my-reservations/${reservationId}`, {
+          status: "canceled",
+        });
 
-      setModalMessage("예약이 완료되었습니다!");
+        // 새 예약 생성
+        await api.post(`/activities/${activity.id}/reservations`, {
+          scheduleId: matchedSchedule.id,
+          headCount: count,
+        });
+
+        setModalMessage("예약이 성공적으로 변경되었습니다.");
+      } else {
+        await api.post(`/activities/${activity.id}/reservations`, {
+          scheduleId: matchedSchedule.id,
+          headCount: count,
+        });
+        setModalMessage("예약이 완료되었습니다.");
+      }
+
       setIsModalOpen(true);
-      setSelectedReservation(null);
     } catch (err) {
       const axiosError = err as AxiosError;
       if (axiosError.response?.status === 409) {
         setModalMessage("이미 신청된 예약입니다.");
       } else {
-        setModalMessage("예약에 실패했습니다. 다시 시도해주세요.");
+        setModalMessage("예약 처리 중 오류가 발생했습니다.");
       }
       setIsModalOpen(true);
     }
@@ -233,7 +247,13 @@ export default function ExperienceDetail({
               isOwner={isOwner}
               id={String(activity.id)}
             />
-            {!isOwner && <ReservationCard activityId={activity.id} />}
+            {!isOwner && (
+              <ReservationCard
+                activityId={activity.id}
+                isEditMode={isEditMode}
+                reservationId={reservationId}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -257,10 +277,11 @@ export default function ExperienceDetail({
                 onClick={() => setIsSheetOpen(true)}
                 className="typo-16-b text-primary border-b-2 border-primary"
               >
-                {`${selectedReservation.date
-                  .toISOString()
-                  .slice(2, 10)
-                  .replace(/-/g, "/")} ${selectedReservation.time}`}
+                {`${String(selectedReservation.date.getFullYear()).slice(2)}/${String(
+                  selectedReservation.date.getMonth() + 1,
+                ).padStart(2, "0")}/${String(
+                  selectedReservation.date.getDate(),
+                ).padStart(2, "0")} ${selectedReservation.time}`}
               </button>
             ) : (
               <button
