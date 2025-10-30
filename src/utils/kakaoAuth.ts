@@ -16,7 +16,10 @@ export const redirectToKakaoAuth = (type: "signup" | "login") => {
         ? "http://localhost:3000/oauth/kakao-login"
         : "http://localhost:3000/oauth/kakao";
 
-  const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+  const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code&prompt=login`;
+  // const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
 
   window.location.href = kakaoAuthURL;
 };
+
+// prompt=login 추가된 URL 최종베포할때는 주석처리된 kakaoAuthURL로 변경

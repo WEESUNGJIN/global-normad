@@ -9,7 +9,7 @@ import { useRef, useState } from "react";
 import axios from "axios";
 
 import { useAuthStore } from "@/app/store/useAuthStore";
-import api from "@/utils/api"; 
+import api from "@/utils/api";
 
 import editPng from "@/assets/img/edit_button.png";
 
@@ -37,12 +37,31 @@ type MenuItem = {
 };
 
 const DEFAULT_MENU_ITEMS: MenuItem[] = [
-    { href: "/mypage", label: "내 정보", icon: iconUser, activeIcon: iconUserActive },
-    { href: "/mypage/bookings", label: "예약내역", icon: iconList, activeIcon: iconListActive },
-    { href: "/mypage/experience", label: "내 체험 관리", icon: iconSetting, activeIcon: iconSettingActive },
-    { href: "/mypage/calendar", label: "예약 현황", icon: iconCalendar, activeIcon: iconCalendarActive },
+  {
+    href: "/mypage",
+    label: "내 정보",
+    icon: iconUser,
+    activeIcon: iconUserActive,
+  },
+  {
+    href: "/mypage/bookings",
+    label: "예약내역",
+    icon: iconList,
+    activeIcon: iconListActive,
+  },
+  {
+    href: "/mypage/experience",
+    label: "내 체험 관리",
+    icon: iconSetting,
+    activeIcon: iconSettingActive,
+  },
+  {
+    href: "/mypage/calendar",
+    label: "예약 현황",
+    icon: iconCalendar,
+    activeIcon: iconCalendarActive,
+  },
 ];
-
 
 interface SideMenuProps {
   className?: string;
@@ -62,7 +81,9 @@ export default function SideMenu({
   const [isUploading, setIsUploading] = useState(false);
 
   // 💡 프로필 이미지 업로드 핸들러
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !user?.id) return;
 
@@ -88,7 +109,8 @@ export default function SideMenu({
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message || "프로필 이미지 변경 실패";
+        const errorMessage =
+          error.response?.data?.message || "프로필 이미지 변경 실패";
         alert(errorMessage);
       } else {
         alert("알 수 없는 오류가 발생했습니다.");
@@ -103,7 +125,7 @@ export default function SideMenu({
 
   const openFileInput = () => {
     if (user && !isUploading) {
-        fileInputRef.current?.click();
+      fileInputRef.current?.click();
     }
   };
 
@@ -115,12 +137,19 @@ export default function SideMenu({
 
   const isLg = size === "lg";
   const avatarBox = isLg ? "w-28 h-28" : "w-16 h-16";
-  const editSize = isLg ? "w-7 h-7" : "w-6 h-6";
+  const editSize = isLg ? "w-9 h-9" : "w-7 h-7";
 
   const isActive = (href?: string, exact?: boolean) => {
     if (!href || !pathname) return false;
+
+    // "내 정보"는 /mypage일 때만 active (하위 경로 포함 X)
+    if (href === "/mypage") {
+      return pathname === "/mypage" || pathname === "/mypage/profile";
+    }
+
+    // 나머지는 startsWith로 비교
     if (exact) return pathname === href;
-    return pathname === href || pathname.startsWith(href + "/");
+    return pathname.startsWith(href);
   };
 
   return (
@@ -136,17 +165,15 @@ export default function SideMenu({
       <div
         className={clsx("relative mx-auto", isLg ? "mb-6" : "mb-4", avatarBox)}
       >
-        <div className="w-full h-full rounded-full overflow-hidden relative"> 
-          
+        <div className="w-full h-full rounded-full overflow-hidden relative">
           <Image
             src={avatarSrc}
             alt="프로필"
-            fill 
-            className="object-cover rounded-full" 
+            fill
+            className="object-cover rounded-full"
             priority
             sizes="(max-width: 768px) 100vw, 33vw"
           />
-          
         </div>
 
         {/* 숨겨진 파일 input 요소 */}
@@ -165,7 +192,7 @@ export default function SideMenu({
           onClick={openFileInput}
           aria-label="프로필 수정"
           className={clsx(
-            "absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3",
+            "absolute bottom-0 right-0 translate-x-1/5 translate-y-1/5",
             editSize,
             "rounded-full bg-[#B7BAC2] text-white",
             "flex items-center justify-center",
@@ -177,16 +204,32 @@ export default function SideMenu({
           disabled={!user || isUploading}
         >
           {isUploading ? (
-            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <svg
+              className="animate-spin h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
           ) : (
             <Image
               src={editPng}
               alt="수정"
-              width={isLg ? 14 : 12}
-              height={isLg ? 14 : 12}
+              width={isLg ? 30 : 25}
+              height={isLg ? 30 : 25}
               className="object-contain"
             />
           )}
@@ -197,7 +240,9 @@ export default function SideMenu({
       <div
         className={clsx(
           "text-center",
-          isLg ? "mb-6 typo-16-sb text-gray-800" : "mb-4 typo-14-m text-gray-700",
+          isLg
+            ? "mb-6 typo-16-sb text-gray-800"
+            : "mb-4 typo-14-m text-gray-700",
         )}
       >
         {nickname}

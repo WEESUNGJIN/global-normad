@@ -1,4 +1,4 @@
-// src/app/oauth/kakao/KakaoSignupHandler.tsx
+// src/app/oauth/kakao-login/KakaoLoginHandler.tsx
 
 "use client";
 
@@ -7,15 +7,15 @@ import type { Usable } from "react";
 import { useRouter } from "next/navigation";
 
 import api from "@/utils/api";
-import { useAuthStore } from "@/app/store/useAuthStore";
+import { useAuthStore, User } from "@/app/store/useAuthStore";
 
-interface KakaoSignupHandlerProps {
+interface KakaoLoginHandlerProps {
   searchParams: Usable<Record<string, string | string[] | undefined>>;
 }
 
-export default function KakaoSignupHandler({
+export default function KakaoLoginHandler({
   searchParams,
-}: KakaoSignupHandlerProps): React.ReactElement {
+}: KakaoLoginHandlerProps): React.ReactElement {
   const params = use(searchParams);
   const code = params.code as string | undefined;
 
@@ -25,37 +25,12 @@ export default function KakaoSignupHandler({
   useEffect(() => {
     if (!code) return;
 
-    const handleKakaoSignup = async () => {
+    const handleKakaoLogin = async () => {
       try {
         const redirectUri =
           process.env.NODE_ENV === "production"
-            ? "https://inmyday.vercel.app/oauth/kakao"
-            : "http://localhost:3000/oauth/kakao";
-
-        // console.log("redirectUri:", redirectUri); //디버깅용
-
-        const tokenRes = await fetch("https://kauth.kakao.com/oauth/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            grant_type: "authorization_code",
-            client_id: process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY!,
-            redirect_uri: redirectUri,
-            code,
-          }),
-        });
-
-        const tokenData = await tokenRes.json();
-        const kakaoAccessToken = tokenData.access_token;
-
-        const profileRes = await fetch("https://kapi.kakao.com/v2/user/me", {
-          headers: {
-            Authorization: `Bearer ${kakaoAccessToken}`,
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-          },
-        });
-        const profileData = await profileRes.json();
-        const nickname = profileData.kakao_account?.profile?.nickname || "유저";
+            ? "https://inmyday.vercel.app/oauth/kakao-login"
+            : "http://localhost:3000/oauth/kakao-login";
 
         const res = await api.post<{
           user: {
@@ -66,30 +41,43 @@ export default function KakaoSignupHandler({
           };
           accessToken: string;
           refreshToken: string;
-        }>("/oauth/sign-up/kakao", {
+        }>("/oauth/sign-in/kakao", {
           token: code,
           redirectUri,
-          nickname,
         });
+
+        console.log("카카오 로그인 응답 전체:", res);
+        console.log("카카오 로그인 유저 데이터:", res.user);
+        console.log(
+          "카카오 로그인 프로필 이미지 URL:",
+          res.user?.profileImageUrl,
+        );
+
+        const kakaoUser = {
+          ...res.user,
+          provider: "KAKAO",
+        } as User;
 
         localStorage.setItem("accessToken", res.accessToken);
         localStorage.setItem("refreshToken", res.refreshToken);
-        setUser(res.user);
 
+        setUser(kakaoUser); // 유저 정보 업데이트
+
+        console.log("카카오 로그인 성공", kakaoUser);
         router.push("/");
       } catch (error) {
-        console.error("카카오 회원가입 실패", error);
-        alert("카카오 로그인 중 오류가 발생했습니다");
-        router.push("/auth/signup");
+        console.error("카카오 로그인 실패", error);
+        alert("카카오 로그인 중 오류 발생");
+        router.push("/auth/login");
       }
     };
 
-    handleKakaoSignup();
+    handleKakaoLogin();
   }, [code, router, setUser]);
 
   return (
     <div className="flex h-screen items-center justify-center">
-      <p className="text-gray-600 text-lg">카카오 회원가입 중입니다..</p>
+      <p className="text-gray-600 text-lg">카카오 로그인 중입니다..</p>
     </div>
   );
 }
