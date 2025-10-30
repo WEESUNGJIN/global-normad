@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import ListCard from "@/components/ListCard";
@@ -52,6 +53,8 @@ function inferIsLastPage(
 }
 
 export default function BookingsPage() {
+  const router = useRouter();
+
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -97,7 +100,8 @@ export default function BookingsPage() {
         const incoming = res.reservations ?? [];
         const uniqueNew = incoming.filter((r) => !seenIdsRef.current.has(r.id));
         const noNewItems = uniqueNew.length === 0;
-        const isEnd = inferIsLastPage(res, incoming.length, PAGE_SIZE) || noNewItems;
+        const isEnd =
+          inferIsLastPage(res, incoming.length, PAGE_SIZE) || noNewItems;
 
         if (uniqueNew.length > 0) {
           setReservations((prev) => {
@@ -164,13 +168,11 @@ export default function BookingsPage() {
     try {
       const { id: reservationId } = selectedReservation;
 
-      // 🔥 서버 저장
       await api.post(`/my-reservations/${reservationId}/reviews`, {
         rating,
         content,
       });
 
-      // ✅ 로컬 상태 업데이트
       setReservations((prev) =>
         prev.map((r) =>
           r.id === selectedReservation.id ? { ...r, reviewSubmitted: true } : r
@@ -196,20 +198,37 @@ export default function BookingsPage() {
     }
   };
 
-  // ✅ 예약 취소 (로컬 반영)
+  // ✅ 예약 취소
   const handleCancelReservation = async () => {
     if (!targetReservation) return;
     try {
       console.log("예약 취소 요청:", targetReservation.id);
+
+      await api.patch(`/my-reservations/${targetReservation.id}`, {
+        status: "canceled",
+      });
+
       setReservations((prev) =>
         prev.map((r) =>
           r.id === targetReservation.id ? { ...r, status: "canceled" } : r
         )
       );
+
       setOpenCancelModal(false);
       setTargetReservation(null);
+      alert("예약이 성공적으로 취소되었습니다.");
     } catch (err) {
-      console.error("예약 취소 실패:", err);
+      console.error("❌ 예약 취소 실패:", err);
+      const apiError = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+
+      if (apiError.response?.data?.message) {
+        alert(`예약 취소 실패: ${apiError.response.data.message}`);
+      } else {
+        alert("예약 취소 중 오류가 발생했습니다.");
+      }
     }
   };
 
@@ -256,7 +275,13 @@ export default function BookingsPage() {
               subtitle={`${r.date} · ${r.startTime} - ${r.endTime}`}
               status={r.status}
               price={`₩${r.totalPrice.toLocaleString()}`}
-              ctaLabel="후기 작성"
+              ctaLabel={
+                r.status === "completed"
+                  ? r.reviewSubmitted
+                    ? "후기 완료"
+                    : "후기 작성"
+                  : undefined
+              }
             />
           </div>
 
@@ -268,7 +293,7 @@ export default function BookingsPage() {
                     label="예약 변경"
                     variant="secondary"
                     className="w-1/3 h-11"
-                    onClick={() => console.log("예약 변경 클릭")}
+                    onClick={() => router.push(`/experience-detail/${r.activity.id}`)}
                   />
                   <Button
                     label="예약 취소"
@@ -281,16 +306,25 @@ export default function BookingsPage() {
                   />
                 </>
               )}
-              {r.status === "completed" && !r.reviewSubmitted && (
-                <Button
-                  label="후기 작성"
-                  variant="primary"
-                  className="w-2/3 h-11"
-                  onClick={() => {
-                    setSelectedReservation(r);
-                    setOpenReviewModal(true);
-                  }}
-                />
+              {r.status === "completed" && (
+                r.reviewSubmitted ? (
+                  <Button
+                    label="후기 완료"
+                    variant="secondary"
+                    className="w-2/3 h-11 opacity-60 cursor-not-allowed"
+                    disabled
+                  />
+                ) : (
+                  <Button
+                    label="후기 작성"
+                    variant="primary"
+                    className="w-2/3 h-11"
+                    onClick={() => {
+                      setSelectedReservation(r);
+                      setOpenReviewModal(true);
+                    }}
+                  />
+                )
               )}
             </div>
           )}
@@ -324,7 +358,13 @@ export default function BookingsPage() {
         widthClass="max-w-xs"
       >
         <div className="flex flex-col items-center text-center">
-          <Image src={warningImg} alt="경고" width={72} height={72} className="mb-4" />
+          <Image
+            src={warningImg}
+            alt="경고"
+            width={72}
+            height={72}
+            className="mb-4"
+          />
           <p className="typo-16-b text-gray-900 mb-2">예약을 취소하시겠어요?</p>
         </div>
       </Modal>
@@ -351,7 +391,9 @@ export default function BookingsPage() {
             </div>
             <StarRatingInput initialRating={rating} onChange={setRating} />
             <div className="mt-5">
-              <p className="typo-14-b mb-2 text-gray-800">소중한 경험을 들려주세요</p>
+              <p className="typo-14-b mb-2 text-gray-800">
+                소중한 경험을 들려주세요
+              </p>
               <textarea
                 className="w-full h-28 border border-gray-200 rounded-2xl p-4 text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="체험에서 느낀 경험을 자유롭게 남겨주세요"
@@ -369,10 +411,22 @@ export default function BookingsPage() {
     </div>
   ) : (
     <section className="flex flex-col items-center justify-center text-center py-20">
-      <Image src={logoAuth} alt="예약 없음" width={122} height={122} className="mb-4" />
-      <p className="typo-16-m text-gray-600 mb-[30px]">아직 예약한 체험이 없어요</p>
+      <Image
+        src={logoAuth}
+        alt="예약 없음"
+        width={122}
+        height={122}
+        className="mb-4"
+      />
+      <p className="typo-16-m text-gray-600 mb-[30px]">
+        아직 예약한 체험이 없어요
+      </p>
       <Link href="/">
-        <Button label="둘러보기" variant="primary" className="w-[182px] h-[54px]" />
+        <Button
+          label="둘러보기"
+          variant="primary"
+          className="w-[182px] h-[54px]"
+        />
       </Link>
     </section>
   );
