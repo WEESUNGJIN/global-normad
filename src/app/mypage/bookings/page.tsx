@@ -238,24 +238,26 @@ export default function BookingsPage() {
 
   return hasReservations ? (
     <div className="space-y-6">
-      {/* ✅ 필터 */}
-      <div className="flex flex-wrap gap-2">
-        {filterOrder.map((f) => (
-          <button
-            key={f}
-            onClick={() => {
-              setFilter(f);
-              setOpenCardId(null);
-            }}
-            className={`px-4 py-2 rounded-full border ${
-              filter === f
-                ? "bg-primary text-white border-primary"
-                : "bg-white text-gray-700 border-gray-200"
-            }`}
-          >
-            {filterLabel(f)}
-          </button>
-        ))}
+      {/* ✅ 필터 (가로 스크롤형으로 변경) */}
+      <div className="w-full overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 min-w-max px-1">
+          {filterOrder.map((f) => (
+            <button
+              key={f}
+              onClick={() => {
+                setFilter(f);
+                setOpenCardId(null);
+              }}
+              className={`flex-shrink-0 px-4 py-2 rounded-full border whitespace-nowrap transition-all ${
+                filter === f
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              {filterLabel(f)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ✅ 예약 카드 */}
@@ -285,7 +287,8 @@ export default function BookingsPage() {
             />
           </div>
 
-          {openCardId === r.id && (
+          {/* ✅ 버튼 영역 — 모바일에서는 항상 표시, 데스크탑에서는 클릭 시 표시 */}
+          {(openCardId === r.id || typeof window !== "undefined" && window.innerWidth <= 768) && (
             <div className="mt-3 mb-4 flex justify-center gap-3">
               {r.status === "pending" && (
                 <>
