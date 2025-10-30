@@ -158,7 +158,7 @@ export const getReservationsBySchedule = async (
 export const updateReservationStatus = async (
   activityId: number,
   reservationId: number,
-  status: "confirmed" | "declined"
+  status: "confirmed" | "declined" | "completed"
 ) => {
   try {
     const res = await api.patch(

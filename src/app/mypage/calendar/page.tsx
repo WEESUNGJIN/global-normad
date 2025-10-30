@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/Button";
 import emptyState from "@/assets/img/empty_state.png";
-import DownArrow from "@/assets/icon/icon_alt arrow_down.svg";
+import StyledDropdown from "@/app/mypage/calendar/components/StyledDropdown";
 import api from "@/utils/api";
 import CalendarBoardWithPanel from "@/app/mypage/calendar/components/CalendarBoardWithPanel";
 
@@ -47,7 +47,7 @@ export default function CalendarPage() {
 
         // ✅ 첫 번째 체험을 기본 선택
         if (res.activities.length > 0 && !selectedActivity) {
-          setSelectedActivity(res.activities[0].id);
+          setSelectedActivity(null);
         }
       } catch (err) {
         console.error("체험 리스트 조회 실패:", err);
@@ -116,27 +116,11 @@ export default function CalendarPage() {
       {/* ✅ 체험 드롭다운 */}
       {activities.length > 0 && (
         <div className="relative w-full">
-          <select
-            value={selectedActivity ?? ""}
-            onChange={(e) => setSelectedActivity(Number(e.target.value))}
-            className="appearance-none w-full justify-between items-center p-4 gap-3 box-border
-              bg-white border border-gray-100 shadow-[0_2px_6px_rgba(0,0,0,0.02)] rounded-2xl
-              typo-14-m text-gray-950"
-          >
-            {activities.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.title}
-              </option>
-            ))}
-          </select>
-
-          {/* ✅ 드롭다운 화살표 */}
-          <Image
-            src={DownArrow}
-            alt="아래화살표"
-            width={24}
-            height={24}
-            className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+          <StyledDropdown
+            options={activities.map((a) => ({ label: a.title, value: a.id }))}
+            value={selectedActivity ?? null}
+            onChange={(val) => setSelectedActivity(Number(val))}
+            placeholder="체험을 선택하세요"
           />
         </div>
       )}

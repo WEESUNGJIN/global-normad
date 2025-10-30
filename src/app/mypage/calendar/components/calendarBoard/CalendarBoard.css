@@ -151,3 +151,31 @@
 @media (max-width: 640px) {
   .calendar-card { padding: 16px; }
 }
+
+@media (max-width: 640px) {
+  .calendar-board .cb-tags {
+    transform: scale(0.65);
+    transform-origin: top center;
+  }
+
+  .calendar-board .cb-tags span {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 375px) {
+  .calendar-board .cb-tags {
+    transform: scale(0.45);
+    transform-origin: top center;
+  }
+
+  .calendar-board .cb-tags span {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
