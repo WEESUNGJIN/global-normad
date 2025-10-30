@@ -50,7 +50,7 @@ export default function ExperienceRegisterPage() {
         window.removeEventListener("popstate", popstateRef.current);
       if (linkClickRef.current)
         document.removeEventListener("click", linkClickRef.current, true);
-    } catch (e) {
+    } catch {
       // 무시
     } finally {
       beforeUnloadRef.current = null;

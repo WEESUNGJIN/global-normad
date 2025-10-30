@@ -58,8 +58,8 @@ export default function ExperienceEditPage() {
         window.removeEventListener("popstate", popstateRef.current);
       if (linkClickRef.current)
         document.removeEventListener("click", linkClickRef.current, true);
-    } catch (e) {
-      // 안전하게 무시
+    } catch {
+      //  무시
       // console.warn("removeDirtyListeners error", e);
     } finally {
       beforeUnloadRef.current = null;
