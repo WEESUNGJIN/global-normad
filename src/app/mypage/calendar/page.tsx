@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/Button";
 import emptyState from "@/assets/img/empty_state.png";
-import DownArrow from "@/assets/icon/icon_alt arrow_down.svg";
 import StyledDropdown from "@/app/mypage/calendar/components/StyledDropdown";
 import api from "@/utils/api";
 import CalendarBoardWithPanel from "@/app/mypage/calendar/components/CalendarBoardWithPanel";

@@ -158,7 +158,6 @@ type ReservationItem = {
 function ReservationPanel({
   activityId,
   date,
-  data,
   onClose,
 }: {
   activityId: number;
@@ -256,7 +255,7 @@ function ReservationPanel({
         if (autoCompleteTargets.length > 0) {
           await Promise.allSettled(
             autoCompleteTargets.map((r) =>
-              updateReservationStatus(activityId, r.id, "completed" as any)
+              updateReservationStatus(activityId, r.id, "completed")
             )
           );
         }
