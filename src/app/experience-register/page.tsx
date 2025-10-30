@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createActivity } from "@/app/mypage/experience/api/activities";
@@ -19,6 +19,7 @@ export default function ExperienceRegisterPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const pathname = usePathname();
+
   const [form, setForm] = useState<CreateActivityRequest>({
     title: "",
     category: "",
@@ -31,14 +32,39 @@ export default function ExperienceRegisterPage() {
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false); // 이탈 확인 모달 상태
-  const [pendingUrl, setPendingUrl] = useState<string | null>(null); // 사용자가 가려던 목적지 URL을 잠시 저장해둠
-  const [isDirty, setIsDirty] = useState(false); // 작성 중 여부
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
+  // 리스너 참조 저장용 ref
+  const beforeUnloadRef = useRef<(e: BeforeUnloadEvent) => void | null>(null);
+  const popstateRef = useRef<(e: PopStateEvent) => void | null>(null);
+  const linkClickRef = useRef<(e: MouseEvent) => void | null>(null);
+
+  // 리스너 안전 제거 함수
+  const removeDirtyListeners = () => {
+    try {
+      if (beforeUnloadRef.current)
+        window.removeEventListener("beforeunload", beforeUnloadRef.current);
+      if (popstateRef.current)
+        window.removeEventListener("popstate", popstateRef.current);
+      if (linkClickRef.current)
+        document.removeEventListener("click", linkClickRef.current, true);
+    } catch (e) {
+      // 무시
+    } finally {
+      beforeUnloadRef.current = null;
+      popstateRef.current = null;
+      linkClickRef.current = null;
+    }
+  };
+
+  // 등록 mutation
   const { mutate, isPending } = useMutation({
     mutationFn: (payload: CreateActivityRequest) => createActivity(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myActivities"] });
+      removeDirtyListeners(); // 추가: 성공 시 리스너 제거
       setIsDirty(false);
       setIsModalOpen(true);
     },
@@ -52,6 +78,15 @@ export default function ExperienceRegisterPage() {
       console.error("등록 실패:", err);
     },
   });
+
+  // 폼 변경 시 dirty 상태 설정
+  const handleChange = (
+    key: keyof CreateActivityRequest,
+    value: string | number | string[] | CreateActivityRequest["schedules"],
+  ) => {
+    setIsDirty(true);
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleSubmit = () => {
     if (
@@ -74,16 +109,7 @@ export default function ExperienceRegisterPage() {
     safePush("/mypage/experience");
   };
 
-  // 폼 변경 시 dirty 상태 설정
-  const handleChange = (
-    key: keyof CreateActivityRequest,
-    value: string | number | string[] | CreateActivityRequest["schedules"],
-  ) => {
-    setIsDirty(true);
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // 커스텀 push 함수로 라우터 이동 감지
+  // 커스텀 push (isDirty 시 이탈 확인)
   const safePush = (url: string) => {
     if (isDirty) {
       setPendingUrl(url);
@@ -93,8 +119,14 @@ export default function ExperienceRegisterPage() {
     }
   };
 
+  // 리스너 관리
   useEffect(() => {
-    if (!isDirty) return;
+    if (!isDirty) {
+      removeDirtyListeners();
+      return;
+    }
+
+    removeDirtyListeners(); // 기존 리스너 먼저 제거
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
@@ -103,15 +135,17 @@ export default function ExperienceRegisterPage() {
         value: "",
       });
     };
+    beforeUnloadRef.current = handleBeforeUnload;
     window.addEventListener("beforeunload", handleBeforeUnload);
 
-    // 뒤로가기(라우터 pop) 감지
     const handlePop = (e: PopStateEvent) => {
       e.preventDefault();
       setPendingUrl("/mypage/experience");
       setIsLeaveModalOpen(true);
-      history.pushState(null, "", pathname); // 스택 복원
+      history.pushState(null, "", pathname);
     };
+    popstateRef.current = handlePop;
+    window.addEventListener("popstate", handlePop);
 
     const handleLinkClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
@@ -129,26 +163,24 @@ export default function ExperienceRegisterPage() {
       setPendingUrl(href);
       setIsLeaveModalOpen(true);
     };
-
-    window.addEventListener("popstate", handlePop);
+    linkClickRef.current = handleLinkClick;
     document.addEventListener("click", handleLinkClick, true);
+
     history.pushState(null, "", window.location.href);
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("popstate", handlePop);
-      document.removeEventListener("click", handleLinkClick);
+      removeDirtyListeners();
     };
   }, [isDirty, pathname]);
 
-  // “예” → 이동하려던 페이지로
+  // 이탈 확인 모달
   const handleLeaveConfirm = () => {
     setIsLeaveModalOpen(false);
-    const targetUrl = pendingUrl || "/mypage/experience";
-    router.push(targetUrl);
+    removeDirtyListeners();
+    setIsDirty(false);
+    router.push(pendingUrl || "/mypage/experience");
   };
 
-  // “아니오” → 현재 페이지 유지
   const handleLeaveCancel = () => {
     setPendingUrl(null);
     setIsLeaveModalOpen(false);
@@ -157,6 +189,7 @@ export default function ExperienceRegisterPage() {
   const SAMPLE_OPTIONS = [
     { label: "문화 · 예술", value: "문화 · 예술" },
     { label: "식음료", value: "식음료" },
+    { label: "스포츠", value: "스포츠" },
     { label: "투어", value: "투어" },
     { label: "관광", value: "관광" },
     { label: "웰빙", value: "웰빙" },
@@ -259,7 +292,7 @@ export default function ExperienceRegisterPage() {
             label={isPending ? "등록 중..." : "등록하기"}
             variant="primary"
             size="md"
-            onClick={() => handleSubmit()}
+            onClick={handleSubmit}
             disabled={isPending}
           />
         </div>
