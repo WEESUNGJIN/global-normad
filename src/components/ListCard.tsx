@@ -50,7 +50,7 @@ function badge(s?: ReservationStatus) {
     case "confirmed": return { v: "success" as const,  t: "예약 완료" };
     case "declined":  return { v: "error" as const,    t: "거절됨" };
     case "canceled":  return { v: "default" as const,  t: "취소됨" };
-    case "completed": return { v: "success" as const,  t: "예약 완료" };
+    case "completed": return { v: "success" as const,  t: "체험 완료" };
     default:          return { v: "default" as const,  t: "" };
   }
 }
@@ -181,6 +181,8 @@ export default function ListCard({
     <div
       className={clsx(
         "flex items-stretch bg-white rounded-[20px] shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100 overflow-hidden",
+        // ✅ PC 높이를 200px로 고정
+        "h-[200px]",
         className
       )}
     >
@@ -197,9 +199,12 @@ export default function ListCard({
             </Tag>
           )}
           <div>
-            <h4 className="typo-16-b text-text-primary mb-1">{title}</h4>
+            <h4 className="typo-16-b text-text-primary mb-1 line-clamp-2">
+                {/* ✅ 제목이 2줄을 넘지 않도록 line-clamp-2 적용 (높이 유지 목적) */}
+                {title}
+            </h4>
             {hasSubtitle ? (
-              <p className="typo-12-m text-text-secondary">{subtitle}</p>
+              <p className="typo-12-m text-text-secondary line-clamp-2">{subtitle}</p>
             ) : (
               <p className="typo-12-m text-text-secondary mt-1">
                 {dateText}
@@ -224,7 +229,7 @@ export default function ListCard({
         </div>
       </div>
 
-      {/* 우 이미지: 카드 내부에서 꽉 차게, 오른쪽 라운드만 */}
+      {/* 우 이미지: 카드 내부에서 꽉 차게, 높이 200px에 맞춰집니다. */}
       <div className="w-[180px] shrink-0 overflow-hidden">
         <img
           src={thumbnail}
