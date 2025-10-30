@@ -12,35 +12,25 @@ export type ReservationStatus =
   | "completed";
 
 export interface ListCardProps {
-  // 공통 필수
   thumbnail: string;
   title: string;
   price: string;
-
-  // 공통 선택
-  subtitle?: string;        // 보조정보(인원/장소/시간 등)
+  subtitle?: string;
   status?: ReservationStatus;
-  priceSub?: string;        // "세금 포함" 등
-  peopleText?: string;      // "00명"
-  dateText?: string;        // "0000.00.00"
-  timeText?: string;        // "11:00 - 12:30"
+  priceSub?: string;
+  peopleText?: string;
+  dateText?: string;
+  timeText?: string;
   className?: string;
-
-  // 액션
-  ctaLabel?: string;        // 기본 "후기 작성"
+  ctaLabel?: string;
   onClickCTA?: () => void;
   onClickChange?: () => void;
   onClickCancel?: () => void;
-
-  // 레이아웃
   variant?: "pc" | "mobile";
-
   showActions?: boolean;
-
   actionsDisabled?: boolean;
 }
 
-/** 상태 → 배지 매핑 */
 function badge(s?: ReservationStatus) {
   switch (s) {
     case "pending":   return { v: "warning" as const, t: "확인 요청" };
@@ -73,20 +63,15 @@ export default function ListCard({
   const { v: tagVariant, t: tagText } = badge(status);
   const hasSubtitle = !!subtitle?.trim();
 
-  // ✅ 모바일에서 사용할 내부 토글 상태
   const [showMobileActions, setShowMobileActions] = useState(false);
 
-  // ✅ 카드 본체 클릭 핸들러: 모바일에서만 토글 기능을 수행
   const handleCardClick = () => {
     if (variant === "mobile") {
-      // 액션이 있는 상태일 때만 토글
       if (status === "pending" || status === "completed") {
           setShowMobileActions(!showMobileActions);
       }
     }
-    // PC에서는 클릭해도 아무 일 없음
   };
-
 
   const ProgressActions = (
     <div className={clsx(variant === "mobile" ? "grid grid-cols-2 gap-3" : "flex gap-2")}>
@@ -127,30 +112,28 @@ export default function ListCard({
     />
   );
 
-  /* ───────────── MOBILE (클릭 시 하단 버튼 토글) ───────────── */
+  /* ───────────── MOBILE ───────────── */
   if (variant === "mobile") {
-    // 원본 비율 (309px + 101px = 410px)을 유지하면서 가변 너비로 전환합니다.
     const CARD_WIDTH_RATIO = "75.36%"; // 309 / 410
-    const IMAGE_WIDTH_RATIO = "34%";  // 139px 부분
+    const IMAGE_WIDTH_RATIO = "34%";  // 139 / 410 (겹치는 부분 포함)
 
     return (
-      // w-full, max-w-[410px]로 변경하여 가변 너비 및 최대 너비 제한
       <div className={clsx("relative w-full max-w-[410px]", className)}>
         
-        {/* 이미지: 오른쪽 139px 부분 */}
-        {/* ✅ 수정: w-[34%] 대신 style prop 사용 */}
+        {/* 이미지 컨테이너 - 우측 (z-index가 낮아야 카드에 가려짐) */}
         <div 
-            className={`absolute right-0 top-0 -z-10 h-[139px] rounded-[20px] overflow-hidden`}
-            style={{ width: IMAGE_WIDTH_RATIO }} // <== 인라인 스타일 적용
+            // ✅ z-index를 z-0으로 설정 (왼쪽 카드보다 낮음)
+            className={`absolute right-0 top-0 z-0 h-[139px] rounded-[20px] overflow-hidden`}
+            style={{ width: IMAGE_WIDTH_RATIO }} 
         >
           <img src={thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
         </div>
 
-        {/* 카드: 왼쪽 309px 부분 */}
-        {/* ✅ 수정: w-[75.36%] 대신 style prop 사용 */}
+        {/* 카드 본체 - 좌측 (이미지보다 z-index가 높아야 겹쳐짐) */}
         <div 
-          className="relative z-0 h-[139px] rounded-[20px] bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden cursor-pointer"
-          style={{ width: CARD_WIDTH_RATIO }} // <== 인라인 스타일 적용
+          // ✅ z-index를 z-10으로 설정 (이미지보다 높음)
+          className="relative z-10 h-[139px] rounded-[20px] bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden cursor-pointer"
+          style={{ width: CARD_WIDTH_RATIO }} 
           onClick={handleCardClick}
         >
           <div className="h-full px-5 py-5 flex flex-col justify-between">
@@ -166,7 +149,6 @@ export default function ListCard({
               )}
               <h4 className="typo-16-b text-text-primary mb-1">{title}</h4>
 
-              {/* subtitle이 있으면 날짜/시간 줄 숨김 */}
               {hasSubtitle ? (
                 <p className="typo-12-m text-text-secondary mb-1 line-clamp-2">{subtitle}</p>
               ) : (
@@ -186,7 +168,7 @@ export default function ListCard({
           </div>
         </div>
 
-        {/* 버튼: w-full 유지 (문제 없음) */}
+        {/* 버튼: w-full 유지 */}
         {showMobileActions && (
           <div className="mt-3 w-full">
             {status === "completed"
@@ -200,7 +182,7 @@ export default function ListCard({
     );
   }
 
-  /* ───────────── PC (버튼 고정 표시) ───────────── */
+  /* ───────────── PC ───────────── */
   return (
     <div
       className={clsx(
