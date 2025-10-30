@@ -10,6 +10,7 @@ import { useAuthStore } from "@/app/store/useAuthStore"; // zustand 스토어 im
 import Logo from "@/assets/img/logo_gnb.svg";
 import BellIcon from "@/assets/icon/icon_bell.svg";
 import NotificationPopover from "@/features/notifications/NotificationPopover";
+import Dropdown from "@/components/Dropdown";
 
 type GNBProps = {
   /** 안읽은 알림 개수 (선택). 주어지면 헤더 벨 아이콘에 뱃지 표시 */
@@ -21,7 +22,7 @@ type GNBProps = {
   userName?: string;
 };
 
-export default function GNB({ 
+export default function GNB({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   unread = 0, // ✅ 이제 사용하지 않지만 레거시 호환성 유지
   onLogout,
@@ -30,7 +31,6 @@ export default function GNB({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   userName: __,
 }: GNBProps) {
-  
   // ✅ zustand 스토어에서 로그인 상태 직접 가져오기 (props 무시)
   const { user, logout } = useAuthStore();
   const isLoggedIn = !!user;
@@ -43,17 +43,20 @@ export default function GNB({
   // 외부 클릭 감지
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     }
 
     if (dropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [dropdownOpen]);
 
@@ -69,7 +72,12 @@ export default function GNB({
   // 마이페이지 이동
   const handleMyPage = () => {
     setDropdownOpen(false);
-    router.push('/mypage');
+    router.push("/mypage");
+  };
+
+  const handleSelect = (option: string) => {
+    if (option === "마이페이지") handleMyPage();
+    else if (option === "로그아웃") handleLogout();
   };
 
   return (
@@ -88,7 +96,7 @@ export default function GNB({
               <button
                 type="button"
                 aria-label="알림"
-                className="relative h-8 w-8 flex items-center justify-center rounded-xl hover:bg-gray-50 transition"
+                className="relative h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-50 transition"
               >
                 <Image
                   src={BellIcon}
@@ -103,41 +111,14 @@ export default function GNB({
             </NotificationPopover>
 
             {/* 사용자 드롭다운 */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="h-8 px-3 rounded-xl hover:bg-gray-50 transition flex items-center gap-1 typo-12b text-gray-900"
-                aria-expanded={dropdownOpen}
-                aria-haspopup="menu"
-              >
-                {userName}
-                <svg 
-                  className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {/* 드롭다운 메뉴 */}
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl border border-border-default shadow-lg py-2 z-50">
-                  <button
-                    onClick={handleMyPage}
-                    className="w-full px-4 py-2 text-left typo-14-m text-gray-900 hover:bg-gray-50 transition"
-                  >
-                    마이페이지
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full px-4 py-2 text-left typo-14-m text-gray-900 hover:bg-gray-50 transition"
-                  >
-                    로그아웃
-                  </button>
-                </div>
-              )}
+            <div ref={dropdownRef}>
+              <Dropdown
+                options={["마이페이지", "로그아웃"]}
+                onSelect={handleSelect} // 기존 핸들러 그대로 활용
+                label={userName}
+                trigger="click"
+                highlightSelected={false}
+              />
             </div>
           </nav>
         ) : (
