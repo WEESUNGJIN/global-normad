@@ -51,8 +51,7 @@ const CardRoot: React.FC<CardProps> = ({ className, children }) => (
     className={clsx(
       "relative w-[132px] md:w-82 lg:w-[262px] rounded-2xl md:rounded-3xl bg-white dark:bg-gray-900",
       "shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]",
-      // ✅ 수정된 높이: 모바일 h-136px, PC md:h-200px
-      "h-[136px] md:h-[200px] overflow-hidden transition-shadow",
+      "overflow-hidden transition-shadow",
       className,
     )}
   >
@@ -68,9 +67,8 @@ const CardRoot: React.FC<CardProps> = ({ className, children }) => (
  */
 const CardImage: React.FC<CardImageProps> = ({ src, alt, className }) => (
   <div
-    // ✅ 수정된 이미지 높이: 모바일 h-80px, PC md:h-120px (전체 카드 높이에 맞춰 조정됨)
     className={clsx(
-      "w-full h-[80px] md:h-[120px] rounded-[20px] overflow-hidden",
+      "w-full h-[176px] md:h-[299px] rounded-[20px] overflow-hidden",
       className,
     )}
   >
@@ -86,7 +84,6 @@ const CardImage: React.FC<CardImageProps> = ({ src, alt, className }) => (
  */
 const CardContent: React.FC<CardContentProps> = ({ className, children }) => (
   <div
-    // 겹치는 높이도 조정될 수 있지만, 기존 값을 유지합니다.
     className={clsx(
       "relative z-10 -mt-[33px] md:-mt-[60px]",
       "rounded-2xl md:rounded-3xl bg-white dark:bg-gray-900",
@@ -154,7 +151,6 @@ const CardPrice: React.FC<CardPriceProps> = ({
 );
 
 /* ---------- BottomSpacer (선택) ---------- */
-// 카드가 고정 높이가 되었으므로, Card.BottomSpacer는 굳이 필요하지 않을 수 있습니다.
 const CardBottomSpacer: React.FC = () => <div className="h-5" />;
 
 /* ---------- 합치기 (컴파운드) ---------- */
