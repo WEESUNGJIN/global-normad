@@ -15,6 +15,7 @@ import warning from "@/assets/img/warning_state.png";
 import { ActivitiesResponse } from "@/types/experience";
 import api from "@/utils/api";
 import { deleteActivity } from "@/app/mypage/experience/api/activities";
+import axios from "axios";
 
 export default function ExperiencePage() {
   const router = useRouter();
@@ -127,11 +128,29 @@ export default function ExperiencePage() {
       });
       return { previous };
     },
-    onError: (_err, _id, context?: DeleteContext) => {
+    // ...existing code...
+    onError: (err, _id, context?: DeleteContext) => {
+      // 이전 캐시 복원
       if (context?.previous) {
         queryClient.setQueryData(["myActivities"], context.previous);
       }
-      alert("삭제 중 오류가 발생했습니다.");
+
+      // 서버 응답 메시지 우선 표출. axios 에러가 아니어도 가능한 메시지 표시
+      let serverMsg = "삭제 중 오류가 발생했습니다.";
+      if (axios.isAxiosError(err)) {
+        serverMsg =
+          err.response?.data?.message ||
+          (err.response?.data ? JSON.stringify(err.response.data) : serverMsg);
+        console.error("[deleteActivity] API Error:", err.response);
+      } else if (err instanceof Error) {
+        serverMsg = err.message;
+        console.error("[deleteActivity] Error:", err);
+      } else {
+        console.error("[deleteActivity] Unknown error:", err);
+      }
+
+      // 사용자에게 alert로 알림
+      alert(serverMsg);
     },
     onSuccess: () => {
       // 서버 기준으로 재동기화
