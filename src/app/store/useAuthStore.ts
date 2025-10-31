@@ -26,7 +26,11 @@ export const useAuthStore = create(
       isAuthenticated: false,
       isResoring: true,
       setUser: (user) =>
-        set({ user, isAuthenticated: true, isResoring: false }),
+        set((state) => ({
+          user: { ...state.user, ...user },
+          isAuthenticated: true,
+          isResoring: false,
+        })),
       setRestoring: (value) => set({ isResoring: value }),
       logout: () => {
         localStorage.removeItem("accessToken");
@@ -37,6 +41,16 @@ export const useAuthStore = create(
     }),
     {
       name: "auth-storage",
+      onRehydrateStorage: () => (state) => {
+        // 복원 시작
+        state?.setRestoring(true);
+
+        return (hydratedState: AuthState | undefined, error?: unknown) => {
+          // 복원 완료
+          state?.setRestoring(false);
+          if (error) console.error("hydration error", error);
+        };
+      },
     },
   ),
 );
