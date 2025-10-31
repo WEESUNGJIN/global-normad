@@ -79,8 +79,12 @@ export default function ExperienceDetail({
       const params = new URLSearchParams(window.location.search);
       const mode = params.get("mode");
       const id = params.get("reservationId");
-      setIsEditMode(mode === "edit");
-      setReservationId(id);
+
+      Promise.resolve().then(() => {
+        setIsEditMode(mode === "edit");
+        setReservationId(id);
+      });
+
       console.log("🔍 URL 파라미터 확인:", { mode, id });
     }
   }, []);
