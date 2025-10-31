@@ -84,7 +84,6 @@ export default function PopularSection() {
     const nextIndex = currentIndex + visibleCount;
     if (nextIndex < activities.length) setCurrentIndex(nextIndex);
 
-    // ✅ 추가 로드 조건: 다음 인덱스가 거의 끝에 도달하면 fetch
     if (
       nextIndex + visibleCount >= activities.length - 2 &&
       hasMore &&

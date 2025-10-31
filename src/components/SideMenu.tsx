@@ -38,7 +38,7 @@ type MenuItem = {
 
 const DEFAULT_MENU_ITEMS: MenuItem[] = [
   {
-    href: "/mypage",
+    href: "/mypage/profile",
     label: "내 정보",
     icon: iconUser,
     activeIcon: iconUserActive,

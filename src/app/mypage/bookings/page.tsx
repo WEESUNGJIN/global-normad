@@ -13,6 +13,31 @@ import warningImg from "@/assets/img/warning_state.png";
 import api from "@/utils/api";
 import { MyReservationsResponse, Reservation } from "@/types/reservation";
 
+// =======================================================================
+// ✅ 환경 감지 훅 추가
+// =======================================================================
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  const mobileWidth = 768; // 일반적으로 태블릿/모바일 경계
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < mobileWidth);
+    };
+
+    handleResize(); 
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile;
+};
+// =======================================================================
+
+
 type ReservationFilter =
   | "all"
   | "pending"
@@ -59,7 +84,9 @@ export default function BookingsPage() {
   const [loading, setLoading] = useState(true);
 
   const [filter, setFilter] = useState<ReservationFilter>("all");
-  const [openCardId, setOpenCardId] = useState<number | null>(null);
+  
+  // ✅ 모바일 환경 상태 가져오기
+  const isMobile = useIsMobile(); 
 
   const [openReviewModal, setOpenReviewModal] = useState(false);
   const [rating, setRating] = useState(0);
@@ -238,40 +265,34 @@ export default function BookingsPage() {
 
   return hasReservations ? (
     <div className="space-y-6">
-      {/* ✅ 필터 (가로 스크롤형으로 변경) */}
-      <div className="w-full overflow-x-auto scrollbar-hide">
-        <div className="flex gap-2 min-w-max px-1">
-          {filterOrder.map((f) => (
-            <button
-              key={f}
-              onClick={() => {
-                setFilter(f);
-                setOpenCardId(null);
-              }}
-              className={`flex-shrink-0 px-4 py-2 rounded-full border whitespace-nowrap transition-all ${
-                filter === f
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              {filterLabel(f)}
-            </button>
-          ))}
-        </div>
+      {/* ✅ 필터 */}
+      <div className="flex flex-wrap gap-2">
+        {filterOrder.map((f) => (
+          <button
+            key={f}
+            onClick={() => {
+              setFilter(f);
+            }}
+            className={`px-4 py-2 rounded-full border ${
+              filter === f
+                ? "bg-primary text-white border-primary"
+                : "bg-white text-gray-700 border-gray-200"
+            }`}
+          >
+            {filterLabel(f)}
+          </button>
+        ))}
       </div>
 
       {/* ✅ 예약 카드 */}
       {filtered.map((r) => (
         <div key={r.id}>
-          <div
-            className={`cursor-pointer transition-all ${
-              openCardId === r.id ? "ring-2 ring-primary/30 rounded-2xl" : ""
-            }`}
-            onClick={() =>
-              setOpenCardId((prev) => (prev === r.id ? null : r.id))
-            }
-          >
+          <div className="cursor-pointer transition-all"> 
             <ListCard
+              // ✅ ListCard에 환경 variant 전달 및 mx-auto로 중앙 정렬
+              variant={isMobile ? "mobile" : "pc"}
+              className="mx-auto" 
+              
               thumbnail={r.activity.bannerImageUrl}
               title={r.activity.title}
               subtitle={`${r.date} · ${r.startTime} - ${r.endTime}`}
@@ -284,53 +305,21 @@ export default function BookingsPage() {
                     : "후기 작성"
                   : undefined
               }
+              // ListCard 내부에서 액션 버튼을 렌더링하도록 콜백 함수만 전달합니다.
+              onClickCTA={() => {
+                setSelectedReservation(r);
+                setOpenReviewModal(true);
+              }}
+              onClickChange={() => router.push(`/experience-detail/${r.activity.id}`)}
+              onClickCancel={() => {
+                setTargetReservation(r);
+                setOpenCancelModal(true);
+              }}
             />
           </div>
 
-          {/* ✅ 버튼 영역 — 모바일에서는 항상 표시, 데스크탑에서는 클릭 시 표시 */}
-          {(openCardId === r.id || typeof window !== "undefined" && window.innerWidth <= 768) && (
-            <div className="mt-3 mb-4 flex justify-center gap-3">
-              {r.status === "pending" && (
-                <>
-                  <Button
-                    label="예약 변경"
-                    variant="secondary"
-                    className="w-1/3 h-11"
-                    onClick={() => router.push(`/experience-detail/${r.activity.id}`)}
-                  />
-                  <Button
-                    label="예약 취소"
-                    variant="outline"
-                    className="w-1/3 h-11"
-                    onClick={() => {
-                      setTargetReservation(r);
-                      setOpenCancelModal(true);
-                    }}
-                  />
-                </>
-              )}
-              {r.status === "completed" && (
-                r.reviewSubmitted ? (
-                  <Button
-                    label="후기 완료"
-                    variant="secondary"
-                    className="w-2/3 h-11 opacity-60 cursor-not-allowed"
-                    disabled
-                  />
-                ) : (
-                  <Button
-                    label="후기 작성"
-                    variant="primary"
-                    className="w-2/3 h-11"
-                    onClick={() => {
-                      setSelectedReservation(r);
-                      setOpenReviewModal(true);
-                    }}
-                  />
-                )
-              )}
-            </div>
-          )}
+
+          {/* ❌ 이전의 하단 액션 버튼 렌더링 영역 제거됨 */}
         </div>
       ))}
 
@@ -450,4 +439,4 @@ function filterLabel(key: ReservationFilter) {
     default:
       return "전체";
   }
-}
+} 

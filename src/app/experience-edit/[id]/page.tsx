@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Modal from "@/components/Modal";
@@ -41,6 +41,33 @@ export default function ExperienceEditPage() {
   const [isDirty, setIsDirty] = useState(false);
   const [dateSectionKey, setDateSectionKey] = useState(0);
 
+  // -----------------------------
+  // 변경: 핸들러 레퍼런스와 정리 함수 추가
+  // (이전에는 useEffect 안에서만 정의되어 외부에서 제거 불가하여
+  //  일부 경우에 클릭 차단 리스너가 남아 있는 문제 발생)
+  // -----------------------------
+  const beforeUnloadRef = useRef<(e: BeforeUnloadEvent) => void | null>(null);
+  const popstateRef = useRef<(e: PopStateEvent) => void | null>(null);
+  const linkClickRef = useRef<(e: MouseEvent) => void | null>(null);
+
+  const removeDirtyListeners = () => {
+    try {
+      if (beforeUnloadRef.current)
+        window.removeEventListener("beforeunload", beforeUnloadRef.current);
+      if (popstateRef.current)
+        window.removeEventListener("popstate", popstateRef.current);
+      if (linkClickRef.current)
+        document.removeEventListener("click", linkClickRef.current, true);
+    } catch {
+      //  무시
+      // console.warn("removeDirtyListeners error", e);
+    } finally {
+      beforeUnloadRef.current = null;
+      popstateRef.current = null;
+      linkClickRef.current = null;
+    }
+  };
+
   // 기존 체험 데이터 불러오기
   const { data, isLoading } = useQuery<
     CreateActivityRequest & {
@@ -72,6 +99,66 @@ export default function ExperienceEditPage() {
     return () => clearTimeout(t);
   }, [data, form]);
 
+  // -----------------------------
+  // 변경: isDirty에 따라 전역 리스너를 등록/해제 (리스너는 ref에 저장)
+  // 이렇게 하면 컴포넌트 외부(예: mutation.onSuccess)에서도 제거 가능
+  // -----------------------------
+  useEffect(() => {
+    if (!isDirty) {
+      // isDirty가 false로 바뀌면 즉시 리스너 정리
+      removeDirtyListeners();
+      return;
+    }
+
+    // 정의 후 ref에 저장
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      Object.defineProperty(e, "returnValue", {
+        configurable: true,
+        value: "",
+      });
+    };
+    beforeUnloadRef.current = handleBeforeUnload;
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    const handlePop = (e: PopStateEvent) => {
+      e.preventDefault();
+      setPendingUrl("/mypage/experience");
+      setIsLeaveModalOpen(true);
+      history.pushState(null, "", pathname); // 스택 복원
+    };
+    popstateRef.current = handlePop;
+    window.addEventListener("popstate", handlePop);
+
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest("a") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (
+        !href ||
+        href.startsWith("#") ||
+        href.startsWith("mailto:") ||
+        href.startsWith("tel:")
+      )
+        return;
+      e.preventDefault();
+      setPendingUrl(href);
+      setIsLeaveModalOpen(true);
+    };
+    linkClickRef.current = handleLinkClick;
+    document.addEventListener("click", handleLinkClick, true);
+
+    // 기본 pushState (원래 코드 유지)
+    history.pushState(null, "", window.location.href);
+
+    return () => {
+      // cleanup: ref 기반으로 안전하게 제거
+      removeDirtyListeners();
+    };
+    // pathname 포함: 뒤로가기/복원 시 핸들 동작을 현재 경로로 유지
+  }, [isDirty, pathname]);
+
   const mutation = useMutation({
     mutationFn: async (payload: UpdateActivityRequest) =>
       updateActivity(id, payload),
@@ -92,8 +179,13 @@ export default function ExperienceEditPage() {
       queryClient.invalidateQueries({ queryKey: ["myActivities"] });
       queryClient.invalidateQueries({ queryKey: ["activityDetail", id] });
 
+      // -----------------------------
+      // 변경: 성공 시 isDirty 플래그만 끄는 것이 아니라
+      // 리스너도 즉시 제거해서 이후 전역 클릭이 차단되지 않도록 함
+      // -----------------------------
+      removeDirtyListeners(); // 추가
+      setIsDirty(false); // 이후 safePush 등에서 정상 동작
       setIsModalOpen(true);
-      setIsDirty(false);
     },
     onError: (error) => {
       if (axios.isAxiosError(error)) {
@@ -118,6 +210,7 @@ export default function ExperienceEditPage() {
       }
     },
   });
+
   const handleChange = <
     K extends keyof (CreateActivityRequest & {
       subImages?: { id?: number; imageUrl: string }[];
@@ -215,53 +308,15 @@ export default function ExperienceEditPage() {
   useEffect(() => {
     if (!isDirty) return;
 
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      Object.defineProperty(e, "returnValue", {
-        configurable: true,
-        value: "",
-      });
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // 뒤로가기(라우터 pop) 감지
-    const handlePop = (e: PopStateEvent) => {
-      e.preventDefault();
-      setPendingUrl("/mypage/experience");
-      setIsLeaveModalOpen(true);
-      history.pushState(null, "", pathname); // 스택 복원
-    };
-
-    const handleLinkClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      const anchor = target?.closest("a") as HTMLAnchorElement | null;
-      if (!anchor) return;
-      const href = anchor.getAttribute("href");
-      if (
-        !href ||
-        href.startsWith("#") ||
-        href.startsWith("mailto:") ||
-        href.startsWith("tel:")
-      )
-        return;
-      e.preventDefault();
-      setPendingUrl(href);
-      setIsLeaveModalOpen(true);
-    };
-
-    window.addEventListener("popstate", handlePop);
-    document.addEventListener("click", handleLinkClick, true);
-    history.pushState(null, "", window.location.href);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("popstate", handlePop);
-      document.removeEventListener("click", handleLinkClick);
-    };
-  }, [isDirty, pathname]);
+    // 이전 로직은 useEffect 상단에서 처리하도록 옮겨졌음 (ref 기반)
+    // 이 effect only ensures listener lifecycle already handled above.
+  }, [isDirty]);
 
   const handleLeaveConfirm = () => {
     setIsLeaveModalOpen(false);
+    // 사용자 확인 후 실제 이동: 먼저 리스너 정리
+    removeDirtyListeners(); // 안전하게 제거
+    setIsDirty(false);
     router.push(pendingUrl || "/mypage/experience");
   };
 
@@ -275,6 +330,7 @@ export default function ExperienceEditPage() {
   const SAMPLE_OPTIONS = [
     { label: "문화 · 예술", value: "문화 · 예술" },
     { label: "식음료", value: "식음료" },
+    { label: "스포츠", value: "스포츠" },
     { label: "투어", value: "투어" },
     { label: "관광", value: "관광" },
     { label: "웰빙", value: "웰빙" },
