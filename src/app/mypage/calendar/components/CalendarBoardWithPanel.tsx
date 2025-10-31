@@ -23,9 +23,9 @@ import {
   updateReservationStatus,
 } from "@/app/mypage/calendar/api/reservationApi";
 
-/* ======================================
-   📘 타입 정의
-====================================== */
+/* ===============================
+   타입 정의
+=============================== */
 export type ReservationSummary = {
   date: string;
   reservations: {
@@ -36,15 +36,30 @@ export type ReservationSummary = {
 };
 
 type Props = {
-  /** ✅ 부모에서 선택된 체험 ID */
   activityId: number | undefined;
   data: ReservationSummary[];
   onMonthChange?: (date: Date) => void;
 };
 
-/* ======================================
-   📅 CalendarBoardWithPanel
-====================================== */
+/* ===============================
+   반응형 감지 (SSR 안전)
+=============================== */
+const useIsTablet = () => {
+  const [isTablet, setIsTablet] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const check = () => setIsTablet(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  return isTablet;
+};
+
+/* ===============================
+   CalendarBoardWithPanel
+=============================== */
 export default function CalendarBoardWithPanel({
   activityId,
   data,
@@ -52,9 +67,11 @@ export default function CalendarBoardWithPanel({
 }: Props) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [isBottomOpen, setIsBottomOpen] = useState(false);
+  const isTablet = useIsTablet();
 
   const { refs, floatingStyles, context } = useFloating({
-    open: !!selectedDate,
+    open: !isTablet && !!selectedDate,    // ✅ 태블릿/모바일에선 floating-ui 자체 비활성
     onOpenChange: (open) => {
       if (!open) {
         setSelectedDate(null);
@@ -66,12 +83,19 @@ export default function CalendarBoardWithPanel({
     placement: "right-start",
   });
 
-  const { getFloatingProps } = useInteractions([
-    useClick(context),
-    useDismiss(context),
-  ]);
+  const click = useClick(context);
+  const dismiss = useDismiss(context);
 
-  /** ✅ 날짜 클릭 시 패널 열기 */
+  // ✅ interactions 배열의 길이는 항상 동일하게 유지
+  // ✅ 모바일/태블릿에서는 실제 click, dismiss hook 결과를 전달하지 않음
+  const interactions = useMemo(() => {
+    return !isTablet ? [click, dismiss] : [undefined, undefined];
+  }, [isTablet, click, dismiss]);
+
+  // ✅ undefined는 useInteractions가 무시함 (타입 일치)
+  const { getFloatingProps } = useInteractions(interactions as any);
+
+
   const handleDateClick = (date: Date) => {
     const ymd = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
@@ -87,21 +111,22 @@ export default function CalendarBoardWithPanel({
         break;
       }
     }
+
+    if (isTablet) {
+      setIsBottomOpen(true);
+    }
   };
 
   useEffect(() => {
-    if (anchorEl) refs.setReference(anchorEl);
-  }, [anchorEl, refs]);
+    if (!isTablet && anchorEl) refs.setReference(anchorEl); // ✅ PC에서만 reference 연결
+  }, [isTablet, anchorEl, refs]);
 
   const selectedData = useMemo(
     () => data.find((d) => d.date === selectedDate),
     [data, selectedDate]
   );
 
-  const safeFloatingStyles = useMemo(
-    () => ({ ...floatingStyles }),
-    [floatingStyles]
-  );
+  if (isTablet === null) return null; // SSR 중일 때 렌더 방지
 
   return (
     <div className="relative w-full flex flex-col items-center">
@@ -117,12 +142,13 @@ export default function CalendarBoardWithPanel({
         </p>
       )}
 
-      {selectedDate && selectedData && anchorEl && activityId && (
+      {/* 💻 PC: 기존 floating-ui 패널 그대로 */}
+      {!isTablet && selectedDate && selectedData && anchorEl && activityId && (
         <FloatingPortal>
           <div
             {...getFloatingProps()}
             ref={(el) => refs.setFloating(el)}
-            style={safeFloatingStyles}
+            style={floatingStyles}
             className="z-50"
           >
             <ReservationPanel
@@ -133,17 +159,51 @@ export default function CalendarBoardWithPanel({
                 setSelectedDate(null);
                 setAnchorEl(null);
               }}
+              variant="pc"
             />
           </div>
         </FloatingPortal>
+      )}
+
+      {/* 📱 모바일/태블릿: Bottom Sheet */}
+      {isTablet && isBottomOpen && selectedData && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/40 flex items-end"
+          onClick={(e) => {
+            // ✅ 오버레이 클릭 시만 닫기
+            if (e.target === e.currentTarget) setIsBottomOpen(false);
+          }}
+        >
+          {/* ✅ 패널 내부 클릭 시 닫히지 않게 버블링 차단 */}
+          <div
+            className="relative z-[10000] w-full bg-white rounded-t-3xl shadow-lg max-h-[90vh] overflow-y-auto animate-slideUp"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {/* 상단 손잡이 */}
+            <div className="flex justify-center py-3">
+              <div className="w-10 h-1.5 bg-gray-300 rounded-full" />
+            </div>
+
+            {/* ✅ ReservationPanel 내부 */}
+            <ReservationPanel
+              activityId={activityId!}
+              date={selectedDate!}
+              data={selectedData}
+              onClose={() => setIsBottomOpen(false)}
+              variant="mobile"
+            />
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
-/* ======================================
-   🪄 ReservationPanel (탭 카운트 전역 반영)
-====================================== */
+/* ===============================
+   ReservationPanel
+=============================== */
 type PanelTab = "pending" | "confirmed" | "declined" | "completed";
 
 type ReservationItem = {
@@ -159,6 +219,7 @@ function ReservationPanel({
   activityId,
   date,
   onClose,
+  variant = "pc",
 }: {
   activityId: number;
   date: string;
@@ -167,6 +228,7 @@ function ReservationPanel({
     reservations: { pending: number; confirmed: number; completed: number };
   };
   onClose: () => void;
+  variant?: "pc" | "mobile";
 }) {
   const [tab, setTab] = useState<PanelTab>("pending");
   const [scheduleList, setScheduleList] = useState<
@@ -184,7 +246,6 @@ function ReservationPanel({
     completed: 0,
   });
 
-  /* ✅ 날짜별 예약 스케줄 조회 */
   useEffect(() => {
     if (!activityId || !date) return;
 
@@ -205,112 +266,61 @@ function ReservationPanel({
     fetchSchedules();
   }, [activityId, date]);
 
-  /* ✅ 모든 상태 불러와서 카운트 계산 (자동 완료 포함) */
   useEffect(() => {
     if (!activityId || !selectedScheduleId) return;
 
     const fetchAllReservations = async () => {
       setIsLoading(true);
       try {
-        // 1️⃣ 모든 상태의 예약 요청 병렬 처리
         const [pendingRes, confirmedRes, declinedRes] = await Promise.all([
           getReservationsBySchedule(activityId, selectedScheduleId, "pending"),
           getReservationsBySchedule(activityId, selectedScheduleId, "confirmed"),
           getReservationsBySchedule(activityId, selectedScheduleId, "declined"),
         ]);
 
-        // 2️⃣ 합치기
-        const allReservations = [
+        const all = [
           ...pendingRes.reservations,
           ...confirmedRes.reservations,
           ...declinedRes.reservations,
-        ].map(
-          (r: {
-            id: number;
-            nickname: string;
-            headCount: number;
-            status: string;
-            date: string;
-            endTime: string;
-          }) => ({
-            id: r.id,
-            nickname: r.nickname,
-            people: r.headCount,
-            status: r.status as PanelTab,
-            date: r.date,
-            endTime: r.endTime,
-          })
-        );
+        ].map((r: any) => ({
+          id: r.id,
+          nickname: r.nickname,
+          people: r.headCount,
+          status: r.status as PanelTab,
+          date: r.date,
+          endTime: r.endTime,
+        }));
 
-        // 3️⃣ 자동 완료 처리
         const now = new Date();
-        const autoCompleteTargets = allReservations.filter(
+        const autoCompleted = all.filter(
           (r) =>
             r.status === "confirmed" &&
-            r.date &&
-            r.endTime &&
             new Date(`${r.date}T${r.endTime}`) < now
         );
 
-        if (autoCompleteTargets.length > 0) {
-          await Promise.allSettled(
-            autoCompleteTargets.map((r) =>
-              updateReservationStatus(activityId, r.id, "completed")
-            )
-          );
-        }
-
-        // 4️⃣ 카운트 계산
-        const counts = {
-          pending: allReservations.filter((r) => r.status === "pending").length,
-          confirmed: allReservations.filter((r) => r.status === "confirmed").length,
-          declined: allReservations.filter((r) => r.status === "declined").length,
-          completed: autoCompleteTargets.length,
-        };
-        setTabCount(counts);
-
-        // 5️⃣ 현재 탭 리스트 필터
-        const filteredList = allReservations.filter((r) => {
-          if (tab === "completed") {
-            const end =
-              r.date && r.endTime ? new Date(`${r.date}T${r.endTime}`) : null;
-            return r.status === "confirmed" && end && end < now;
-          }
-          return r.status === tab;
+        setTabCount({
+          pending: all.filter((r) => r.status === "pending").length,
+          confirmed: all.filter((r) => r.status === "confirmed").length,
+          declined: all.filter((r) => r.status === "declined").length,
+          completed: autoCompleted.length,
         });
 
-        setList(filteredList);
+        const filtered = all.filter((r) =>
+          tab === "completed"
+            ? new Date(`${r.date}T${r.endTime}`) < now && r.status === "confirmed"
+            : r.status === tab
+        );
+
+        setList(filtered);
       } catch (err) {
         console.error("❌ 예약 조회 실패:", err);
-        setList([]);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchAllReservations();
   }, [activityId, selectedScheduleId, tab, date]);
 
-  /* ✅ 승인 / 거절 */
-  const handleUpdateStatus = async (
-    id: number,
-    status: "confirmed" | "declined"
-  ) => {
-    try {
-      await updateReservationStatus(activityId, id, status);
-      setList((prev) => prev.filter((r) => r.id !== id));
-      setTabCount((prev) => ({
-        ...prev,
-        [status]: prev[status] + 1,
-        pending: Math.max(prev.pending - 1, 0),
-      }));
-      if (status === "confirmed") setTab("confirmed");
-    } catch (err) {
-      console.error("❌ 예약 상태 변경 실패:", err);
-    }
-  };
-
-  /* ✅ 날짜 포맷 */
   const labelDate = useMemo(() => {
     const d = new Date(date);
     return `${d.getFullYear().toString().slice(2)}년 ${
@@ -319,23 +329,29 @@ function ReservationPanel({
   }, [date]);
 
   return (
-    <div className="bg-white shadow-xl rounded-3xl w-[320px] sm:w-[340px] h-[520px] p-5 border border-gray-100 flex flex-col">
+    <div
+      className={`${
+        variant === "pc"
+          ? "bg-white shadow-xl rounded-3xl w-[320px] sm:w-[340px] h-[520px] p-5 border border-gray-100 flex flex-col"
+          : "bg-white rounded-t-3xl p-5 flex flex-col w-full h-auto"
+      }`}
+    >
       {/* 헤더 */}
-      <div className="flex justify-between items-center mb-3 flex-shrink-0">
+      <div className="flex justify-between items-center mb-3">
         <p className="text-[18px] font-semibold text-gray-900">{labelDate}</p>
-        <button onClick={onClose} aria-label="닫기">
+        <button onClick={onClose}>
           <Image
             src={iconDelete}
             alt="닫기"
             width={20}
             height={20}
-            className="opacity-60 hover:opacity-90 transition"
+            className="opacity-70 hover:opacity-100 transition"
           />
         </button>
       </div>
 
       {/* 탭 */}
-      <div className="mb-4 flex-shrink-0">
+      <div className="mb-4">
         <div className="flex items-center gap-5 border-b border-gray-200 overflow-x-auto">
           {(["pending", "confirmed", "declined", "completed"] as PanelTab[]).map(
             (key) => (
@@ -355,7 +371,7 @@ function ReservationPanel({
                   ? "승인"
                   : key === "declined"
                   ? "거절"
-                  : "체험 완료"}{" "}
+                  : "완료"}{" "}
                 {tabCount[key]}
               </button>
             )
@@ -363,8 +379,8 @@ function ReservationPanel({
         </div>
       </div>
 
-      {/* 예약 시간 */}
-      <div className="mb-3 flex-shrink-0">
+      {/* 시간 선택 */}
+      <div className="mb-3">
         <label className="text-gray-800 text-sm">예약 시간</label>
         <div className="relative mt-2">
           <select
@@ -381,10 +397,9 @@ function ReservationPanel({
               </option>
             ))}
           </select>
-
           <Image
             src={DownArrow}
-            alt="드롭다운 화살표"
+            alt="드롭다운"
             width={20}
             height={20}
             className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-70"
@@ -392,10 +407,8 @@ function ReservationPanel({
         </div>
       </div>
 
-      {/* 예약 내역 */}
+      {/* 예약 리스트 */}
       <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
-        <label className="block text-gray-800 text-sm mb-3">예약 내역</label>
-
         {isLoading ? (
           <p className="text-center text-sm text-gray-400 py-10">
             불러오는 중...
@@ -411,26 +424,29 @@ function ReservationPanel({
               className="border border-gray-200 rounded-2xl p-4 mb-3 bg-white"
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex flex-col gap-1">
-                  <p className="typo-14-b text-gray-800">
+                <div>
+                  <p className="text-[14px] font-semibold text-gray-800">
                     닉네임 {r.nickname}
                   </p>
-                  <p className="typo-14-m text-gray-500">인원 {r.people}명</p>
+                  <p className="text-[14px] text-gray-500">인원 {r.people}명</p>
                 </div>
-
                 {tab === "pending" ? (
                   <div className="flex flex-col gap-2">
                     <button
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition text-sm"
-                      onClick={() => handleUpdateStatus(r.id, "confirmed")}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+                      onClick={() =>
+                        updateReservationStatus(activityId, r.id, "confirmed")
+                      }
                     >
-                      승인하기
+                      승인
                     </button>
                     <button
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm"
-                      onClick={() => handleUpdateStatus(r.id, "declined")}
+                      className="px-4 py-2 bg-gray-100 text-sm rounded-lg hover:bg-gray-200"
+                      onClick={() =>
+                        updateReservationStatus(activityId, r.id, "declined")
+                      }
                     >
-                      거절하기
+                      거절
                     </button>
                   </div>
                 ) : tab === "confirmed" ? (
@@ -454,3 +470,20 @@ function ReservationPanel({
     </div>
   );
 }
+
+/* ===============================
+   ✨ Bottom Sheet 애니메이션
+=============================== */
+<style jsx global>{`
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  .animate-slideUp {
+    animation: slideUp 0.3s ease-out;
+  }
+`}</style>
