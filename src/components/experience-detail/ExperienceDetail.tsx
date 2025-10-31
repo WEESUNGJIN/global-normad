@@ -43,6 +43,14 @@ interface Activity {
   schedules?: Schedule[];
 }
 
+interface Reservation {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+}
+
 interface ExperienceDetailProps {
   activityId: number;
 }
@@ -55,6 +63,7 @@ export default function ExperienceDetail({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [myReservations, setMyReservations] = useState<Reservation[]>([]);
 
   const [selectedReservation, setSelectedReservation] = useState<{
     date: Date;
@@ -112,6 +121,20 @@ export default function ExperienceDetail({
     fetchData();
   }, [activityId]);
 
+  useEffect(() => {
+    const fetchMyReservations = async () => {
+      try {
+        const res = await api.get<{ reservations: Reservation[] }>(
+          `/my-reservations?page=1&limit=100`,
+        );
+        setMyReservations(res.reservations || []);
+      } catch (err) {
+        console.error("내 예약 목록 불러오기 실패:", err);
+      }
+    };
+    fetchMyReservations();
+  }, []);
+
   // 예약 시트 연 상태로 데스크탑 변경 시 시트 안보이게
   useEffect(() => {
     const handleResize = () => {
@@ -130,9 +153,24 @@ export default function ExperienceDetail({
   const handleReserve = async () => {
     if (!selectedReservation || !activity) return;
 
-    try {
-      const { date, time, count } = selectedReservation;
+    const { date, time, count } = selectedReservation;
 
+    const selectedDateStr = date.toISOString().split("T")[0];
+    const isDuplicate = myReservations.some(
+      (r) =>
+        r.date === selectedDateStr &&
+        `${r.startTime}~${r.endTime}` === time &&
+        r.status !== "canceled" &&
+        r.status !== "declined",
+    );
+
+    if (isDuplicate) {
+      setModalMessage("이미 해당 시간대에 예약이 있습니다.");
+      setIsModalOpen(true);
+      return;
+    }
+
+    try {
       const matchedSchedule = activity.schedules?.find((s) => {
         const scheduleDate = new Date(s.date);
         return (

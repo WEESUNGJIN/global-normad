@@ -25,6 +25,14 @@ interface Experience {
   schedules: Schedule[];
 }
 
+interface Reservation {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+}
+
 interface ReservationCardProps {
   activityId: number;
   isEditMode?: boolean;
@@ -43,6 +51,7 @@ export default function ReservationCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [myReservations, setMyReservations] = useState<Reservation[]>([]);
 
   useEffect(() => {
     const fetchActivity = async () => {
@@ -56,8 +65,38 @@ export default function ReservationCard({
     fetchActivity();
   }, [activityId]);
 
+  useEffect(() => {
+    const fetchMyReservations = async () => {
+      try {
+        const res = await api.get<{ reservations: Reservation[] }>(
+          `/my-reservations?page=1&limit=100`,
+        );
+        setMyReservations(res.reservations || []);
+      } catch (err) {
+        console.error("내 예약 목록 불러오기 실패:", err);
+      }
+    };
+    fetchMyReservations();
+  }, []);
+
   const handleReserve = async () => {
     if (!selectedDate || !selectedTime || !activity) return;
+
+    const selectedDateStr = selectedDate.toISOString().split("T")[0];
+    const isDuplicate = myReservations.some(
+      (r) =>
+        r.date === selectedDateStr &&
+        `${r.startTime}~${r.endTime}` === selectedTime &&
+        r.status !== "canceled" &&
+        r.status !== "declined",
+    );
+
+    if (isDuplicate) {
+      setModalMessage("이미 해당 시간대에 예약이 있습니다.");
+      setIsModalOpen(true);
+      return;
+    }
+
     setIsSubmitting(true);
 
     const matchedSchedule = activity.schedules.find((s) => {
