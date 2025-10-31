@@ -150,14 +150,29 @@ export default function ReservationCard({
       {/* 예약 가능한 시간 */}
       <div className="pb-6 border-b border-gray-100">
         <p className="typo-16-b text-gray-950">예약 가능한 시간</p>
-        {activity?.schedules.length ? (
-          activity.schedules
-            .filter((s) => {
-              const d = new Date(s.date);
-              return selectedDate?.toDateString() === d.toDateString();
-            })
-            .map((s) => `${s.startTime}~${s.endTime}`)
-            .map((time) => (
+        {!selectedDate ? (
+          <p className="text-gray-500 pt-10 pb-6 typo-14-m text-center">
+            날짜를 선택해주세요.
+          </p>
+        ) : (
+          (() => {
+            const availableTimes =
+              activity?.schedules
+                .filter((s) => {
+                  const d = new Date(s.date);
+                  return selectedDate.toDateString() === d.toDateString();
+                })
+                .map((s) => `${s.startTime}~${s.endTime}`) ?? [];
+
+            if (availableTimes.length === 0) {
+              return (
+                <p className="text-gray-500 pt-10 pb-6 typo-14-m text-center">
+                  선택한 날짜에는 예약 가능한 시간이 없습니다.
+                </p>
+              );
+            }
+
+            return availableTimes.map((time) => (
               <button
                 key={time}
                 onClick={() => setSelectedTime(time)}
@@ -170,11 +185,8 @@ export default function ReservationCard({
               >
                 {time}
               </button>
-            ))
-        ) : (
-          <p className="text-gray-500 pt-10 pb-6 typo-14-m text-center">
-            선택한 날짜에는 예약 가능한 시간이 없습니다.
-          </p>
+            ));
+          })()
         )}
       </div>
 
