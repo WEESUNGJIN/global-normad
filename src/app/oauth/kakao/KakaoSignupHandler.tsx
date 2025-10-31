@@ -35,9 +35,9 @@ export default function KakaoSignupHandler({
             ? "https://inmyday.vercel.app/oauth/kakao"
             : "http://localhost:3000/oauth/kakao";
 
-        console.log("🚀 [KAKAO SIGNUP] 요청 전 파라미터 확인");
-        console.log("code(token):", code);
-        console.log("redirectUri:", redirectUri);
+        // console.log("🚀 [KAKAO SIGNUP] 요청 전 파라미터 확인");
+        // console.log("code(token):", code);
+        // console.log("redirectUri:", redirectUri);
 
         const res = await api.post<{
           user: {

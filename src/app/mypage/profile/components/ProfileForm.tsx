@@ -8,7 +8,10 @@ import PasswordInput from "./PasswordInput";
 import SaveButton from "./SaveButton";
 
 export default function ProfileForm() {
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, isResoring } = useAuthStore();
+
+  if (isResoring) return null;
+
   const isKakaoUser = user?.provider === "KAKAO";
 
   const [nickname, setNickname] = useState(user?.nickname || "");
@@ -58,6 +61,7 @@ export default function ProfileForm() {
         setNickname={setNickname}
         error={error}
       />
+
       {!isKakaoUser ? (
         <PasswordInput
           password={password}
@@ -65,7 +69,7 @@ export default function ProfileForm() {
           setPassword={setPassword}
           setCheckPassword={setCheckPassword}
           error={error}
-          disabled={isKakaoUser}
+          // disabled={isKakaoUser}
         />
       ) : (
         <div className="flex items-center gap-2 text-gray-600 text-sm">
