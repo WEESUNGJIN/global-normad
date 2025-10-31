@@ -9,9 +9,6 @@ import SaveButton from "./SaveButton";
 
 export default function ProfileForm() {
   const { user, setUser, isResoring } = useAuthStore();
-
-  if (isResoring) return null;
-
   const isKakaoUser = user?.provider === "KAKAO";
 
   const [nickname, setNickname] = useState(user?.nickname || "");
@@ -19,6 +16,8 @@ export default function ProfileForm() {
   const [checkPassword, setCheckPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  if (isResoring) return null;
 
   const email = user?.email || "";
 
