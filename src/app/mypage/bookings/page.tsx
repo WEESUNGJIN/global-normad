@@ -21,22 +21,21 @@ const useIsMobile = () => {
   const mobileWidth = 768; // 일반적으로 태블릿/모바일 경계
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const handleResize = () => {
       setIsMobile(window.innerWidth < mobileWidth);
     };
 
-    handleResize(); 
+    handleResize();
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return isMobile;
 };
 // =======================================================================
-
 
 type ReservationFilter =
   | "all"
@@ -67,7 +66,7 @@ type PageMeta = {
 function inferIsLastPage(
   res: MyReservationsResponse & PageMeta,
   receivedCount: number,
-  pageSize: number
+  pageSize: number,
 ): boolean {
   if (typeof res.isLastPage === "boolean") return res.isLastPage;
   if ("nextCursor" in res) return (res.nextCursor ?? null) === null;
@@ -84,9 +83,9 @@ export default function BookingsPage() {
   const [loading, setLoading] = useState(true);
 
   const [filter, setFilter] = useState<ReservationFilter>("all");
-  
+
   // ✅ 모바일 환경 상태 가져오기
-  const isMobile = useIsMobile(); 
+  const isMobile = useIsMobile();
 
   const [openReviewModal, setOpenReviewModal] = useState(false);
   const [rating, setRating] = useState(0);
@@ -119,7 +118,7 @@ export default function BookingsPage() {
         setIsFetching(true);
 
         const res = await api.get<MyReservationsResponse & PageMeta>(
-          `/my-reservations?page=${page}&limit=${PAGE_SIZE}`
+          `/my-reservations?page=${page}&limit=${PAGE_SIZE}`,
         );
 
         if (aborted) return;
@@ -173,7 +172,7 @@ export default function BookingsPage() {
           setPage((prev) => prev + 1);
         }
       },
-      { threshold: 1.0 }
+      { threshold: 1.0 },
     );
 
     observer.observe(el);
@@ -184,9 +183,9 @@ export default function BookingsPage() {
   const filtered = useMemo(
     () =>
       reservations.filter((r) =>
-        filter === "all" ? true : r.status === filter
+        filter === "all" ? true : r.status === filter,
       ),
-    [reservations, filter]
+    [reservations, filter],
   );
 
   // ✅ 후기 작성 (서버 저장)
@@ -202,8 +201,8 @@ export default function BookingsPage() {
 
       setReservations((prev) =>
         prev.map((r) =>
-          r.id === selectedReservation.id ? { ...r, reviewSubmitted: true } : r
-        )
+          r.id === selectedReservation.id ? { ...r, reviewSubmitted: true } : r,
+        ),
       );
 
       setOpenReviewModal(false);
@@ -237,8 +236,8 @@ export default function BookingsPage() {
 
       setReservations((prev) =>
         prev.map((r) =>
-          r.id === targetReservation.id ? { ...r, status: "canceled" } : r
-        )
+          r.id === targetReservation.id ? { ...r, status: "canceled" } : r,
+        ),
       );
 
       setOpenCancelModal(false);
@@ -287,12 +286,11 @@ export default function BookingsPage() {
       {/* ✅ 예약 카드 */}
       {filtered.map((r) => (
         <div key={r.id}>
-          <div className="cursor-pointer transition-all"> 
+          <div className="cursor-pointer transition-all">
             <ListCard
               // ✅ ListCard에 환경 variant 전달 및 mx-auto로 중앙 정렬
               variant={isMobile ? "mobile" : "pc"}
-              className="mx-auto" 
-              
+              className="mx-auto"
               thumbnail={r.activity.bannerImageUrl}
               title={r.activity.title}
               subtitle={`${r.date} · ${r.startTime} - ${r.endTime}`}
@@ -310,7 +308,11 @@ export default function BookingsPage() {
                 setSelectedReservation(r);
                 setOpenReviewModal(true);
               }}
-              onClickChange={() => router.push(`/experience-detail/${r.activity.id}`)}
+              onClickChange={() =>
+                router.push(
+                  `/experience-detail/${r.activity.id}?mode=edit&reservationId=${r.id}`,
+                )
+              }
               onClickCancel={() => {
                 setTargetReservation(r);
                 setOpenCancelModal(true);
@@ -438,4 +440,4 @@ function filterLabel(key: ReservationFilter) {
     default:
       return "전체";
   }
-} 
+}
