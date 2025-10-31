@@ -266,14 +266,18 @@ export default function BookingsPage() {
   return hasReservations ? (
     <div className="space-y-6">
       {/* ✅ 필터 */}
-      <div className="flex flex-wrap gap-2">
+      <div
+        className={`flex gap-2 ${
+          isMobile
+            ? "overflow-x-auto no-scrollbar flex-nowrap -mx-2 px-2"
+            : "flex-wrap"
+        }`}
+      >
         {filterOrder.map((f) => (
           <button
             key={f}
-            onClick={() => {
-              setFilter(f);
-            }}
-            className={`px-4 py-2 rounded-full border ${
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-full border whitespace-nowrap ${
               filter === f
                 ? "bg-primary text-white border-primary"
                 : "bg-white text-gray-700 border-gray-200"
@@ -293,7 +297,7 @@ export default function BookingsPage() {
           <div key={r.id}>
             <div className="cursor-pointer transition-all">
               <ListCard
-                // ✅ ListCard에 환경 variant 전달 및 mx-auto로 중앙 정렬
+                // ✅ 모바일이면 'mobile', PC면 'pc' 버전으로 렌더
                 variant={isMobile ? "mobile" : "pc"}
                 className="mx-auto"
                 thumbnail={r.activity.bannerImageUrl}
@@ -310,6 +314,8 @@ export default function BookingsPage() {
                     : undefined
                 }
                 onClickCTA={() => {
+                  // ✅ 후기 완료된 경우 클릭 막기
+                  if (r.reviewSubmitted) return;
                   setSelectedReservation(r);
                   setOpenReviewModal(true);
                 }}
@@ -443,3 +449,4 @@ function filterLabel(key: ReservationFilter) {
       return "전체";
   }
 } 
+

@@ -41,6 +41,21 @@ type Props = {
   onMonthChange?: (date: Date) => void;
 };
 
+// API에서 내려오는 예약 아이템 형태 (스케줄별 조회 응답의 원소)
+type ApiReservation = {
+  id: number;
+  nickname: string;
+  headCount: number;
+  status: "pending" | "confirmed" | "declined" | "canceled" | "completed";
+  date: string;
+  endTime: string;
+};
+
+// 스케줄별 예약 조회 API 응답 타입 (getReservationsBySchedule 반환 형태)
+type ReservationsByScheduleResponse = {
+  reservations: ApiReservation[];
+};
+
 /* ===============================
    반응형 감지 (SSR 안전)
 =============================== */
@@ -83,17 +98,12 @@ export default function CalendarBoardWithPanel({
     placement: "right-start",
   });
 
+  // ✅ 중복 없이 한 번만 선언
   const click = useClick(context);
   const dismiss = useDismiss(context);
 
-  // ✅ interactions 배열의 길이는 항상 동일하게 유지
-  // ✅ 모바일/태블릿에서는 실제 click, dismiss hook 결과를 전달하지 않음
-  const interactions = useMemo(() => {
-    return !isTablet ? [click, dismiss] : [undefined, undefined];
-  }, [isTablet, click, dismiss]);
-
-  // ✅ undefined는 useInteractions가 무시함 (타입 일치)
-  const { getFloatingProps } = useInteractions(interactions as any);
+  // ✅ useInteractions는 PC에서도 항상 호출, 단 렌더 시에만 분기
+  const { getFloatingProps } = useInteractions([click, dismiss]);
 
 
   const handleDateClick = (date: Date) => {
@@ -281,11 +291,16 @@ function ReservationPanel({
           getReservationsBySchedule(activityId, selectedScheduleId, "declined"),
         ]);
 
+        // 🔽 응답 타입 명시적으로 변환 (any 제거)
+        const pendingResTyped = pendingRes as ReservationsByScheduleResponse;
+        const confirmedResTyped = confirmedRes as ReservationsByScheduleResponse;
+        const declinedResTyped = declinedRes as ReservationsByScheduleResponse;
+
         const all = [
-          ...pendingRes.reservations,
-          ...confirmedRes.reservations,
-          ...declinedRes.reservations,
-        ].map((r: any) => ({
+          ...pendingResTyped.reservations,
+          ...confirmedResTyped.reservations,
+          ...declinedResTyped.reservations,
+        ].map((r: ApiReservation) => ({
           id: r.id,
           nickname: r.nickname,
           people: r.headCount,

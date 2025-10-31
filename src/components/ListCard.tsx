@@ -167,17 +167,15 @@ export default function ListCard({
             </div>
           </div>
         </div>
-
-        {/* 버튼: w-full 유지 */}
-        {showMobileActions && (
-          <div className="mt-3 w-full">
-            {status === "completed"
-              ? DoneCTA
-              : status === "pending"
-              ? ProgressActions
-              : null}
-          </div>
-        )}
+        
+        {/* ✅ 모바일에서는 버튼을 상시 노출 */}
+        <div className="mt-3 w-full">
+          {status === "completed"
+            ? DoneCTA
+            : status === "pending"
+            ? ProgressActions
+            : null}
+        </div>
       </div>
     );
   }
