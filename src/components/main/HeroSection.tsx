@@ -1,11 +1,32 @@
 "use client";
 
-import clsx from "clsx";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import streetDanceMain from "@/assets/img/streetdance_main.png";
-import emojiFire from "@/assets/img/emoji_fire.png";
+import clsx from "clsx";
+
+import heroHalloween from "@/assets/img/hero_halloween.png";
+import heroReview from "@/assets/img/hero_review.png";
+import heroPottery from "@/assets/img/hero_pottery.png";
+import heroGardening from "@/assets/img/hero_gardening.png";
+
+const heroImages = [
+  { src: heroHalloween, alt: "할로윈 이벤트 배너" },
+  { src: heroReview, alt: "체험 리뷰 이벤트 배너" },
+  { src: heroPottery, alt: "공방 원데이클래스 오픈 배너" },
+  { src: heroGardening, alt: "꽃가게 원데이클래스 오픈 배너" },
+];
 
 export default function HeroSection() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // 3초마다 자동 전환
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section
       className={clsx(
@@ -13,32 +34,35 @@ export default function HeroSection() {
         "mt-16 md:mt-25 lg:mt-32",
       )}
     >
-      <Image
-        src={streetDanceMain}
-        alt="함께 배우면 즐거운 스트릿 댄스"
-        className="w-full h-auto object-cover"
-        priority
-      />
-      <div className="absolute whitespace-nowrap bottom-[14%] left-1/2 -translate-x-1/2 text-center text-white">
-        <h2 className="typo-18-b md:text-2xl lg:text-[32px]">
-          함께 배우면 즐거운 스트릿 댄스
-        </h2>
-        <p
+      {heroImages.map((item, index) => (
+        <div
+          key={index}
           className={clsx(
-            "typo-14-m mt-1",
-            "md:text-base md:mt-3 md:font-bold",
-            "lg:text-lg lg:mt-5",
+            "absolute inset-0 transition-opacity duration-1000 ease-in-out",
+            index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0",
           )}
         >
-          1월의 인기 체험 BEST
           <Image
-            src={emojiFire}
-            alt="불 이모지"
-            width={14}
-            height={14}
-            className="ml-1 -mt-1 inline-block md:w-4 md:h-4 object-contain"
+            src={item.src}
+            alt={item.alt}
+            className="w-full h-full object-cover"
+            priority={index === currentIndex}
           />
-        </p>
+        </div>
+      ))}
+
+      {/* 하단 인디케이터 */}
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-[9000]">
+        {heroImages.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={clsx(
+              "w-2.5 h-2.5 rounded-full transition-all duration-300",
+              index === currentIndex ? "bg-white w-5" : "bg-white/50",
+            )}
+          />
+        ))}
       </div>
     </section>
   );
