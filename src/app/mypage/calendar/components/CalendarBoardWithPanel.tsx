@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   useFloating,
@@ -41,7 +41,6 @@ type Props = {
   onMonthChange?: (date: Date) => void;
 };
 
-// API에서 내려오는 예약 아이템 형태 (스케줄별 조회 응답의 원소)
 type ApiReservation = {
   id: number;
   nickname: string;
@@ -51,7 +50,6 @@ type ApiReservation = {
   endTime: string;
 };
 
-// 스케줄별 예약 조회 API 응답 타입 (getReservationsBySchedule 반환 형태)
 type ReservationsByScheduleResponse = {
   reservations: ApiReservation[];
 };
@@ -61,14 +59,12 @@ type ReservationsByScheduleResponse = {
 =============================== */
 const useIsTablet = () => {
   const [isTablet, setIsTablet] = useState<boolean | null>(null);
-
   useEffect(() => {
     const check = () => setIsTablet(window.innerWidth < 1024);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-
   return isTablet;
 };
 
@@ -85,8 +81,48 @@ export default function CalendarBoardWithPanel({
   const [isBottomOpen, setIsBottomOpen] = useState(false);
   const isTablet = useIsTablet();
 
+  const [calendarData, setCalendarData] = useState<ReservationSummary[]>(data);
+  const badgeUpdatedIds = useRef<Set<number>>(new Set()); // 중복 반영 방지용
+
+  useEffect(() => {
+    // ✅ 비동기적으로 상태 갱신 → ESLint도 통과
+    setTimeout(() => setCalendarData(data), 0);
+  }, [data]);
+
+  // ✅ 캘린더 뱃지 업데이트 (렌더 도중이 아닌 안전한 타이밍)
+  const applyBadgeDelta = useCallback(
+    (dateStr: string, delta: Partial<ReservationSummary["reservations"]>) => {
+      requestAnimationFrame(() => {
+        setCalendarData((prev) =>
+          prev.map((d) =>
+            d.date === dateStr
+              ? {
+                  ...d,
+                  reservations: {
+                    pending: Math.max(
+                      0,
+                      d.reservations.pending + (delta.pending ?? 0),
+                    ),
+                    confirmed: Math.max(
+                      0,
+                      d.reservations.confirmed + (delta.confirmed ?? 0),
+                    ),
+                    completed: Math.max(
+                      0,
+                      d.reservations.completed + (delta.completed ?? 0),
+                    ),
+                  },
+                }
+              : d,
+          ),
+        );
+      });
+    },
+    [],
+  );
+
   const { refs, floatingStyles, context } = useFloating({
-    open: !isTablet && !!selectedDate,    // ✅ 태블릿/모바일에선 floating-ui 자체 비활성
+    open: !isTablet && !!selectedDate,
     onOpenChange: (open) => {
       if (!open) {
         setSelectedDate(null);
@@ -98,64 +134,56 @@ export default function CalendarBoardWithPanel({
     placement: "right-start",
   });
 
-  // ✅ 중복 없이 한 번만 선언
   const click = useClick(context);
   const dismiss = useDismiss(context);
-
-  // ✅ useInteractions는 PC에서도 항상 호출, 단 렌더 시에만 분기
   const { getFloatingProps } = useInteractions([click, dismiss]);
-
 
   const handleDateClick = (date: Date) => {
     const ymd = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}-${String(date.getDate()).padStart(2, "0")}`;
     setSelectedDate(ymd);
 
-    // ✅ 클릭 시 달력이 바뀌면 바로 렌더가 교체되기 때문에, 살짝 딜레이 줘서 새 타일을 찾기
-  setTimeout(() => {
-    const tiles = document.querySelectorAll(".react-calendar__tile");
-    for (const tile of tiles) {
-      const abbr = tile.querySelector("abbr");
-      if (abbr?.textContent === String(date.getDate())) {
-        setAnchorEl(tile as HTMLElement); // ✅ 이게 refs.setReference로 이어짐
-        break;
+    setTimeout(() => {
+      const tiles = document.querySelectorAll(".react-calendar__tile");
+      for (const tile of tiles) {
+        const abbr = tile.querySelector("abbr");
+        if (abbr?.textContent === String(date.getDate())) {
+          setAnchorEl(tile as HTMLElement);
+          break;
+        }
       }
-    }
-  }, 30);
+    }, 30);
 
-    if (isTablet) {
-      setIsBottomOpen(true);
-    }
+    if (isTablet) setIsBottomOpen(true);
   };
 
   useEffect(() => {
-    if (!isTablet && anchorEl) refs.setReference(anchorEl); // ✅ PC에서만 reference 연결
+    if (!isTablet && anchorEl) refs.setReference(anchorEl);
   }, [isTablet, anchorEl, refs]);
 
   const selectedData = useMemo(
-    () => data.find((d) => d.date === selectedDate),
-    [data, selectedDate]
+    () => calendarData.find((d) => d.date === selectedDate),
+    [calendarData, selectedDate],
   );
 
-  if (isTablet === null) return null; // SSR 중일 때 렌더 방지
+  if (isTablet === null) return null;
 
   return (
     <div className="relative w-full flex flex-col items-center">
       <CalendarBoard
-        data={data}
+        data={calendarData}
         onMonthChange={onMonthChange}
         onDateClick={handleDateClick}
       />
 
       {!activityId && selectedDate && (
         <p className="mt-3 text-sm text-rose-500">
-          활동 ID가 설정되지 않았습니다. 상위 컴포넌트에서 activityId를 전달해주세요.
+          활동 ID가 설정되지 않았습니다.
         </p>
       )}
 
-      {/* 💻 PC: 기존 floating-ui 패널 그대로 */}
       {!isTablet && selectedDate && selectedData && anchorEl && activityId && (
         <FloatingPortal>
           <div
@@ -172,40 +200,37 @@ export default function CalendarBoardWithPanel({
                 setSelectedDate(null);
                 setAnchorEl(null);
               }}
+              onBadgeDelta={applyBadgeDelta}
               variant="pc"
+              badgeUpdatedIds={badgeUpdatedIds}
             />
           </div>
         </FloatingPortal>
       )}
 
-      {/* 📱 모바일/태블릿: Bottom Sheet */}
       {isTablet && isBottomOpen && selectedData && (
         <div
           className="fixed inset-0 z-[9999] bg-black/40 flex items-end"
           onClick={(e) => {
-            // ✅ 오버레이 클릭 시만 닫기
             if (e.target === e.currentTarget) setIsBottomOpen(false);
           }}
         >
-          {/* ✅ 패널 내부 클릭 시 닫히지 않게 버블링 차단 */}
           <div
             className="relative z-[10000] w-full bg-white rounded-t-3xl shadow-lg max-h-[90vh] overflow-y-auto animate-slideUp"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* 상단 손잡이 */}
             <div className="flex justify-center py-3">
               <div className="w-10 h-1.5 bg-gray-300 rounded-full" />
             </div>
 
-            {/* ✅ ReservationPanel 내부 */}
             <ReservationPanel
               activityId={activityId!}
               date={selectedDate!}
               data={selectedData}
               onClose={() => setIsBottomOpen(false)}
+              onBadgeDelta={applyBadgeDelta}
               variant="mobile"
+              badgeUpdatedIds={badgeUpdatedIds}
             />
           </div>
         </div>
@@ -218,7 +243,6 @@ export default function CalendarBoardWithPanel({
    ReservationPanel
 =============================== */
 type PanelTab = "pending" | "confirmed" | "declined" | "completed";
-
 type ReservationItem = {
   id: number;
   nickname: string;
@@ -233,6 +257,8 @@ function ReservationPanel({
   date,
   onClose,
   variant = "pc",
+  onBadgeDelta,
+  badgeUpdatedIds,
 }: {
   activityId: number;
   date: string;
@@ -242,16 +268,22 @@ function ReservationPanel({
   };
   onClose: () => void;
   variant?: "pc" | "mobile";
+  onBadgeDelta?: (
+    date: string,
+    delta: Partial<ReservationSummary["reservations"]>,
+  ) => void;
+  badgeUpdatedIds: React.MutableRefObject<Set<number>>;
 }) {
   const [tab, setTab] = useState<PanelTab>("pending");
   const [scheduleList, setScheduleList] = useState<
     { scheduleId: number; startTime: string; endTime: string }[]
   >([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(
-    null
+    null,
   );
   const [list, setList] = useState<ReservationItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
   const [tabCount, setTabCount] = useState({
     pending: 0,
     confirmed: 0,
@@ -261,11 +293,7 @@ function ReservationPanel({
 
   useEffect(() => {
     if (!activityId || !date) return;
-
-    const formattedDate = date.includes(".")
-      ? date.split(".").join("-")
-      : date;
-
+    const formattedDate = date.includes(".") ? date.split(".").join("-") : date;
     const fetchSchedules = async () => {
       try {
         const res = await getReservedSchedule(activityId, formattedDate);
@@ -281,7 +309,6 @@ function ReservationPanel({
 
   useEffect(() => {
     if (!activityId || !selectedScheduleId) return;
-
     const fetchAllReservations = async () => {
       setIsLoading(true);
       try {
@@ -290,17 +317,11 @@ function ReservationPanel({
           getReservationsBySchedule(activityId, selectedScheduleId, "confirmed"),
           getReservationsBySchedule(activityId, selectedScheduleId, "declined"),
         ]);
-
-        // 🔽 응답 타입 명시적으로 변환 (any 제거)
-        const pendingResTyped = pendingRes as ReservationsByScheduleResponse;
-        const confirmedResTyped = confirmedRes as ReservationsByScheduleResponse;
-        const declinedResTyped = declinedRes as ReservationsByScheduleResponse;
-
         const all = [
-          ...pendingResTyped.reservations,
-          ...confirmedResTyped.reservations,
-          ...declinedResTyped.reservations,
-        ].map((r: ApiReservation) => ({
+          ...(pendingRes as ReservationsByScheduleResponse).reservations,
+          ...(confirmedRes as ReservationsByScheduleResponse).reservations,
+          ...(declinedRes as ReservationsByScheduleResponse).reservations,
+        ].map((r) => ({
           id: r.id,
           nickname: r.nickname,
           people: r.headCount,
@@ -308,27 +329,24 @@ function ReservationPanel({
           date: r.date,
           endTime: r.endTime,
         }));
-
         const now = new Date();
         const autoCompleted = all.filter(
           (r) =>
             r.status === "confirmed" &&
-            new Date(`${r.date}T${r.endTime}`) < now
+            new Date(`${r.date}T${r.endTime}`) < now,
         );
-
         setTabCount({
           pending: all.filter((r) => r.status === "pending").length,
           confirmed: all.filter((r) => r.status === "confirmed").length,
           declined: all.filter((r) => r.status === "declined").length,
           completed: autoCompleted.length,
         });
-
         const filtered = all.filter((r) =>
           tab === "completed"
-            ? new Date(`${r.date}T${r.endTime}`) < now && r.status === "confirmed"
-            : r.status === tab
+            ? new Date(`${r.date}T${r.endTime}`) < now &&
+              r.status === "confirmed"
+            : r.status === tab,
         );
-
         setList(filtered);
       } catch (err) {
         console.error("❌ 예약 조회 실패:", err);
@@ -338,6 +356,56 @@ function ReservationPanel({
     };
     fetchAllReservations();
   }, [activityId, selectedScheduleId, tab, date]);
+
+  const handleUpdateStatus = async (
+    reservationId: number,
+    newStatus: "confirmed" | "declined",
+  ) => {
+    if (processingIds.has(reservationId)) return;
+    setProcessingIds((prev) => new Set(prev).add(reservationId));
+
+    try {
+      await updateReservationStatus(activityId, reservationId, newStatus);
+
+      setList((prev) => prev.filter((r) => r.id !== reservationId));
+      setTabCount((prev) => ({
+        ...prev,
+        pending: Math.max(0, prev.pending - 1),
+        confirmed: newStatus === "confirmed" ? prev.confirmed + 1 : prev.confirmed,
+        declined: newStatus === "declined" ? prev.declined + 1 : prev.declined,
+      }));
+
+      setTimeout(() => {
+        if (badgeUpdatedIds.current.has(reservationId)) return;
+        badgeUpdatedIds.current.add(reservationId);
+
+        const target = list.find((r) => r.id === reservationId);
+        if (!target?.date) return;
+
+        const now = new Date();
+        const isPast =
+          !!target.date &&
+          !!target.endTime &&
+          new Date(`${target.date}T${target.endTime}`) < now;
+
+        const delta: Partial<ReservationSummary["reservations"]> = { pending: -1 };
+        if (newStatus === "confirmed") {
+          delta.confirmed = 1;
+          if (isPast) delta.completed = 1;
+        }
+
+        onBadgeDelta?.(target.date, delta);
+      }, 0);
+    } catch (err) {
+      console.error("❌ 상태 업데이트 실패:", err);
+    } finally {
+      setProcessingIds((prev) => {
+        const copy = new Set(prev);
+        copy.delete(reservationId);
+        return copy;
+      });
+    }
+  };
 
   const labelDate = useMemo(() => {
     const d = new Date(date);
@@ -354,7 +422,6 @@ function ReservationPanel({
           : "bg-white rounded-t-3xl p-5 flex flex-col w-full h-auto"
       }`}
     >
-      {/* 헤더 */}
       <div className="flex justify-between items-center mb-3">
         <p className="text-[18px] font-semibold text-gray-900">{labelDate}</p>
         <button onClick={onClose}>
@@ -392,7 +459,7 @@ function ReservationPanel({
                   : "완료"}{" "}
                 {tabCount[key]}
               </button>
-            )
+            ),
           )}
         </div>
       </div>
@@ -428,9 +495,7 @@ function ReservationPanel({
       {/* 예약 리스트 */}
       <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
         {isLoading ? (
-          <p className="text-center text-sm text-gray-400 py-10">
-            불러오는 중...
-          </p>
+          <p className="text-center text-sm text-gray-400 py-10">불러오는 중...</p>
         ) : list.length === 0 ? (
           <p className="text-center text-sm text-gray-400 py-10">
             해당 내역이 없습니다.
@@ -451,18 +516,16 @@ function ReservationPanel({
                 {tab === "pending" ? (
                   <div className="flex flex-col gap-2">
                     <button
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
-                      onClick={() =>
-                        updateReservationStatus(activityId, r.id, "confirmed")
-                      }
+                      disabled={processingIds.has(r.id)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+                      onClick={() => handleUpdateStatus(r.id, "confirmed")}
                     >
                       승인
                     </button>
                     <button
-                      className="px-4 py-2 bg-gray-100 text-sm rounded-lg hover:bg-gray-200"
-                      onClick={() =>
-                        updateReservationStatus(activityId, r.id, "declined")
-                      }
+                      disabled={processingIds.has(r.id)}
+                      className="px-4 py-2 bg-gray-100 text-sm rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                      onClick={() => handleUpdateStatus(r.id, "declined")}
                     >
                       거절
                     </button>
