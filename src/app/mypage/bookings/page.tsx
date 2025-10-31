@@ -265,14 +265,18 @@ export default function BookingsPage() {
   return hasReservations ? (
     <div className="space-y-6">
       {/* ✅ 필터 */}
-      <div className="flex flex-wrap gap-2">
+      <div
+        className={`flex gap-2 ${
+          isMobile
+            ? "overflow-x-auto no-scrollbar flex-nowrap -mx-2 px-2"
+            : "flex-wrap"
+        }`}
+      >
         {filterOrder.map((f) => (
           <button
             key={f}
-            onClick={() => {
-              setFilter(f);
-            }}
-            className={`px-4 py-2 rounded-full border ${
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-full border whitespace-nowrap ${
               filter === f
                 ? "bg-primary text-white border-primary"
                 : "bg-white text-gray-700 border-gray-200"
@@ -284,45 +288,47 @@ export default function BookingsPage() {
       </div>
 
       {/* ✅ 예약 카드 */}
-      {filtered.map((r) => (
-        <div key={r.id}>
-          <div className="cursor-pointer transition-all">
-            <ListCard
-              // ✅ ListCard에 환경 variant 전달 및 mx-auto로 중앙 정렬
-              variant={isMobile ? "mobile" : "pc"}
-              className="mx-auto"
-              thumbnail={r.activity.bannerImageUrl}
-              title={r.activity.title}
-              subtitle={`${r.date} · ${r.startTime} - ${r.endTime}`}
-              status={r.status}
-              price={`₩${r.totalPrice.toLocaleString()}`}
-              ctaLabel={
-                r.status === "completed"
-                  ? r.reviewSubmitted
-                    ? "후기 완료"
-                    : "후기 작성"
-                  : undefined
-              }
-              // ListCard 내부에서 액션 버튼을 렌더링하도록 콜백 함수만 전달합니다.
-              onClickCTA={() => {
-                setSelectedReservation(r);
-                setOpenReviewModal(true);
-              }}
-              onClickChange={() =>
-                router.push(
-                  `/experience-detail/${r.activity.id}?mode=edit&reservationId=${r.id}`,
-                )
-              }
-              onClickCancel={() => {
-                setTargetReservation(r);
-                setOpenCancelModal(true);
-              }}
-            />
+      {filtered.map((r) => {
+        // ✅ 여기가 올바른 위치입니다.
+        console.log("예약 데이터:", r);
+        return (
+          <div key={r.id}>
+            <div className="cursor-pointer transition-all">
+              <ListCard
+                // ✅ 모바일이면 'mobile', PC면 'pc' 버전으로 렌더
+                variant={isMobile ? "mobile" : "pc"}
+                className="mx-auto"
+                thumbnail={r.activity.bannerImageUrl}
+                title={r.activity.title}
+                subtitle={`${r.date} · ${r.startTime} - ${r.endTime}`}
+                peopleText={`${r.headCount}명`}
+                status={r.status}
+                price={`₩${r.totalPrice.toLocaleString()}`}
+                ctaLabel={
+                  r.status === "completed"
+                    ? r.reviewSubmitted
+                      ? "후기 완료"
+                      : "후기 작성"
+                    : undefined
+                }
+                onClickCTA={() => {
+                  // ✅ 후기 완료된 경우 클릭 막기
+                  if (r.reviewSubmitted) return;
+                  setSelectedReservation(r);
+                  setOpenReviewModal(true);
+                }}
+                onClickChange={() =>
+                  router.push(`/experience-detail/${r.activity.id}`)
+                }
+                onClickCancel={() => {
+                  setTargetReservation(r);
+                  setOpenCancelModal(true);
+                }}
+              />
+            </div>
           </div>
-
-          {/* ❌ 이전의 하단 액션 버튼 렌더링 영역 제거됨 */}
-        </div>
-      ))}
+        );
+      })}
 
       {/* ✅ 비어있을 때 */}
       {filtered.length === 0 && (

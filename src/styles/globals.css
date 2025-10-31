@@ -33,3 +33,12 @@ body,
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ✅ 스크롤바 완전 숨김 (모바일 필터용, 모든 브라우저) */
+.no-scrollbar {
+  -ms-overflow-style: none !important; /* IE & Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari */
+}

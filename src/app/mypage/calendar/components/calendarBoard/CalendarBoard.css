@@ -70,6 +70,21 @@
   color: inherit !important; /* 숫자 가독성 유지 */
 }
 
+/* ✅ 모바일/태블릿: 날짜 셀 세로 길이 늘리기 */
+@media (max-width: 1024px) {
+  .calendar-board .react-calendar__tile {
+    aspect-ratio: auto !important; /* 고정 비율 해제 */
+    height: 80px !important; /* ✅ 테블릿 크기 */
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar-board .react-calendar__tile {
+    aspect-ratio: auto !important;
+    height: 90px !important; /* ✅ 모바일은 더 세로로 길게 */
+  }
+}
+
 /* hover / focus: 배경만 살짝, 문자색은 그대로 */
 .calendar-board .react-calendar__tile:enabled:hover,
 .calendar-board .react-calendar__tile:enabled:focus {
@@ -147,9 +162,23 @@
   align-items: center;
 }
 
+/* ✅ 태그 텍스트 항상 가로 유지 */
+.calendar-board .cb-tags span {
+  white-space: nowrap !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* 반응형 패딩(모바일 전체폭) */
 @media (max-width: 640px) {
-  .calendar-card { padding: 16px; }
+  .calendar-card {
+    padding: 8px 4px; /* 상하 8px, 좌우 4px */
+  }
+
+  .calendar-board .react-calendar__month-view__days {
+    gap: 6px !important; /* 셀 간격도 살짝 줄임 */
+  }
 }
 
 @media (max-width: 640px) {
@@ -159,10 +188,7 @@
   }
 
   .calendar-board .cb-tags span {
-    display: inline-flex;
-    flex-wrap: nowrap;
     white-space: nowrap;
-    overflow: hidden;
   }
 }
 
@@ -173,9 +199,25 @@
   }
 
   .calendar-board .cb-tags span {
-    display: inline-flex;
-    flex-wrap: nowrap;
     white-space: nowrap;
-    overflow: hidden;
+  }
+}
+
+/* ✅ 모바일 대응 폰트 크기 조정 */
+@media (max-width: 768px) {
+  .calendar-board.react-calendar {
+    font-size: 0.75rem !important; /* 전체 폰트 크기 축소 */
+  }
+
+  .calendar-board .react-calendar__navigation__label {
+    font-size: 1rem !important; /* 상단 월 표시 (ex. 2025년 11월) */
+  }
+
+  .calendar-board .react-calendar__month-view__weekdays__weekday abbr {
+    font-size: 0.7rem !important; /* 요일 폰트 크기 축소 */
+  }
+
+  .calendar-board .react-calendar__tile abbr {
+    font-size: 0.8rem !important; /* 날짜 숫자 축소 */
   }
 }
