@@ -288,48 +288,9 @@ export default function BookingsPage() {
       </div>
 
       {/* ✅ 예약 카드 */}
-<<<<<<< HEAD
       {filtered.map((r) => {
         // ✅ 여기가 올바른 위치입니다.
         console.log("예약 데이터:", r);
-=======
-      {filtered.map((r) => (
-        <div key={r.id}>
-          <div className="cursor-pointer transition-all">
-            <ListCard
-              // ✅ ListCard에 환경 variant 전달 및 mx-auto로 중앙 정렬
-              variant={isMobile ? "mobile" : "pc"}
-              className="mx-auto"
-              thumbnail={r.activity.bannerImageUrl}
-              title={r.activity.title}
-              subtitle={`${r.date} · ${r.startTime} - ${r.endTime}`}
-              status={r.status}
-              price={`₩${r.totalPrice.toLocaleString()}`}
-              ctaLabel={
-                r.status === "completed"
-                  ? r.reviewSubmitted
-                    ? "후기 완료"
-                    : "후기 작성"
-                  : undefined
-              }
-              // ListCard 내부에서 액션 버튼을 렌더링하도록 콜백 함수만 전달합니다.
-              onClickCTA={() => {
-                setSelectedReservation(r);
-                setOpenReviewModal(true);
-              }}
-              onClickChange={() =>
-                router.push(
-                  `/experience-detail/${r.activity.id}?mode=edit&reservationId=${r.id}`,
-                )
-              }
-              onClickCancel={() => {
-                setTargetReservation(r);
-                setOpenCancelModal(true);
-              }}
-            />
-          </div>
->>>>>>> dev
-
         return (
           <div key={r.id}>
             <div className="cursor-pointer transition-all">
@@ -485,9 +446,4 @@ function filterLabel(key: ReservationFilter) {
     default:
       return "전체";
   }
-<<<<<<< HEAD
-} 
-
-=======
 }
->>>>>>> dev
