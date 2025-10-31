@@ -28,6 +28,9 @@ import iconCalendarActive from "@/assets/icon/purple/icon_calendar_500.svg";
 const DEFAULT_PROFILE_IMAGE_URL =
   "https://sprint-fe-project.s3.ap-northeast-2.amazonaws.com/globalnomad/profile_image/17-2_2755_1761370682670.png";
 
+// TEAM_ID는 API 호출 경로에 포함시키지 않습니다. (baseURL에 이미 포함됨)
+// const TEAM_ID = "17-2"; // 사용하지 않음
+
 type MenuItem = {
   href?: string;
   label: string;
@@ -80,7 +83,7 @@ export default function SideMenu({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // 💡 프로필 이미지 업로드 핸들러
+  // 💡 프로필 이미지 업로드 및 DB 업데이트 핸들러
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -92,9 +95,9 @@ export default function SideMenu({
       const formData = new FormData();
       formData.append("image", file);
 
-      // ✅ teamId 제거 - baseURL에 이미 17-2가 포함되어 있음
-      const res = await api.post<{ profileImageUrl: string }>(
-        `/users/me/image`, // ✅ teamId 부분 완전히 제거
+      // 1. POST 요청: 이미지 파일 업로드 및 URL 생성 (baseURL에 teamId가 이미 포함되어 있음)
+      const uploadRes = await api.post<{ profileImageUrl: string }>(
+        `users/me/image`,
         formData,
         {
           headers: {
@@ -103,10 +106,28 @@ export default function SideMenu({
         },
       );
 
-      // 전역 상태 업데이트
+      const newProfileImageUrl = uploadRes.profileImageUrl;
+
+      // 2. PATCH 요청: 생성된 URL을 DB에 최종 저장 (baseURL에 teamId가 이미 포함되어 있음)
+      const patchRes = await api.patch<{ profileImageUrl: string; nickname: string }>(
+        `users/me`,
+        {
+          profileImageUrl: newProfileImageUrl,
+          nickname: user.nickname, 
+        }
+      );
+
+      // 3. 전역 상태 업데이트: 화면에 즉시 반영 및 새로고침 후 유지를 위한 DB 값 사용
       if (user) {
-        setUser({ ...user, profileImageUrl: res.profileImageUrl });
+        setUser({ 
+          ...user, 
+          profileImageUrl: patchRes.profileImageUrl,
+          nickname: patchRes.nickname, 
+        });
       }
+
+      // ✅ 이미지 성공 팝업 제거
+      
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage =
@@ -142,12 +163,10 @@ export default function SideMenu({
   const isActive = (href?: string, exact?: boolean) => {
     if (!href || !pathname) return false;
 
-    // "내 정보"는 /mypage일 때만 active (하위 경로 포함 X)
-    if (href === "/mypage") {
-      return pathname === "/mypage" || pathname === "/mypage/profile";
+    if (href === "/mypage/profile") {
+      return pathname === "/mypage/profile" || pathname === "/mypage";
     }
 
-    // 나머지는 startsWith로 비교
     if (exact) return pathname === href;
     return pathname.startsWith(href);
   };
