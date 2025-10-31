@@ -103,14 +103,17 @@ export default function CalendarBoardWithPanel({
     )}-${String(date.getDate()).padStart(2, "0")}`;
     setSelectedDate(ymd);
 
+    // ✅ 클릭 시 달력이 바뀌면 바로 렌더가 교체되기 때문에, 살짝 딜레이 줘서 새 타일을 찾기
+  setTimeout(() => {
     const tiles = document.querySelectorAll(".react-calendar__tile");
     for (const tile of tiles) {
       const abbr = tile.querySelector("abbr");
       if (abbr?.textContent === String(date.getDate())) {
-        setAnchorEl(tile as HTMLElement);
+        setAnchorEl(tile as HTMLElement); // ✅ 이게 refs.setReference로 이어짐
         break;
       }
     }
+  }, 30);
 
     if (isTablet) {
       setIsBottomOpen(true);
