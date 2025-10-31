@@ -9,7 +9,10 @@ import starIconOff from "@/assets/icon/icon_star_off.svg";
 
 interface Review {
   id: number;
-  nickname: string;
+  user: {
+    nickname: string;
+    profileImageUrl?: string;
+  };
   rating: number;
   content: string;
   createdAt?: string;
@@ -98,8 +101,8 @@ export default function ExperienceDetailReviews({
             >
               {/* 사용자 정보 */}
               <div className="flex items-center gap-2 mb-2 md:mb-3">
-                <p className="typo-14-sb md:text-base text-gray-950">
-                  {review.nickname}
+                <p className="typo-14-sb md:text-base md:font-bold text-gray-950">
+                  {review.user?.nickname || "익명"}
                 </p>
                 {review.createdAt && (
                   <span className="typo-12-sb md:text-sm text-gray-500">
