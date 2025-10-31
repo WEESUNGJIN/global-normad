@@ -97,7 +97,6 @@ export default function ReservationBottomSheet({
       return;
     }
 
-    // ✅ 예약 정보만 상위로 전달
     onConfirm({ date: selectedDate, time: selectedTime, count });
     onClose();
   };
@@ -125,7 +124,12 @@ export default function ReservationBottomSheet({
                   <p className="typo-16-b mb-4 text-gray-950">
                     예약 가능한 시간
                   </p>
-                  {availableTimes.length > 0 ? (
+
+                  {!selectedDate ? (
+                    <p className="text-center typo-14-m text-gray-800">
+                      날짜를 선택해주세요.
+                    </p>
+                  ) : availableTimes.length > 0 ? (
                     <div className="flex flex-col gap-3">
                       {availableTimes.map((time) => (
                         <button
@@ -143,8 +147,8 @@ export default function ReservationBottomSheet({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-center typo-16-m text-gray-700">
-                      날짜를 선택해주세요.
+                    <p className="text-center typo-14-m text-gray-800">
+                      선택한 날짜에는 예약 가능한 시간이 없습니다.
                     </p>
                   )}
                 </div>
@@ -216,7 +220,12 @@ export default function ReservationBottomSheet({
             <div className="bg-white md:shadow-searchbar md:rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
               <div>
                 <p className="typo-16-b mb-4 text-gray-950">예약 가능한 시간</p>
-                {availableTimes.length > 0 ? (
+
+                {!selectedDate ? (
+                  <p className="text-center typo-14-m text-gray-800">
+                    날짜를 선택해주세요.
+                  </p>
+                ) : availableTimes.length > 0 ? (
                   <div className="flex flex-col gap-3">
                     {availableTimes.map((time) => (
                       <button
@@ -234,8 +243,8 @@ export default function ReservationBottomSheet({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center typo-16-m text-gray-700">
-                    날짜를 선택해주세요.
+                  <p className="text-center typo-14-m text-gray-800">
+                    선택한 날짜에는 예약 가능한 시간이 없습니다.
                   </p>
                 )}
 
@@ -283,7 +292,7 @@ export default function ReservationBottomSheet({
                 : "bg-gray-300 text-white",
             )}
             disabled={!selectedDate || !selectedTime}
-            onClick={handleConfirm} // ✅ 여기서 상위 전달만 수행
+            onClick={handleConfirm}
           >
             확인
           </button>
