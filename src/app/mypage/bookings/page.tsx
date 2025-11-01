@@ -318,7 +318,9 @@ export default function BookingsPage() {
                   setOpenReviewModal(true);
                 }}
                 onClickChange={() =>
-                  router.push(`/experience-detail/${r.activity.id}`)
+                  router.push(
+                    `/experience-detail/${r.activity.id}?mode=edit&reservationId=${r.id}`,
+                  )
                 }
                 onClickCancel={() => {
                   setTargetReservation(r);
