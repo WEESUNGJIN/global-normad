@@ -68,7 +68,7 @@ export default function Main() {
       className="relative min-h-screen bg-top bg-no-repeat bg-cover overflow-hidden"
       style={{ backgroundImage: `url(${backgroundColor.src})` }}
     >
-      {/* 구름 배경 */}
+      {/* 구름 레이어 */}
       <div
         className="absolute top-0 left-0 w-[200%] h-full bg-repeat-x bg-contain animate-cloudMove pointer-events-none"
         style={{
@@ -77,7 +77,7 @@ export default function Main() {
       />
 
       {/* 콘텐츠 */}
-      <div className="[&>header]:!bg-transparent [&>header]:!border-transparent relative z-10">
+      <div className="[&>header]:!bg-transparent [&>header]:!border-transparent relative z-[1000]">
         <GNB />
       </div>
 
