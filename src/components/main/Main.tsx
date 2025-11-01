@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import backgroundSky from "@/assets/img/background_sky.png";
+import backgroundColor from "@/assets/img/background_color.png";
+import backgroundCloud from "@/assets/img/background_cloud.png";
 import GNB from "@/components/GNB";
 import HeroSection from "@/components/main/HeroSection";
 import Footer from "@/components/Footer";
@@ -26,7 +27,7 @@ export default function Main() {
     null,
   );
 
-  const [currentPage, setCurrentPage] = useState(1); // 현재 페이지
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
   const handleSearch = async (keyword: string) => {
@@ -64,23 +65,32 @@ export default function Main() {
 
   return (
     <main
-      className="min-h-screen bg-top bg-no-repeat bg-cover"
-      style={{ backgroundImage: `url(${backgroundSky.src})` }}
+      className="relative min-h-screen bg-top bg-no-repeat bg-cover overflow-hidden"
+      style={{ backgroundImage: `url(${backgroundColor.src})` }}
     >
-      <div className="[&>header]:!bg-transparent [&>header]:!border-transparent">
+      {/* 구름 배경 */}
+      <div
+        className="absolute top-0 left-0 w-[200%] h-full bg-repeat-x bg-contain animate-cloudMove pointer-events-none"
+        style={{
+          backgroundImage: `url(${backgroundCloud.src})`,
+        }}
+      />
+
+      {/* 콘텐츠 */}
+      <div className="[&>header]:!bg-transparent [&>header]:!border-transparent relative z-10">
         <GNB />
       </div>
 
-      <div className="px-6 md:px-8 lg:px-100">
+      <div className="px-6 md:px-8 lg:px-100 relative z-10">
         <HeroSection />
       </div>
 
-      <div className="px-6 md:px-16 lg:px-[439px]">
+      <div className="px-6 md:px-16 lg:px-[439px] relative z-10">
         <SearchSection onSearch={handleSearch} />
       </div>
 
       {isSearching ? (
-        <div className="px-6 md:px-8 pt-11 md:pt-18 lg:pt-[90px] pb-32 md:pb-[200px]">
+        <div className="px-6 md:px-8 pt-11 md:pt-18 lg:pt-[90px] pb-32 md:pb-[200px] relative z-10">
           <div className="max-w-[1120px] mx-auto">
             <h2 className="typo-18-m md:text-2xl mb-2 text-gray-950">
               <span className="font-bold">{searchKeyword}</span> (으)로 검색한
@@ -136,11 +146,11 @@ export default function Main() {
         </div>
       ) : (
         <>
-          <div className="max-w-[1120px] mx-auto">
+          <div className="max-w-[1120px] mx-auto relative z-10">
             <PopularSection />
           </div>
 
-          <div className="max-w-[1120px] mx-auto">
+          <div className="max-w-[1120px] mx-auto relative z-10">
             <CategorySection
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
