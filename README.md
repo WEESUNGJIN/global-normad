@@ -3,10 +3,10 @@
   <img src="https://github.com/user-attachments/assets/69b368d2-78f2-4493-ba4a-42be6ba72496" width="100" />
 </p>
 
-<img width="1440" height="1024" alt="image" src="https://github.com/user-attachments/assets/9d02d7e4-3cc6-442f-b650-190078ace71c" />
+<img width="600" height="500" alt="image" src="https://github.com/user-attachments/assets/9d02d7e4-3cc6-442f-b650-190078ace71c" />
 
 
-<p align="center">
+<p>
   <a href="https://inmyday.vercel.app/" target="_blank"><b>🔗 In My Day 배포 링크</b></a>
 </p>
 
